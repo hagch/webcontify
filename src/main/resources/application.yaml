@@ -1,0 +1,10 @@
+spring:
+  application:
+      name: webcontify
+  datasource:
+      driver-class-name: ${datasourceDriver}
+      url: ${datasourceJdbcUrl}
+      username: ${datasourceUsername}
+      password: ${datasourcePassword}
+  jooq:
+      sql-dialect: postgres

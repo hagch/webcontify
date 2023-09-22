@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    container_name: 'webcontify-database'
+    environment:
+      - 'POSTGRES_DB=webcontify'
+      - 'POSTGRES_PASSWORD=webcontify'
+      - 'POSTGRES_USER=webcontify'
+    ports:
+      - '5432:5432'
