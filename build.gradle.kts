@@ -35,7 +35,7 @@ jooq {
 						excludes = ""
 					}
 					target.apply {
-						packageName = "io.webcontify.jooq"
+						packageName = "io.webcontify.backend.jooq"
 						directory = "build/generated/sources/jooq"
 					}
 					generate.apply {

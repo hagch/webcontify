@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class WebContifyBackendApplication
 
 fun main(args: Array<String>) {
-	runApplication<WebContifyBackendApplication>(*args)
+    runApplication<WebContifyBackendApplication>(*args)
 }
