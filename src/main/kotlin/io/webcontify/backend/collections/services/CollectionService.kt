@@ -1,13 +1,12 @@
 package io.webcontify.backend.collections.services
 
-import io.webcontify.backend.collections.repositories.CollectionRepository
-import io.webcontify.backend.jooq.tables.pojos.WebcontifyCollection
+import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
 import org.springframework.stereotype.Component
 
 @Component
-class CollectionService(val repository: CollectionRepository) {
+class CollectionService(val repository: CollectionDao) {
 
-    fun getAll(): List<WebcontifyCollection> {
+    fun getAll(): Set<WebcontifyCollectionRecord> {
         return repository.getAll()
     }
 }
