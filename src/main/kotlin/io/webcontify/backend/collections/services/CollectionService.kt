@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component
 @Component
 class CollectionService(val repository: CollectionDao) {
 
-    fun getAll(): Set<WebcontifyCollectionRecord> {
-        return repository.getAll()
-    }
+  fun getAll(): Set<WebcontifyCollectionRecord> {
+    return repository.getAll()
+  }
 }

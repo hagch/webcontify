@@ -7,10 +7,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class CollectionController(val service: CollectionService) {
 
-    @GetMapping("collections")
-    fun get(): Set<String?> {
-        return service.getAll().map {
-            it.displayName
-        }.toHashSet()
-    }
+  @GetMapping("collections")
+  fun get(): Set<String?> {
+    return service.getAll().map { it.displayName }.toHashSet()
+  }
 }
