@@ -56,7 +56,6 @@ jooq {
             packageName = "io.webcontify.backend.jooq"
             directory = "build/generated/sources/jooq"
           }
-          generate.apply { isPojosAsKotlinDataClasses = true }
         }
       }
     }

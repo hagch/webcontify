@@ -2,20 +2,27 @@ package io.webcontify.backend.collections.services
 
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION
+import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
+import io.webcontify.backend.models.WebContifyCollectionColumnDto
+import io.webcontify.backend.models.WebContifyCollectionDto
 import org.jooq.DSLContext
+import org.jooq.impl.DSL.*
 import org.springframework.stereotype.Component
 
 @Component
 class CollectionDao(val dslContext: DSLContext) {
 
-  fun getById(id: Int?): WebcontifyCollectionRecord {
+  fun getById(id: Int?): WebContifyCollectionDto {
     return dslContext
-        .selectFrom(WEBCONTIFY_COLLECTION)
+        .select(
+            WEBCONTIFY_COLLECTION.asterisk(),
+            selectFrom(WEBCONTIFY_COLLECTION_COLUMN)
+                .where(WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(id))
+                .asMultiset("columns")
+                .convertFrom { r -> r.into(WebContifyCollectionColumnDto::class.java) })
+        .from(WEBCONTIFY_COLLECTION)
         .where(WEBCONTIFY_COLLECTION.ID.eq(id))
-        .orderBy(
-            WEBCONTIFY_COLLECTION.ID,
-        )
-        .fetchAny()
+        .fetchOneInto(WebContifyCollectionDto::class.java)
         ?: throw RuntimeException()
   }
 
