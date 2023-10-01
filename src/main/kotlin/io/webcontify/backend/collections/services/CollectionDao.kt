@@ -12,7 +12,11 @@ import org.jooq.*
 import org.springframework.stereotype.Component
 
 @Component
-class CollectionDao(val dslContext: DSLContext, val converter: CollectionConverter) {
+class CollectionDao(
+    val dslContext: DSLContext,
+    val converter: CollectionConverter,
+    val columnDao: CollectionColumnDao
+) {
 
   fun getById(id: Int?): WebContifyCollectionDto {
     val collection =
@@ -36,6 +40,7 @@ class CollectionDao(val dslContext: DSLContext, val converter: CollectionConvert
   }
 
   fun deleteById(id: Int?) {
+    columnDao.deleteAllForCollection(id)
     dslContext
         .deleteFrom(WEBCONTIFY_COLLECTION)
         .where(WEBCONTIFY_COLLECTION.ID.eq(id))
@@ -66,19 +71,9 @@ class CollectionDao(val dslContext: DSLContext, val converter: CollectionConvert
         }
     val columns =
         record.columns
-            ?.map { column ->
-              dslContext.newRecord(WEBCONTIFY_COLLECTION_COLUMN).let {
-                it.collectionId = collection.id
-                it.name = column.name
-                it.displayName = column.displayName
-                it.type = column.type
-                it.isPrimaryKey = column.isPrimaryKey
-                it.insert()
-                return@let it
-              }
-            }
+            ?.map { column -> columnDao.create(column.copy(collectionId = collection.id)) }
             ?.toHashSet()
-    return converter.convertToDto(collection, columns ?: HashSet())
+    return converter.convertCollectionToDto(collection, columns ?: HashSet())
   }
 
   private fun SelectConnectByStep<Record>.collectToCollectionMap():

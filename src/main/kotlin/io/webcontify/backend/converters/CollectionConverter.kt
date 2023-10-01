@@ -2,6 +2,7 @@ package io.webcontify.backend.converters
 
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
+import io.webcontify.backend.models.WebContifyCollectionColumnDto
 import io.webcontify.backend.models.WebContifyCollectionDto
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -17,4 +18,17 @@ interface CollectionConverter {
       collection: WebcontifyCollectionRecord,
       columns: Set<WebcontifyCollectionColumnRecord>
   ): WebContifyCollectionDto
+
+  @Mapping(source = "collection.id", target = "id")
+  @Mapping(source = "collection.name", target = "name")
+  @Mapping(source = "collection.displayName", target = "displayName")
+  @Mapping(source = "columns", target = "columns")
+  fun convertCollectionToDto(
+      collection: WebcontifyCollectionRecord,
+      columns: Set<WebContifyCollectionColumnDto>
+  ): WebContifyCollectionDto
+
+  fun convertToDto(
+      column: WebcontifyCollectionColumnRecord,
+  ): WebContifyCollectionColumnDto
 }
