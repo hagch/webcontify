@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RestController
 class CollectionController(val service: CollectionService) {
 
   @GetMapping("collections")
-  fun get(): Set<String?> {
-    return service.getAll().map { it.displayName }.toHashSet()
+  fun get(): Set<WebContifyCollectionDto> {
+    return service.getAll()
   }
 
   @GetMapping("collections/{id}")

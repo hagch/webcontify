@@ -7,6 +7,7 @@ plugins {
   id("com.diffplug.spotless") version "6.21.0"
   kotlin("jvm") version "1.8.22"
   kotlin("plugin.spring") version "1.8.22"
+  kotlin("kapt") version "1.9.10"
   application
 }
 
@@ -72,6 +73,8 @@ dependencies {
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("org.springframework.modulith:spring-modulith-starter-core")
+  implementation("org.mapstruct:mapstruct:1.5.5.Final")
+  kapt("org.mapstruct:mapstruct-processor:1.5.5.Final")
   compileOnly("org.projectlombok:lombok")
   developmentOnly("org.springframework.boot:spring-boot-docker-compose")
   runtimeOnly("org.postgresql:postgresql")
