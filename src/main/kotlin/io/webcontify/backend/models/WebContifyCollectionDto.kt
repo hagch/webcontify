@@ -3,9 +3,9 @@ package io.webcontify.backend.models
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 
 data class WebContifyCollectionDto(
-    val id: Long,
+    val id: Int?,
     val name: String,
-    val displayName: String,
+    val displayName: String?,
     val columns: List<WebContifyCollectionColumnDto>?
 )
 
