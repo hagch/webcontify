@@ -10,7 +10,9 @@ data class WebContifyCollectionDto(
 )
 
 data class WebContifyCollectionColumnDto(
+    val collectionId: Int?,
     val name: String,
     val displayName: String,
-    val type: WebcontifyCollectionColumnType
+    val type: WebcontifyCollectionColumnType,
+    val isPrimaryKey: Boolean
 )

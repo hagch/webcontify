@@ -58,12 +58,27 @@ class CollectionDao(val dslContext: DSLContext, val converter: CollectionConvert
   }
 
   fun create(record: WebContifyCollectionDto): WebContifyCollectionDto {
-    return dslContext.newRecord(WEBCONTIFY_COLLECTION).let {
-      it.displayName = record.displayName
-      it.name = record.name
-      it.insert()
-      return@let converter.convertToDto(it, HashSet())
-    }
+    val collection =
+        dslContext.newRecord(WEBCONTIFY_COLLECTION).apply {
+          this.displayName = record.displayName
+          this.name = record.name
+          this.insert()
+        }
+    val columns =
+        record.columns
+            ?.map { column ->
+              dslContext.newRecord(WEBCONTIFY_COLLECTION_COLUMN).let {
+                it.collectionId = collection.id
+                it.name = column.name
+                it.displayName = column.displayName
+                it.type = column.type
+                it.isPrimaryKey = column.isPrimaryKey
+                it.insert()
+                return@let it
+              }
+            }
+            ?.toHashSet()
+    return converter.convertToDto(collection, columns ?: HashSet())
   }
 
   private fun SelectConnectByStep<Record>.collectToCollectionMap():
