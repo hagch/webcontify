@@ -4,7 +4,7 @@ import io.webcontify.backend.models.WebContifyCollectionDto
 import org.springframework.stereotype.Component
 
 @Component
-class CollectionRepository(val dao: CollectionDao) {
+class CollectionRepository(val dao: CollectionDao, val tableDao: CollectionCreateTableDao) {
 
   fun getAll(): Set<WebContifyCollectionDto> {
     return dao.getAll()
@@ -19,7 +19,7 @@ class CollectionRepository(val dao: CollectionDao) {
   }
 
   fun create(collection: WebContifyCollectionDto): WebContifyCollectionDto {
-    return dao.create(collection)
+    return dao.create(collection).also { tableDao.createTable(it) }
   }
 
   fun update(collection: WebContifyCollectionDto): WebContifyCollectionDto {

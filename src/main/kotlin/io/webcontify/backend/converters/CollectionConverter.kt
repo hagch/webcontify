@@ -28,6 +28,11 @@ interface CollectionConverter {
       columns: Set<WebContifyCollectionColumnDto>
   ): WebContifyCollectionDto
 
+  @Mapping(source = "collectionId", target = "collectionId")
+  @Mapping(source = "name", target = "name")
+  @Mapping(source = "displayName", target = "displayName")
+  @Mapping(source = "type", target = "type")
+  @Mapping(source = "primaryKey", target = "isPrimaryKey")
   fun convertToDto(
       column: WebcontifyCollectionColumnRecord,
   ): WebContifyCollectionColumnDto
