@@ -7,17 +7,17 @@ import org.springframework.web.bind.annotation.*
 @RestController
 class CollectionColumnController(val service: CollectionColumnRepository) {
 
-  @GetMapping("collections/items")
+  @GetMapping("collections/columns")
   fun get(): Set<WebContifyCollectionColumnDto> {
     return service.getAll()
   }
 
-  @PostMapping("collections/{collectionId}/items/{name}")
+  @PostMapping("collections/{collectionId}/columns/{name}")
   fun create(@RequestBody column: WebContifyCollectionColumnDto): WebContifyCollectionColumnDto {
     return service.create(column)
   }
 
-  @GetMapping("collections/{collectionId}/items/{name}")
+  @GetMapping("collections/{collectionId}/columns/{name}")
   fun getById(
       @PathVariable("collectionId") collectionId: Int,
       @PathVariable("name") name: String
@@ -25,7 +25,7 @@ class CollectionColumnController(val service: CollectionColumnRepository) {
     return service.getById(collectionId, name)
   }
 
-  @PutMapping("collections/{collectionId}/items/{name}")
+  @PutMapping("collections/{collectionId}/columns/{name}")
   fun update(
       @PathVariable("collectionId") collectionId: Int,
       @PathVariable("name") name: String,
@@ -34,17 +34,17 @@ class CollectionColumnController(val service: CollectionColumnRepository) {
     return service.update(column)
   }
 
-  @DeleteMapping("collections/{collectionId}/items/{name}")
+  @DeleteMapping("collections/{collectionId}/columns/{name}")
   fun delete(@PathVariable("collectionId") collectionId: Int, @PathVariable("name") name: String) {
     return service.deleteById(collectionId, name)
   }
 
-  @DeleteMapping("collections/{collectionId}/items")
+  @DeleteMapping("collections/{collectionId}/columns")
   fun deleteAllForCollection(@PathVariable("collectionId") collectionId: Int) {
     return service.deleteAllForCollection(collectionId)
   }
 
-  @GetMapping("collections/{collectionId}/items")
+  @GetMapping("collections/{collectionId}/columns")
   fun getAllForCollection(
       @PathVariable("collectionId") collectionId: Int
   ): Set<WebContifyCollectionColumnDto> {
