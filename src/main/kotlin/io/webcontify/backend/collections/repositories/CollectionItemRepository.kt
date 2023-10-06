@@ -9,8 +9,13 @@ class CollectionItemRepository(
     val collectionItemDao: CollectionItemDao
 ) {
 
-  fun getById(collectionId: Int, primaryKeysValueMap: Map<String, Any>): Map<String, Any> {
-    return collectionItemDao.getItemByIdFor(
-        collectionRepository.getById(collectionId).name, primaryKeysValueMap)
+  fun getById(collectionId: Int, identifierMap: Map<String, String?>): Map<String, Any> {
+    val collection = collectionRepository.getById(collectionId)
+    return collectionItemDao.getItemByIdFor(collection, identifierMap)
+  }
+
+  fun create(collectionId: Int, item: Map<String,Any>): Map<String, Any> {
+    val collection = collectionRepository.getById(collectionId)
+    return collectionItemDao.create(collection, item)
   }
 }
