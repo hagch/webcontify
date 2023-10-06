@@ -1,14 +1,13 @@
-package io.webcontify.backend.collections.services
+package io.webcontify.backend.collections.daos
 
-import io.webcontify.backend.converters.CollectionConverter
+import io.webcontify.backend.collections.mappers.CollectionMapper
+import io.webcontify.backend.collections.models.WebContifyCollectionColumnDto
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
-import io.webcontify.backend.models.WebContifyCollectionColumnDto
-import java.util.stream.Collectors.*
 import org.jooq.*
 import org.springframework.stereotype.Component
 
 @Component
-class CollectionColumnDao(val dslContext: DSLContext, val converter: CollectionConverter) {
+class CollectionColumnDao(val dslContext: DSLContext, val mapper: CollectionMapper) {
 
   fun getById(collectionId: Int?, name: String?): WebContifyCollectionColumnDto {
     val column =
@@ -68,7 +67,7 @@ class CollectionColumnDao(val dslContext: DSLContext, val converter: CollectionC
       it.isPrimaryKey = record.isPrimaryKey
       it.type = record.type
       it.update()
-      return@let converter.convertToDto(it)
+      return@let mapper.mapToDto(it)
     }
   }
 
@@ -80,7 +79,7 @@ class CollectionColumnDao(val dslContext: DSLContext, val converter: CollectionC
       it.type = column.type
       it.isPrimaryKey = column.isPrimaryKey
       it.insert()
-      return@let converter.convertToDto(it)
+      return@let mapper.mapToDto(it)
     }
   }
 }

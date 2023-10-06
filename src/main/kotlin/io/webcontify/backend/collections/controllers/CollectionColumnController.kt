@@ -1,7 +1,7 @@
-package io.webcontify.backend.collections
+package io.webcontify.backend.collections.controllers
 
-import io.webcontify.backend.collections.services.CollectionColumnRepository
-import io.webcontify.backend.models.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.repositories.CollectionColumnRepository
 import org.springframework.web.bind.annotation.*
 
 @RestController

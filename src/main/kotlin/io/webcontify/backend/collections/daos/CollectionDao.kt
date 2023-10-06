@@ -1,11 +1,11 @@
-package io.webcontify.backend.collections.services
+package io.webcontify.backend.collections.daos
 
-import io.webcontify.backend.converters.CollectionConverter
+import io.webcontify.backend.collections.mappers.CollectionMapper
+import io.webcontify.backend.collections.models.WebContifyCollectionDto
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
-import io.webcontify.backend.models.WebContifyCollectionDto
 import java.util.stream.Collectors
 import java.util.stream.Collectors.*
 import org.jooq.*
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 @Component
 class CollectionDao(
     val dslContext: DSLContext,
-    val converter: CollectionConverter,
+    val mapper: CollectionMapper,
     val columnDao: CollectionColumnDao
 ) {
 
@@ -26,7 +26,7 @@ class CollectionDao(
             .leftJoin(WEBCONTIFY_COLLECTION_COLUMN)
             .onKey()
             .where(WEBCONTIFY_COLLECTION.ID.eq(id))
-            .asWebcontifyCollectionDto(converter)
+            .asWebcontifyCollectionDto(mapper)
     return collection ?: throw RuntimeException()
   }
 
@@ -36,7 +36,7 @@ class CollectionDao(
         .from(WEBCONTIFY_COLLECTION)
         .leftJoin(WEBCONTIFY_COLLECTION_COLUMN)
         .onKey()
-        .asWebcontifyCollectionDtoSet(converter)
+        .asWebcontifyCollectionDtoSet(mapper)
   }
 
   fun deleteById(id: Int?) {
@@ -58,7 +58,7 @@ class CollectionDao(
       it.name = record.name
       it.id = record.id
       it.update()
-      return@let converter.convertToDto(it, HashSet())
+      return@let mapper.mapToDto(it, HashSet())
     }
   }
 
@@ -73,7 +73,7 @@ class CollectionDao(
         record.columns
             ?.map { column -> columnDao.create(column.copy(collectionId = collection.id)) }
             ?.toHashSet()
-    return converter.convertCollectionToDto(collection, columns ?: HashSet())
+    return mapper.mapCollectionToDto(collection, columns ?: HashSet())
   }
 
   private fun SelectConnectByStep<Record>.collectToCollectionMap():
@@ -89,18 +89,18 @@ class CollectionDao(
   }
 
   private fun SelectConnectByStep<Record>.asWebcontifyCollectionDto(
-      converter: CollectionConverter
+      converter: CollectionMapper
   ): WebContifyCollectionDto? {
     return this.collectToCollectionMap().firstNotNullOfOrNull { (collection, columns) ->
-      converter.convertToDto(collection, columns)
+      converter.mapToDto(collection, columns)
     }
   }
 
   private fun SelectConnectByStep<Record>.asWebcontifyCollectionDtoSet(
-      converter: CollectionConverter
+      converter: CollectionMapper
   ): Set<WebContifyCollectionDto> {
     return this.collectToCollectionMap()
-        .map { (collection, columns) -> converter.convertToDto(collection, columns) }
+        .map { (collection, columns) -> converter.mapToDto(collection, columns) }
         .toHashSet()
   }
 }

@@ -1,20 +1,20 @@
-package io.webcontify.backend.converters
+package io.webcontify.backend.collections.mappers
 
+import io.webcontify.backend.collections.models.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.WebContifyCollectionDto
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
-import io.webcontify.backend.models.WebContifyCollectionColumnDto
-import io.webcontify.backend.models.WebContifyCollectionDto
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 
 @Mapper(componentModel = "spring")
-interface CollectionConverter {
+interface CollectionMapper {
 
   @Mapping(source = "collection.id", target = "id")
   @Mapping(source = "collection.name", target = "name")
   @Mapping(source = "collection.displayName", target = "displayName")
   @Mapping(source = "columns", target = "columns")
-  fun convertToDto(
+  fun mapToDto(
       collection: WebcontifyCollectionRecord,
       columns: Set<WebcontifyCollectionColumnRecord>
   ): WebContifyCollectionDto
@@ -23,7 +23,7 @@ interface CollectionConverter {
   @Mapping(source = "collection.name", target = "name")
   @Mapping(source = "collection.displayName", target = "displayName")
   @Mapping(source = "columns", target = "columns")
-  fun convertCollectionToDto(
+  fun mapCollectionToDto(
       collection: WebcontifyCollectionRecord,
       columns: Set<WebContifyCollectionColumnDto>
   ): WebContifyCollectionDto
@@ -33,7 +33,7 @@ interface CollectionConverter {
   @Mapping(source = "displayName", target = "displayName")
   @Mapping(source = "type", target = "type")
   @Mapping(source = "primaryKey", target = "isPrimaryKey")
-  fun convertToDto(
+  fun mapToDto(
       column: WebcontifyCollectionColumnRecord,
   ): WebContifyCollectionColumnDto
 }

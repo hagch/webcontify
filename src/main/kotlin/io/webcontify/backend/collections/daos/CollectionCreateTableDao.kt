@@ -1,10 +1,9 @@
-package io.webcontify.backend.collections.services
+package io.webcontify.backend.collections.daos
 
+import io.webcontify.backend.collections.models.WebContifyCollectionDto
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
-import io.webcontify.backend.models.WebContifyCollectionDto
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.*
-import org.jooq.impl.SQLDataType.*
 import org.springframework.stereotype.Component
 
 @Component
