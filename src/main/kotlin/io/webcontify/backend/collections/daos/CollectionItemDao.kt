@@ -1,5 +1,6 @@
 package io.webcontify.backend.collections.daos
 
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
 import org.jooq.DSLContext
@@ -17,32 +18,31 @@ class CollectionItemDao(
       collection: WebContifyCollectionDto,
       identifierMap: Map<String, String?>
   ): Map<String, Any> {
-    val columnTypeMap = getColumnTypeMap(collection)
-    val identifierTypeMap =
-        identifierMap.entries.associate { it.key to Pair(it.value, columnTypeMap[it.key]) }
+    val identifierTypeMap = identifierMap.entries.toIdentifierMap(collection)
     val fields =
         identifierTypeMap
             .map {
               if (it.value.second == null) {
-                field("${collection.name}.${it.key}").eq(it.value.first)
+                field("${collection.name.doubleQuote()}.${it.key.doubleQuote()}").eq(it.value.first)
               } else {
-                field("${collection.name}.${it.key}").eq(cast(it.value.first, it.value.second))
+                field("${collection.name.doubleQuote()}.${it.key.doubleQuote()}")
+                    .eq(cast(it.value.first, it.value.second))
               }
             }
             .toMutableList()
     val map =
-        dslContext.selectFrom(collection.name).where(fields).fetchOne { record ->
-          identifierTypeMap.map { it.key to record.getValue(it.key) }.toMap()
+        dslContext.selectFrom(collection.name.doubleQuote()).where(fields).fetchOne { record ->
+          identifierTypeMap
+              .map { it.key.lowercase().snakeToCamelCase() to record.getValue(it.key) }
+              .toMap()
         }
             ?: mutableMapOf()
     return map
   }
 
   fun create(collection: WebContifyCollectionDto, item: Map<String, Any>): Map<String, Any> {
-    val columnTypeMap = getColumnTypeMap(collection)
-    val identifierTypeMap =
-        item.entries.associate { it.key to Pair(it.value, columnTypeMap[it.key]) }
-    val fields = item.keys.map { field("\"${it}\"") }
+    val identifierTypeMap = item.entries.toIdentifierMap(collection)
+    val fields = item.keys.map { field(it.camelToSnakeCase().doubleQuote()) }
     val values =
         identifierTypeMap
             .map {
@@ -53,17 +53,48 @@ class CollectionItemDao(
               }
             }
             .toMutableList()
-    dslContext.insertInto(table(collection.name), fields).values(values).execute().let {
-      if (it != 1) {
-        throw RuntimeException()
-      }
-    }
+    dslContext
+        .insertInto(table(collection.name.doubleQuote()), fields)
+        .values(values)
+        .execute()
+        .let {
+          if (it != 1) {
+            throw RuntimeException()
+          }
+        }
     return item
   }
 
-  private fun getColumnTypeMap(collection: WebContifyCollectionDto): Map<String, DataType<*>> {
+  private fun getColumnTypeMap(
+      collection: WebContifyCollectionDto
+  ): Map<String, Pair<WebContifyCollectionColumnDto, DataType<*>>> {
     return collection.columns?.associateBy(
-        { it.name }, { columnHandlerStrategy.getHandlerFor(it.type).getColumnType() })
+        { it.name.lowercase() },
+        { Pair(it, columnHandlerStrategy.getHandlerFor(it.type).getColumnType()) })
         ?: mapOf()
+  }
+
+  private fun Set<Map.Entry<*, *>>.toIdentifierMap(
+      collection: WebContifyCollectionDto
+  ): Map<String, Pair<Any?, DataType<*>?>> {
+    val columnTypeMap = getColumnTypeMap(collection)
+    return this.associate {
+      (columnTypeMap[it.key]?.first?.name
+          ?: throw RuntimeException()) to Pair(it.value, columnTypeMap[it.key]?.second)
+    }
+  }
+
+  private fun String.snakeToCamelCase(): String {
+    val pattern = "_[a-z]".toRegex()
+    return replace(pattern) { it.value.last().uppercase() }
+  }
+
+  private fun String.camelToSnakeCase(): String {
+    val pattern = "(?<=.)[A-Z]".toRegex()
+    return this.replace(pattern, "_$0").uppercase()
+  }
+
+  private fun String.doubleQuote(): String {
+    return "\"${this}\""
   }
 }

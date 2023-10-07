@@ -1,7 +1,7 @@
 package io.webcontify.backend.collections.repositories
 
-import io.webcontify.backend.collections.daos.CollectionTableDao
 import io.webcontify.backend.collections.daos.CollectionDao
+import io.webcontify.backend.collections.daos.CollectionTableDao
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import org.springframework.stereotype.Component
 

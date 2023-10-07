@@ -1,6 +1,7 @@
 package io.webcontify.backend.collections.controllers
 
 import io.webcontify.backend.collections.repositories.CollectionItemRepository
+import java.util.*
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -49,7 +50,9 @@ class CollectionItemController(val collectionItemRepository: CollectionItemRepos
             throw RuntimeException() // TODO at least one primary key
           }
         }
-        ?.chunked(2) { Pair(it[0], mapNullString(it.elementAtOrNull(1))) }
+        ?.chunked(2) {
+          Pair(it.elementAtOrElse(0) { "" }.lowercase(), mapNullString(it.elementAtOrNull(1)))
+        }
         ?.associateBy({ it.first }, { it.second })
         ?: throw RuntimeException()
   }

@@ -17,7 +17,8 @@ class CollectionItemRepository(
   fun getById(collectionId: Int, itemId: String): Map<String, Any> {
     val collection = collectionRepository.getById(collectionId)
     val primaryKey = collection.columns?.first { it.isPrimaryKey } ?: throw RuntimeException()
-    return collectionItemDao.getItemByIdFor(collection, mapOf(Pair(primaryKey.name, itemId)))
+    return collectionItemDao.getItemByIdFor(
+        collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)))
   }
 
   fun create(collectionId: Int, item: Map<String, Any>): Map<String, Any> {
