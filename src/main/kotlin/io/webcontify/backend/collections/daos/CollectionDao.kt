@@ -1,7 +1,7 @@
 package io.webcontify.backend.collections.daos
 
 import io.webcontify.backend.collections.mappers.CollectionMapper
-import io.webcontify.backend.collections.models.WebContifyCollectionDto
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION
@@ -58,7 +58,7 @@ class CollectionDao(
       it.name = record.name
       it.id = record.id
       it.update()
-      return@let mapper.mapToDto(it, HashSet())
+      return@let mapper.mapCollectionToDto(it, columnDao.getAllForCollection(it.id))
     }
   }
 

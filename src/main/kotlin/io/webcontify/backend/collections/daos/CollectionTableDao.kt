@@ -1,13 +1,14 @@
 package io.webcontify.backend.collections.daos
 
-import io.webcontify.backend.collections.models.WebContifyCollectionDto
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.*
 import org.springframework.stereotype.Component
 
 @Component
-class CollectionCreateTableDao(
+class CollectionTableDao(
     val dslContext: DSLContext,
     val columStrategy: ColumnHandlerStrategy
 ) {
@@ -29,5 +30,15 @@ class CollectionCreateTableDao(
     }
     tableBuilder.constraints(constraint("PK_" + collection.name).primaryKey(primaryKeyColums))
     tableBuilder.execute()
+  }
+
+  fun updateTableName(newName: String, oldName: String) {
+    if(oldName != newName){
+      dslContext.alterTableIfExists(oldName).renameTo(newName).execute()
+    }
+  }
+
+  fun deleteTable(name: String) {
+    dslContext.dropTableIfExists(name).execute()
   }
 }

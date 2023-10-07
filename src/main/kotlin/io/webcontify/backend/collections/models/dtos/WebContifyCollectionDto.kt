@@ -1,4 +1,4 @@
-package io.webcontify.backend.collections.models
+package io.webcontify.backend.collections.models.dtos
 
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 

@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.controllers
 
-import io.webcontify.backend.collections.models.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.repositories.CollectionColumnRepository
 import org.springframework.web.bind.annotation.*
 

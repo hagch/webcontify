@@ -1,11 +1,15 @@
 package io.webcontify.backend.collections.controllers
 
-import io.webcontify.backend.collections.models.WebContifyCollectionDto
+import io.webcontify.backend.collections.mappers.CollectionMapper
+import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiCreateRequest
+import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiUpdateRequest
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.repositories.CollectionRepository
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 
 @RestController
-class CollectionController(val service: CollectionRepository) {
+class CollectionController(val service: CollectionRepository, val mapper: CollectionMapper) {
 
   @GetMapping("collections")
   fun get(): Set<WebContifyCollectionDto> {
@@ -13,8 +17,10 @@ class CollectionController(val service: CollectionRepository) {
   }
 
   @PostMapping("collections")
-  fun create(@RequestBody collection: WebContifyCollectionDto): WebContifyCollectionDto {
-    return service.create(collection)
+  fun create(
+      @RequestBody @Valid collection: WebContifyCollectionApiCreateRequest
+  ): WebContifyCollectionDto {
+    return service.create(mapper.mapApiToDto(collection))
   }
 
   @GetMapping("collections/{id}")
@@ -25,13 +31,13 @@ class CollectionController(val service: CollectionRepository) {
   @PutMapping("collections/{id}")
   fun update(
       @PathVariable("id") id: Int,
-      @RequestBody collection: WebContifyCollectionDto
+      @RequestBody @Valid collection: WebContifyCollectionApiUpdateRequest
   ): WebContifyCollectionDto {
-    return service.update(collection)
+    return service.update(mapper.mapApiToDto(collection, id))
   }
 
   @DeleteMapping("collections/{id}")
-  fun delete(@PathVariable("id") id: Int): Unit {
+  fun delete(@PathVariable("id") id: Int) {
     return service.deleteById(id)
   }
 }

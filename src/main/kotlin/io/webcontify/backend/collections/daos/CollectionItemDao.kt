@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.daos
 
-import io.webcontify.backend.collections.models.WebContifyCollectionDto
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
 import org.jooq.DSLContext
 import org.jooq.DataType

@@ -1,7 +1,7 @@
 package io.webcontify.backend.collections.daos
 
 import io.webcontify.backend.collections.mappers.CollectionMapper
-import io.webcontify.backend.collections.models.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
 import org.jooq.*
 import org.springframework.stereotype.Component

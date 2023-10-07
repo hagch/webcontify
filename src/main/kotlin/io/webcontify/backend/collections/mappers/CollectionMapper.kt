@@ -1,7 +1,10 @@
 package io.webcontify.backend.collections.mappers
 
-import io.webcontify.backend.collections.models.WebContifyCollectionColumnDto
-import io.webcontify.backend.collections.models.WebContifyCollectionDto
+import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiCreateRequest
+import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiUpdateRequest
+import io.webcontify.backend.collections.models.apis.WebContifyCollectionColumnApiCreateRequest
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
 import org.mapstruct.Mapper
@@ -35,5 +38,20 @@ interface CollectionMapper {
   @Mapping(source = "primaryKey", target = "isPrimaryKey")
   fun mapToDto(
       column: WebcontifyCollectionColumnRecord,
+  ): WebContifyCollectionColumnDto
+
+  fun mapApiToDto(
+      collectionCreateRequest: WebContifyCollectionApiCreateRequest
+  ): WebContifyCollectionDto
+
+  @Mapping(source = "id", target = "id")
+  fun mapApiToDto(
+      collectionCreateRequest: WebContifyCollectionApiUpdateRequest,
+      id: Int
+  ): WebContifyCollectionDto
+
+  @Mapping(source = "primaryKey", target = "isPrimaryKey")
+  fun mapApiToDto(
+      columnApiCreateRequest: WebContifyCollectionColumnApiCreateRequest
   ): WebContifyCollectionColumnDto
 }
