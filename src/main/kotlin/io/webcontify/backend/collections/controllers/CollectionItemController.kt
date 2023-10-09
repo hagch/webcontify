@@ -36,9 +36,8 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
   }
 
   @GetMapping("/collections/{collectionId}/items")
-  fun getAllForCollection( // TODO throw if empty and get all functionality
-  @PathVariable("collectionId") collectionId: Int): List<Any> {
-    return listOf()
+  fun getAllForCollection(@PathVariable("collectionId") collectionId: Int): List<Any> {
+    return collectionItemService.getAllFor(collectionId)
   }
 
   private fun mapSlugToMap(slug: String?): Map<String, String?> {

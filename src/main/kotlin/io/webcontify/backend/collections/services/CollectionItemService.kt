@@ -21,6 +21,11 @@ class CollectionItemService(
         collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)))
   }
 
+  fun getAllFor(collectionId: Int): List<Map<String, Any>> {
+    val collection = collectionService.getById(collectionId)
+    return collectionItemRepository.getAllFor(collection)
+  }
+
   fun create(collectionId: Int, item: Map<String, Any>): Map<String, Any> {
     val collection = collectionService.getById(collectionId)
     return collectionItemRepository.create(collection, item)
