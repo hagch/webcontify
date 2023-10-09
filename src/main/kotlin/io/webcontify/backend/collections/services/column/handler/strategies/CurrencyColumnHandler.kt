@@ -5,9 +5,9 @@ import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import java.math.BigDecimal
 import org.jooq.DataType
 import org.jooq.impl.SQLDataType
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 
-@Component
+@Service
 class CurrencyColumnHandler : ColumnHandler {
   override fun getColumnType(): DataType<BigDecimal> {
     return SQLDataType.DECIMAL

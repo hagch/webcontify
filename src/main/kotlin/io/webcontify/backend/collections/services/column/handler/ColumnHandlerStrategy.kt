@@ -2,9 +2,9 @@ package io.webcontify.backend.collections.services.column.handler
 
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import jakarta.annotation.PostConstruct
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 
-@Component
+@Service
 class ColumnHandlerStrategy(private val handlers: List<ColumnHandler>) {
 
   private val handlerMap: MutableMap<WebcontifyCollectionColumnType, ColumnHandler> = mutableMapOf()

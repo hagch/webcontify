@@ -4,12 +4,12 @@ import io.webcontify.backend.collections.mappers.CollectionMapper
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiCreateRequest
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiUpdateRequest
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
-import io.webcontify.backend.collections.repositories.CollectionRepository
+import io.webcontify.backend.collections.services.CollectionService
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 
 @RestController
-class CollectionController(val service: CollectionRepository, val mapper: CollectionMapper) {
+class CollectionController(val service: CollectionService, val mapper: CollectionMapper) {
 
   @GetMapping("collections")
   fun get(): Set<WebContifyCollectionDto> {

@@ -4,9 +4,9 @@ import io.webcontify.backend.collections.services.column.handler.ColumnHandler
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import org.jooq.DataType
 import org.jooq.impl.SQLDataType
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 
-@Component
+@Service
 class BooleanColumnHandler : ColumnHandler {
   override fun getColumnType(): DataType<Boolean> {
     return SQLDataType.BOOLEAN

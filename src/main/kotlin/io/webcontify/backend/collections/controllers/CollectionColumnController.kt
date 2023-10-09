@@ -1,11 +1,11 @@
 package io.webcontify.backend.collections.controllers
 
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
-import io.webcontify.backend.collections.repositories.CollectionColumnRepository
+import io.webcontify.backend.collections.services.CollectionColumnService
 import org.springframework.web.bind.annotation.*
 
 @RestController
-class CollectionColumnController(val service: CollectionColumnRepository) {
+class CollectionColumnController(val service: CollectionColumnService) {
 
   @GetMapping("collections/columns")
   fun get(): Set<WebContifyCollectionColumnDto> {

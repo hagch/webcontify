@@ -1,32 +1,106 @@
 package io.webcontify.backend.collections.repositories
 
-import io.webcontify.backend.collections.daos.CollectionDao
-import io.webcontify.backend.collections.daos.CollectionTableDao
+import io.webcontify.backend.collections.mappers.CollectionMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
-import org.springframework.stereotype.Component
+import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
+import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
+import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION
+import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
+import java.util.stream.Collectors
+import java.util.stream.Collectors.*
+import org.jooq.*
+import org.springframework.stereotype.Repository
 
-@Component
-class CollectionRepository(val dao: CollectionDao, val tableDao: CollectionTableDao) {
+@Repository
+class CollectionRepository(
+    val dslContext: DSLContext,
+    val mapper: CollectionMapper,
+    val columnRepository: CollectionColumnRepository
+) {
+
+  fun getById(id: Int?): WebContifyCollectionDto {
+    val collection =
+        dslContext
+            .select()
+            .from(WEBCONTIFY_COLLECTION)
+            .leftJoin(WEBCONTIFY_COLLECTION_COLUMN)
+            .onKey()
+            .where(WEBCONTIFY_COLLECTION.ID.eq(id))
+            .asWebcontifyCollectionDto(mapper)
+    return collection ?: throw RuntimeException()
+  }
 
   fun getAll(): Set<WebContifyCollectionDto> {
-    return dao.getAll()
+    return dslContext
+        .select()
+        .from(WEBCONTIFY_COLLECTION)
+        .leftJoin(WEBCONTIFY_COLLECTION_COLUMN)
+        .onKey()
+        .asWebcontifyCollectionDtoSet(mapper)
   }
 
-  fun getById(id: Int): WebContifyCollectionDto {
-    return dao.getById(id)
+  fun deleteById(id: Int?) {
+    columnRepository.deleteAllForCollection(id)
+    dslContext
+        .deleteFrom(WEBCONTIFY_COLLECTION)
+        .where(WEBCONTIFY_COLLECTION.ID.eq(id))
+        .execute()
+        .let {
+          if (it != 1) {
+            throw RuntimeException()
+          }
+        }
   }
 
-  fun deleteById(id: Int) {
-    val collection = dao.getById(id)
-    return dao.deleteById(id).also { tableDao.deleteTable(collection.name) }
+  fun update(record: WebContifyCollectionDto): WebContifyCollectionDto {
+    return dslContext.newRecord(WEBCONTIFY_COLLECTION).let {
+      it.displayName = record.displayName
+      it.name = record.name
+      it.id = record.id
+      it.update()
+      return@let mapper.mapCollectionToDto(it, columnRepository.getAllForCollection(it.id))
+    }
   }
 
-  fun create(collection: WebContifyCollectionDto): WebContifyCollectionDto {
-    return dao.create(collection).also { tableDao.createTable(it) }
+  fun create(record: WebContifyCollectionDto): WebContifyCollectionDto {
+    val collection =
+        dslContext.newRecord(WEBCONTIFY_COLLECTION).apply {
+          this.displayName = record.displayName
+          this.name = record.name
+          this.insert()
+        }
+    val columns =
+        record.columns
+            ?.map { column -> columnRepository.create(column.copy(collectionId = collection.id)) }
+            ?.toHashSet()
+    return mapper.mapCollectionToDto(collection, columns ?: HashSet())
   }
 
-  fun update(collection: WebContifyCollectionDto): WebContifyCollectionDto {
-    val oldCollection = dao.getById(collection.id)
-    return dao.update(collection).also { tableDao.updateTableName(it.name, oldCollection.name) }
+  private fun SelectConnectByStep<Record>.collectToCollectionMap():
+      Map<WebcontifyCollectionRecord, Set<WebcontifyCollectionColumnRecord>> {
+    return this.collect(
+        groupingBy(
+            { r -> r.into(WebcontifyCollectionRecord::class.java) },
+            filtering(
+                { r -> r.get(WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID) != null },
+                mapping(
+                    { r -> r.into(WebcontifyCollectionColumnRecord::class.java) },
+                    Collectors.toSet()))))
+  }
+
+  private fun SelectConnectByStep<Record>.asWebcontifyCollectionDto(
+      converter: CollectionMapper
+  ): WebContifyCollectionDto? {
+    return this.collectToCollectionMap().firstNotNullOfOrNull { (collection, columns) ->
+      converter.mapToDto(collection, columns)
+    }
+  }
+
+  private fun SelectConnectByStep<Record>.asWebcontifyCollectionDtoSet(
+      converter: CollectionMapper
+  ): Set<WebContifyCollectionDto> {
+    return this.collectToCollectionMap()
+        .map { (collection, columns) -> converter.mapToDto(collection, columns) }
+        .toHashSet()
   }
 }

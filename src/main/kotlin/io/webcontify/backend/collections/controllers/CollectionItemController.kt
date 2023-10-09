@@ -1,11 +1,10 @@
 package io.webcontify.backend.collections.controllers
 
-import io.webcontify.backend.collections.repositories.CollectionItemRepository
-import java.util.*
+import io.webcontify.backend.collections.services.CollectionItemService
 import org.springframework.web.bind.annotation.*
 
 @RestController
-class CollectionItemController(val collectionItemRepository: CollectionItemRepository) {
+class CollectionItemController(val collectionItemService: CollectionItemService) {
 
   @GetMapping("/collections/{collectionId}/items/{*slugOrId}")
   fun getById(
@@ -14,9 +13,9 @@ class CollectionItemController(val collectionItemRepository: CollectionItemRepos
   ): Map<String, Any> {
     slugOrId.substring(1).let {
       if (isSlug(it)) {
-        return collectionItemRepository.getById(collectionId, mapSlugToMap(it))
+        return collectionItemService.getById(collectionId, mapSlugToMap(it))
       }
-      return collectionItemRepository.getById(collectionId, it)
+      return collectionItemService.getById(collectionId, it)
     }
   }
 
@@ -25,7 +24,7 @@ class CollectionItemController(val collectionItemRepository: CollectionItemRepos
       @PathVariable("collectionId") collectionId: Int,
       @PathVariable identifierParameters: String? // TODO throw if empty and update functionality
   ): Map<String, Any> {
-    return collectionItemRepository.getById(collectionId, mapSlugToMap(identifierParameters))
+    return collectionItemService.getById(collectionId, mapSlugToMap(identifierParameters))
   }
 
   @PostMapping("/collections/{collectionId}/items")
@@ -33,7 +32,7 @@ class CollectionItemController(val collectionItemRepository: CollectionItemRepos
       @PathVariable("collectionId") collectionId: Int,
       @RequestBody item: Map<String, Any>
   ): Map<String, Any> { // TODO primary key generation and always insert primary keys
-    return collectionItemRepository.create(collectionId, item)
+    return collectionItemService.create(collectionId, item)
   }
 
   @GetMapping("/collections/{collectionId}/items")
