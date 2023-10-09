@@ -12,7 +12,7 @@ class CollectionColumnController(val service: CollectionColumnService) {
     return service.getAll()
   }
 
-  @PostMapping("collections/{collectionId}/columns/{name}")
+  @PostMapping("collections/{collectionId}/columns")
   fun create(@RequestBody column: WebContifyCollectionColumnDto): WebContifyCollectionColumnDto {
     return service.create(column)
   }
@@ -28,20 +28,15 @@ class CollectionColumnController(val service: CollectionColumnService) {
   @PutMapping("collections/{collectionId}/columns/{name}")
   fun update(
       @PathVariable("collectionId") collectionId: Int,
-      @PathVariable("name") name: String,
-      @RequestBody column: WebContifyCollectionColumnDto
+      @PathVariable("name") oldName: String,
+      @RequestBody newColumn: WebContifyCollectionColumnDto
   ): WebContifyCollectionColumnDto {
-    return service.update(column)
+    return service.update(oldName, newColumn)
   }
 
   @DeleteMapping("collections/{collectionId}/columns/{name}")
   fun delete(@PathVariable("collectionId") collectionId: Int, @PathVariable("name") name: String) {
     return service.deleteById(collectionId, name)
-  }
-
-  @DeleteMapping("collections/{collectionId}/columns")
-  fun deleteAllForCollection(@PathVariable("collectionId") collectionId: Int) {
-    return service.deleteAllForCollection(collectionId)
   }
 
   @GetMapping("collections/{collectionId}/columns")

@@ -59,16 +59,21 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
         .execute()
   }
 
-  fun update(record: WebContifyCollectionColumnDto): WebContifyCollectionColumnDto {
-    return dslContext.newRecord(WEBCONTIFY_COLLECTION_COLUMN).let {
-      it.displayName = record.displayName
-      it.name = record.name
-      it.collectionId = record.collectionId
-      it.isPrimaryKey = record.isPrimaryKey
-      it.type = record.type
-      it.update()
-      return@let mapper.mapToDto(it)
-    }
+  fun update(
+      record: WebContifyCollectionColumnDto,
+      oldName: String
+  ): WebContifyCollectionColumnDto {
+    dslContext
+        .update(WEBCONTIFY_COLLECTION_COLUMN)
+        .set(WEBCONTIFY_COLLECTION_COLUMN.NAME, record.name)
+        .set(WEBCONTIFY_COLLECTION_COLUMN.DISPLAY_NAME, record.displayName)
+        .set(WEBCONTIFY_COLLECTION_COLUMN.TYPE, record.type)
+        .set(WEBCONTIFY_COLLECTION_COLUMN.IS_PRIMARY_KEY, record.isPrimaryKey)
+        .where(
+            WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(record.collectionId)
+                .and(WEBCONTIFY_COLLECTION_COLUMN.NAME.eq(oldName)))
+        .execute()
+    return record
   }
 
   fun create(column: WebContifyCollectionColumnDto): WebContifyCollectionColumnDto {
