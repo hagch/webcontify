@@ -13,10 +13,6 @@ class CollectionColumnService(
     val tableColumnRepository: CollectionTableColumnRepository
 ) {
 
-  fun getAll(): Set<WebContifyCollectionColumnDto> {
-    return repository.getAll()
-  }
-
   fun getAllForCollection(collectionId: Int): Set<WebContifyCollectionColumnDto> {
     return repository.getAllForCollection(collectionId)
   }

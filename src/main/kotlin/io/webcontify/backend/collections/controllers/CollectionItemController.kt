@@ -1,12 +1,26 @@
 package io.webcontify.backend.collections.controllers
 
 import io.webcontify.backend.collections.services.CollectionItemService
+import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import org.springframework.web.bind.annotation.*
 
 @RestController
 class CollectionItemController(val collectionItemService: CollectionItemService) {
 
-  @GetMapping("/collections/{collectionId}/items/{*slugOrId}")
+  @DeleteMapping("$COLLECTIONS_PATH/{collectionId}/items/{*slugOrId}")
+  fun deleteById(
+      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable("slugOrId") slugOrId: String
+  ) {
+    slugOrId.substring(1).let {
+      if (isSlug(it)) {
+        return collectionItemService.deleteById(collectionId, mapSlugToMap(it))
+      }
+      return collectionItemService.deleteById(collectionId, it)
+    }
+  }
+
+  @GetMapping("$COLLECTIONS_PATH/{collectionId}/items/{*slugOrId}")
   fun getById(
       @PathVariable("collectionId") collectionId: Int,
       @PathVariable("slugOrId") slugOrId: String
@@ -19,15 +33,12 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
     }
   }
 
-  @PutMapping("/collections/{collectionId}/items/{*identifierParameters}")
-  fun updateById(
-      @PathVariable("collectionId") collectionId: Int,
-      @PathVariable identifierParameters: String? // TODO throw if empty and update functionality
-  ): Map<String, Any> {
-    return collectionItemService.getById(collectionId, mapSlugToMap(identifierParameters))
+  @GetMapping("$COLLECTIONS_PATH/{collectionId}/items")
+  fun getAllForCollection(@PathVariable("collectionId") collectionId: Int): List<Any> {
+    return collectionItemService.getAllFor(collectionId)
   }
 
-  @PostMapping("/collections/{collectionId}/items")
+  @PostMapping("$COLLECTIONS_PATH/{collectionId}/items")
   fun create(
       @PathVariable("collectionId") collectionId: Int,
       @RequestBody item: Map<String, Any>
@@ -35,9 +46,12 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
     return collectionItemService.create(collectionId, item)
   }
 
-  @GetMapping("/collections/{collectionId}/items")
-  fun getAllForCollection(@PathVariable("collectionId") collectionId: Int): List<Any> {
-    return collectionItemService.getAllFor(collectionId)
+  @PutMapping("$COLLECTIONS_PATH/{collectionId}/items/{*identifierParameters}")
+  fun updateById(
+      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable identifierParameters: String? // TODO throw if empty and update functionality
+  ): Map<String, Any> {
+    return collectionItemService.getById(collectionId, mapSlugToMap(identifierParameters))
   }
 
   private fun mapSlugToMap(slug: String?): Map<String, String?> {

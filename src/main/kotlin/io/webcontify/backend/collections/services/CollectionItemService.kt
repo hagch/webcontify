@@ -1,6 +1,7 @@
 package io.webcontify.backend.collections.services
 
 import io.webcontify.backend.collections.repositories.CollectionItemRepository
+import io.webcontify.backend.collections.utils.snakeToCamelCase
 import org.springframework.stereotype.Service
 
 @Service
@@ -18,6 +19,25 @@ class CollectionItemService(
     val collection = collectionService.getById(collectionId)
     val primaryKey = collection.columns?.first { it.isPrimaryKey } ?: throw RuntimeException()
     return collectionItemRepository.getByIdFor(
+        collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)))
+  }
+
+  fun deleteById(collectionId: Int, identifierMap: Map<String, String?>) {
+    val collection = collectionService.getById(collectionId)
+    collection.columns
+        ?.filter { it.isPrimaryKey }
+        ?.forEach {
+          if (!identifierMap.containsKey(it.name.lowercase().snakeToCamelCase())) {
+            throw RuntimeException("not all primary keys defined")
+          }
+        }
+    return collectionItemRepository.deleteById(collection, identifierMap)
+  }
+
+  fun deleteById(collectionId: Int, itemId: String) {
+    val collection = collectionService.getById(collectionId)
+    val primaryKey = collection.columns?.first { it.isPrimaryKey } ?: throw RuntimeException()
+    return collectionItemRepository.deleteById(
         collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)))
   }
 

@@ -6,6 +6,7 @@ import io.webcontify.backend.collections.services.column.handler.ColumnHandlerSt
 import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.collections.utils.doubleQuote
 import io.webcontify.backend.collections.utils.snakeToCamelCase
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.DataType
 import org.jooq.impl.DSL.*
@@ -22,17 +23,7 @@ class CollectionItemRepository(
       identifierMap: Map<String, String?>
   ): Map<String, Any> {
     val identifierTypeMap = identifierMap.entries.toIdentifierMap(collection)
-    val fields =
-        identifierTypeMap
-            .map {
-              if (it.value.second == null) {
-                field("${collection.name.doubleQuote()}.${it.key.doubleQuote()}").eq(it.value.first)
-              } else {
-                field("${collection.name.doubleQuote()}.${it.key.doubleQuote()}")
-                    .eq(cast(it.value.first, it.value.second))
-              }
-            }
-            .toMutableList()
+    val fields = getFieldsOf(collection, identifierTypeMap)
     val map =
         dslContext.selectFrom(collection.name.doubleQuote()).where(fields).fetchOne { record ->
           identifierTypeMap
@@ -41,6 +32,12 @@ class CollectionItemRepository(
         }
             ?: mutableMapOf()
     return map
+  }
+
+  fun deleteById(collection: WebContifyCollectionDto, identifierMap: Map<String, String?>) {
+    val identifierTypeMap = identifierMap.entries.toIdentifierMap(collection)
+    val fields = getFieldsOf(collection, identifierTypeMap)
+    dslContext.deleteFrom(table(collection.name.doubleQuote())).where(fields).execute()
   }
 
   fun create(collection: WebContifyCollectionDto, item: Map<String, Any>): Map<String, Any> {
@@ -94,5 +91,21 @@ class CollectionItemRepository(
       (columnTypeMap[it.key]?.first?.name
           ?: throw RuntimeException()) to Pair(it.value, columnTypeMap[it.key]?.second)
     }
+  }
+
+  private fun getFieldsOf(
+      collection: WebContifyCollectionDto,
+      identifierTypeMap: Map<String, Pair<Any?, DataType<*>?>>
+  ): List<Condition> {
+    return identifierTypeMap
+        .map {
+          if (it.value.second == null) {
+            field("${collection.name.doubleQuote()}.${it.key.doubleQuote()}").eq(it.value.first)
+          } else {
+            field("${collection.name.doubleQuote()}.${it.key.doubleQuote()}")
+                .eq(cast(it.value.first, it.value.second))
+          }
+        }
+        .toMutableList()
   }
 }

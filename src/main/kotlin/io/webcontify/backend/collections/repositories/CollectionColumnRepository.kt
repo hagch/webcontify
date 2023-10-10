@@ -21,14 +21,6 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
     return column ?: throw RuntimeException()
   }
 
-  fun getAll(): Set<WebContifyCollectionColumnDto> {
-    return dslContext
-        .select()
-        .from(WEBCONTIFY_COLLECTION_COLUMN)
-        .fetchInto(WebContifyCollectionColumnDto::class.java)
-        .toHashSet()
-  }
-
   fun getAllForCollection(collectionId: Int?): Set<WebContifyCollectionColumnDto> {
     return dslContext
         .select()
