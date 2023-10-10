@@ -3,6 +3,7 @@ package io.webcontify.backend.collections.repositories
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
+import io.webcontify.backend.collections.utils.doubleQuote
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.*
 import org.springframework.stereotype.Repository
@@ -24,13 +25,10 @@ class CollectionTableColumnRepository(
       oldName: String
   ) {
     if (oldName != column.name) {
-      dslContext
-          .alterTable(collection.name)
-          .renameColumn(oldName)
-          .to(column.name).execute()
+      dslContext.alterTable(collection.name).renameColumn(oldName).to(column.name).execute()
     }
     val columnType =
-      collection.columns?.find { it.name == oldName }?.type ?: throw RuntimeException()
+        collection.columns?.find { it.name == oldName }?.type ?: throw RuntimeException()
     if (columnType != column.type) {
       throw RuntimeException("Update column type not supported")
       /*val type = columStrategy.getHandlerFor(column.type).getColumnType()
@@ -40,9 +38,5 @@ class CollectionTableColumnRepository(
 
   fun delete(collection: WebContifyCollectionDto, name: String) {
     dslContext.alterTable(collection.name).dropColumn(field(name.doubleQuote())).execute()
-  }
-
-  private fun String.doubleQuote(): String {
-    return "\"${this}\""
   }
 }

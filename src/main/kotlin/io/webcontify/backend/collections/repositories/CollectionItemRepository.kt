@@ -3,6 +3,9 @@ package io.webcontify.backend.collections.repositories
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
+import io.webcontify.backend.collections.utils.camelToSnakeCase
+import io.webcontify.backend.collections.utils.doubleQuote
+import io.webcontify.backend.collections.utils.snakeToCamelCase
 import org.jooq.DSLContext
 import org.jooq.DataType
 import org.jooq.impl.DSL.*
@@ -91,19 +94,5 @@ class CollectionItemRepository(
       (columnTypeMap[it.key]?.first?.name
           ?: throw RuntimeException()) to Pair(it.value, columnTypeMap[it.key]?.second)
     }
-  }
-
-  private fun String.snakeToCamelCase(): String {
-    val pattern = "_[a-z]".toRegex()
-    return replace(pattern) { it.value.last().uppercase() }
-  }
-
-  private fun String.camelToSnakeCase(): String {
-    val pattern = "(?<=.)[A-Z]".toRegex()
-    return this.replace(pattern, "_$0").uppercase()
-  }
-
-  private fun String.doubleQuote(): String {
-    return "\"${this}\""
   }
 }
