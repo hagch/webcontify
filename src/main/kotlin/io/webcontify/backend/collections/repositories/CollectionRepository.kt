@@ -1,5 +1,7 @@
 package io.webcontify.backend.collections.repositories
 
+import io.webcontify.backend.collections.exceptions.AlreadyExistsException
+import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.mappers.CollectionMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
@@ -28,7 +30,7 @@ class CollectionRepository(
             .onKey()
             .where(WEBCONTIFY_COLLECTION.ID.eq(id))
             .asWebcontifyCollectionDto(mapper)
-    return collection ?: throw RuntimeException()
+    return collection ?: throw NotFoundException()
   }
 
   fun getAll(): Set<WebContifyCollectionDto> {
@@ -52,7 +54,7 @@ class CollectionRepository(
       updateAbleRecord.id = record.id
       updateAbleRecord.update().let {
         if (it == 0) {
-          throw RuntimeException()
+          throw NotFoundException()
         }
       }
 
@@ -71,8 +73,7 @@ class CollectionRepository(
           }
       return mapper.mapCollectionToDto(collection, setOf())
     } catch (e: DuplicateKeyException) {
-      // NAME already exists
-      throw RuntimeException()
+      throw AlreadyExistsException()
     }
   }
 

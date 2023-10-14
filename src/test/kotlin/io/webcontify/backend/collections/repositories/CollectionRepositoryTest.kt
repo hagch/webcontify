@@ -1,6 +1,8 @@
 package io.webcontify.backend.collections.repositories
 
 import io.webcontify.backend.JooqTestSetup
+import io.webcontify.backend.collections.exceptions.AlreadyExistsException
+import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.*
@@ -35,9 +37,7 @@ class CollectionRepositoryTest(
   @Sql("collection-without-columns.sql")
   @DisplayName("[3] getAll should return a collection without column definitions")
   fun getAllShouldReturnCollectionWithoutColumnDefinitions() {
-    assertDoesNotThrow {
-      repository.getAll().first { collection -> collection.columns.isEmpty() }
-    }
+    assertDoesNotThrow { repository.getAll().first { collection -> collection.columns.isEmpty() } }
   }
 
   @Test
@@ -63,13 +63,13 @@ class CollectionRepositoryTest(
   @Test
   @DisplayName("[6] getById should throw exception on collection does not exist")
   fun getByIdShouldThrowExceptionOnCollectionDoesNotExist() {
-    assertThrows<RuntimeException> { repository.getById(2) }
+    assertThrows<NotFoundException> { repository.getById(2) }
   }
 
   @Test
   @Sql("collection-without-columns.sql")
   @DisplayName("[7] update should update name and displayName")
-  fun updateByIdShouldUpdateNameAndDisplayName() {
+  fun updateShouldUpdateNameAndDisplayName() {
     val collection = repository.getById(1)
 
     val newCollection =
@@ -84,8 +84,8 @@ class CollectionRepositoryTest(
 
   @Test
   @DisplayName("[8] update should throw Exception on collection does not exist")
-  fun updateByIdShouldThrowExceptionOnCollectionDoesNotExist() {
-    assertThrows<RuntimeException> {
+  fun updateShouldThrowExceptionOnCollectionDoesNotExist() {
+    assertThrows<NotFoundException> {
       repository.update(WebContifyCollectionDto(0, "", "", listOf()))
     }
   }
@@ -114,7 +114,9 @@ class CollectionRepositoryTest(
   @DisplayName("[12] create shouldThrow exception if name already exists")
   fun createShouldThrowExceptionIfNameAlreadyExists() {
     repository.create(WebContifyCollectionDto(null, "TEST"))
-    assertThrows<RuntimeException> { repository.create(WebContifyCollectionDto(null, "TEST")) }
+    assertThrows<AlreadyExistsException> {
+      repository.create(WebContifyCollectionDto(null, "TEST"))
+    }
   }
 
   @Test
