@@ -67,20 +67,18 @@ class CollectionItemRepository(
 
   fun getAllFor(collection: WebContifyCollectionDto): List<Map<String, Any>> {
     return dslContext.selectFrom(collection.name.doubleQuote()).fetch { record ->
-      collection.columns?.associate {
+      collection.columns.associate {
         it.name.lowercase().snakeToCamelCase() to record.getValue(it.name)
       }
-          ?: mapOf()
     }
   }
 
   private fun getColumnTypeMap(
       collection: WebContifyCollectionDto
   ): Map<String, Pair<WebContifyCollectionColumnDto, DataType<*>>> {
-    return collection.columns?.associateBy(
+    return collection.columns.associateBy(
         { it.name.lowercase() },
         { Pair(it, columnHandlerStrategy.getHandlerFor(it.type).getColumnType()) })
-        ?: mapOf()
   }
 
   private fun Set<Map.Entry<*, *>>.toIdentifierMap(

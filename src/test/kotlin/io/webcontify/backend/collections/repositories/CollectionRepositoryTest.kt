@@ -27,7 +27,7 @@ class CollectionRepositoryTest(
   @DisplayName("[2] getAll should return a collection with column definitions")
   fun getAllShouldReturnCollectionWithColumnDefinitions() {
     assertDoesNotThrow {
-      repository.getAll().first { collection -> collection.columns?.isNotEmpty() ?: false }
+      repository.getAll().first { collection -> collection.columns.isNotEmpty() }
     }
   }
 
@@ -36,7 +36,7 @@ class CollectionRepositoryTest(
   @DisplayName("[3] getAll should return a collection without column definitions")
   fun getAllShouldReturnCollectionWithoutColumnDefinitions() {
     assertDoesNotThrow {
-      repository.getAll().first { collection -> collection.columns?.isEmpty() ?: false }
+      repository.getAll().first { collection -> collection.columns.isEmpty() }
     }
   }
 
@@ -47,7 +47,7 @@ class CollectionRepositoryTest(
     val collection = repository.getById(1)
 
     assertEquals(1, collection.id)
-    assertTrue(collection.columns?.isNotEmpty() ?: false)
+    assertTrue(collection.columns.isNotEmpty())
   }
 
   @Test
@@ -57,7 +57,7 @@ class CollectionRepositoryTest(
     val collection = repository.getById(1)
 
     assertEquals(1, collection.id)
-    assertTrue(collection.columns?.isEmpty() ?: false)
+    assertTrue(collection.columns.isEmpty())
   }
 
   @Test

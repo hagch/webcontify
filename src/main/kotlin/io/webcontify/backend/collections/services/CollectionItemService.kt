@@ -17,7 +17,7 @@ class CollectionItemService(
 
   fun getById(collectionId: Int, itemId: String): Map<String, Any> {
     val collection = collectionService.getById(collectionId)
-    val primaryKey = collection.columns?.first { it.isPrimaryKey } ?: throw RuntimeException()
+    val primaryKey = collection.columns.first { it.isPrimaryKey }
     return collectionItemRepository.getByIdFor(
         collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)))
   }
@@ -25,8 +25,8 @@ class CollectionItemService(
   fun deleteById(collectionId: Int, identifierMap: Map<String, String?>) {
     val collection = collectionService.getById(collectionId)
     collection.columns
-        ?.filter { it.isPrimaryKey }
-        ?.forEach {
+        .filter { it.isPrimaryKey }
+        .forEach {
           if (!identifierMap.containsKey(it.name.lowercase().snakeToCamelCase())) {
             throw RuntimeException("not all primary keys defined")
           }
@@ -36,7 +36,7 @@ class CollectionItemService(
 
   fun deleteById(collectionId: Int, itemId: String) {
     val collection = collectionService.getById(collectionId)
-    val primaryKey = collection.columns?.first { it.isPrimaryKey } ?: throw RuntimeException()
+    val primaryKey = collection.columns.first { it.isPrimaryKey } ?: throw RuntimeException()
     return collectionItemRepository.deleteById(
         collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)))
   }
