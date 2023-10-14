@@ -3,7 +3,6 @@ package io.webcontify.backend.collections.repositories
 import io.webcontify.backend.JooqTestSetup
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.DisplayName
@@ -12,21 +11,26 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
+import suppliers.collectionWithEmptyColumns
+import suppliers.collectionWithNameCollection
+import suppliers.collectionWithNameTest
 
 class CollectionRepositoryTest(
     @Autowired val context: DSLContext,
     @Autowired val repository: CollectionRepository
 ) : JooqTestSetup() {
 
+  val collectionId = 1
+
   @Test
-  @DisplayName("[1] getAll should return empty list if no collections are available")
+  @DisplayName("getAll should return empty list if no collections are available")
   fun getAllShouldReturnEmptyList() {
     assertTrue(repository.getAll().isEmpty())
   }
 
   @Test
   @Sql("collection-with-columns.sql")
-  @DisplayName("[2] getAll should return a collection with column definitions")
+  @DisplayName("getAll should return a collection with column definitions")
   fun getAllShouldReturnCollectionWithColumnDefinitions() {
     assertDoesNotThrow {
       repository.getAll().first { collection -> collection.columns.isNotEmpty() }
@@ -35,94 +39,92 @@ class CollectionRepositoryTest(
 
   @Test
   @Sql("collection-without-columns.sql")
-  @DisplayName("[3] getAll should return a collection without column definitions")
+  @DisplayName("getAll should return a collection without column definitions")
   fun getAllShouldReturnCollectionWithoutColumnDefinitions() {
     assertDoesNotThrow { repository.getAll().first { collection -> collection.columns.isEmpty() } }
   }
 
   @Test
   @Sql("collection-with-columns.sql")
-  @DisplayName("[4] getById should return a collection with column definitions")
+  @DisplayName("getById should return a collection with column definitions")
   fun getByIdShouldReturnCollectionWithColumnDefinitions() {
-    val collection = repository.getById(1)
+    val collection = repository.getById(collectionId)
 
-    assertEquals(1, collection.id)
+    assertEquals(collectionId, collection.id)
     assertTrue(collection.columns.isNotEmpty())
   }
 
   @Test
   @Sql("collection-without-columns.sql")
-  @DisplayName("[5] getById should return a collection without column definitions")
+  @DisplayName("getById should return a collection without column definitions")
   fun getByIdShouldReturnCollectionWithoutColumnDefinitions() {
-    val collection = repository.getById(1)
+    val collection = repository.getById(collectionId)
 
-    assertEquals(1, collection.id)
+    assertEquals(collectionId, collection.id)
     assertTrue(collection.columns.isEmpty())
   }
 
   @Test
-  @DisplayName("[6] getById should throw exception on collection does not exist")
+  @DisplayName("getById should throw exception on collection does not exist")
   fun getByIdShouldThrowExceptionOnCollectionDoesNotExist() {
     assertThrows<NotFoundException> { repository.getById(2) }
   }
 
   @Test
   @Sql("collection-without-columns.sql")
-  @DisplayName("[7] update should update name and displayName")
+  @DisplayName("update should update name and displayName")
   fun updateShouldUpdateNameAndDisplayName() {
-    val collection = repository.getById(1)
+    val newDisplayName = "New DisplayName"
+    val newName = "NEW_NAME"
+    val collection = repository.getById(collectionId)
 
     val newCollection =
-        repository.update(collection.copy(displayName = "New DisplayName", name = "NEW_NAME"))
+        repository.update(collection.copy(displayName = newDisplayName, name = newName))
 
     assertNotEquals(collection.name, newCollection.name)
-    assertEquals("NEW_NAME", newCollection.name)
+    assertEquals(newName, newCollection.name)
     assertNotEquals(collection.displayName, newCollection.displayName)
-    assertEquals("New DisplayName", newCollection.displayName)
+    assertEquals(newDisplayName, newCollection.displayName)
     assertEquals(collection.id, newCollection.id)
   }
 
   @Test
-  @DisplayName("[8] update should throw Exception on collection does not exist")
+  @DisplayName("update should throw Exception on collection does not exist")
   fun updateShouldThrowExceptionOnCollectionDoesNotExist() {
-    assertThrows<NotFoundException> {
-      repository.update(WebContifyCollectionDto(0, "", "", listOf()))
-    }
+    assertThrows<NotFoundException> { repository.update(collectionWithEmptyColumns()) }
   }
 
   @Test
   @Sql("collection-with-columns.sql")
-  @DisplayName("[9] deleteById should be success full on resource exists")
+  @DisplayName("deleteById should be success full on resource exists")
   fun deleteByIdShouldDeleteExistingResource() {
-    assertDoesNotThrow { repository.deleteById(1) }
+    assertDoesNotThrow { repository.deleteById(collectionId) }
   }
 
   @Test
-  @DisplayName("[10] deleteById should not throw an exception on an resource that does not exist")
+  @DisplayName("deleteById should not throw an exception on an resource that does not exist")
   fun deleteByIdShouldNotThrowAnExceptionOnResourceNotExist() {
     assertDoesNotThrow { repository.deleteById(2) }
   }
 
   @Test
-  @DisplayName("[11] create should create collection")
+  @DisplayName("create should create collection")
   fun createShouldCreateCollection() {
-    assertNotNull(repository.create(WebContifyCollectionDto(null, "TEST")))
-    assertNotNull(repository.create(WebContifyCollectionDto(null, "TEST2")))
+    assertNotNull(repository.create(collectionWithNameTest()))
+    assertNotNull(repository.create(collectionWithNameCollection()))
   }
 
   @Test
-  @DisplayName("[12] create shouldThrow exception if name already exists")
+  @DisplayName("create shouldThrow exception if name already exists")
   fun createShouldThrowExceptionIfNameAlreadyExists() {
-    repository.create(WebContifyCollectionDto(null, "TEST"))
-    assertThrows<AlreadyExistsException> {
-      repository.create(WebContifyCollectionDto(null, "TEST"))
-    }
+    repository.create(collectionWithNameTest())
+    assertThrows<AlreadyExistsException> { repository.create(collectionWithNameTest()) }
   }
 
   @Test
-  @DisplayName("[13] create should ignore id and create a new entry")
+  @DisplayName("create should ignore id and create a new entry")
   fun createShouldThrowExceptionIfIdAlreadyExists() {
-    repository.create(WebContifyCollectionDto(1, "TEST"))
-    repository.create(WebContifyCollectionDto(1, "TEST2"))
+    repository.create(collectionWithNameTest())
+    repository.create(collectionWithNameCollection())
   }
 }

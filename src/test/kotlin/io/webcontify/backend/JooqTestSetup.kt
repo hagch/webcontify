@@ -1,8 +1,6 @@
 package io.webcontify.backend
 
-import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.TestMethodOrder
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.boot.test.autoconfigure.jooq.JooqTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
@@ -16,7 +14,6 @@ import org.testcontainers.containers.PostgreSQLContainer
 @ExtendWith(SpringExtension::class)
 @Import(JooqTestConfiguration::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.DisplayName::class)
 abstract class JooqTestSetup {
 
   companion object {
