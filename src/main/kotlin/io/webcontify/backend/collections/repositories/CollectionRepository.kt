@@ -41,24 +41,22 @@ class CollectionRepository(
 
   fun deleteById(id: Int?) {
     columnRepository.deleteAllForCollection(id)
-    dslContext
-        .deleteFrom(WEBCONTIFY_COLLECTION)
-        .where(WEBCONTIFY_COLLECTION.ID.eq(id))
-        .execute()
-        .let {
-          if (it != 1) {
-            throw RuntimeException()
-          }
-        }
+    dslContext.deleteFrom(WEBCONTIFY_COLLECTION).where(WEBCONTIFY_COLLECTION.ID.eq(id)).execute()
   }
 
   fun update(record: WebContifyCollectionDto): WebContifyCollectionDto {
-    return dslContext.newRecord(WEBCONTIFY_COLLECTION).let {
-      it.displayName = record.displayName
-      it.name = record.name
-      it.id = record.id
-      it.update()
-      return@let mapper.mapCollectionToDto(it, columnRepository.getAllForCollection(it.id))
+    return dslContext.newRecord(WEBCONTIFY_COLLECTION).let { updateAbleRecord ->
+      updateAbleRecord.displayName = record.displayName
+      updateAbleRecord.name = record.name
+      updateAbleRecord.id = record.id
+      updateAbleRecord.update().let {
+        if (it == 0) {
+          throw RuntimeException()
+        }
+      }
+
+      return@let mapper.mapCollectionToDto(
+          updateAbleRecord, columnRepository.getAllForCollection(updateAbleRecord.id))
     }
   }
 
