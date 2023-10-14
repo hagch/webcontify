@@ -15,16 +15,16 @@ class CollectionTableRepository(
   fun create(collection: WebContifyCollectionDto) {
 
     val tableBuilder = dslContext.createTable(collection.name)
-    collection.columns?.forEach { column ->
+    collection.columns.forEach { column ->
       columStrategy.getHandlerFor(column.type).let {
         tableBuilder.column(column.name, it.getColumnType())
       }
     }
     val primaryKeyColums =
         collection.columns
-            ?.filter { column -> column.isPrimaryKey }
-            ?.map { column -> field(name(collection.name, column.name)) }
-    if (primaryKeyColums.isNullOrEmpty()) {
+            .filter { column -> column.isPrimaryKey }
+            .map { column -> field(name(collection.name, column.name)) }
+    if (primaryKeyColums.isEmpty()) {
       throw RuntimeException()
     }
     tableBuilder.constraints(constraint("PK_" + collection.name).primaryKey(primaryKeyColums))

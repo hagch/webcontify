@@ -9,6 +9,7 @@ import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
 import java.util.stream.Collectors
 import java.util.stream.Collectors.*
 import org.jooq.*
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -61,17 +62,18 @@ class CollectionRepository(
   }
 
   fun create(record: WebContifyCollectionDto): WebContifyCollectionDto {
-    val collection =
-        dslContext.newRecord(WEBCONTIFY_COLLECTION).apply {
-          this.displayName = record.displayName
-          this.name = record.name
-          this.insert()
-        }
-    val columns =
-        record.columns
-            ?.map { column -> columnRepository.create(column.copy(collectionId = collection.id)) }
-            ?.toHashSet()
-    return mapper.mapCollectionToDto(collection, columns ?: HashSet())
+    try {
+      val collection =
+          dslContext.newRecord(WEBCONTIFY_COLLECTION).apply {
+            this.displayName = record.displayName
+            this.name = record.name
+            this.insert()
+          }
+      return mapper.mapCollectionToDto(collection, setOf())
+    } catch (e: DuplicateKeyException) {
+      // NAME already exists
+      throw RuntimeException()
+    }
   }
 
   private fun SelectConnectByStep<Record>.collectToCollectionMap():

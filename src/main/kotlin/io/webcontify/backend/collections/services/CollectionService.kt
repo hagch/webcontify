@@ -8,7 +8,8 @@ import org.springframework.stereotype.Service
 @Service
 class CollectionService(
     val repository: CollectionRepository,
-    val tableRepository: CollectionTableRepository
+    val tableRepository: CollectionTableRepository,
+    val columnService: CollectionColumnService
 ) {
 
   fun getAll(): Set<WebContifyCollectionDto> {
@@ -25,7 +26,12 @@ class CollectionService(
   }
 
   fun create(collection: WebContifyCollectionDto): WebContifyCollectionDto {
-    return repository.create(collection).also { tableRepository.create(it) }
+    return repository.create(collection).also {
+      if (it.id != null) {
+        val columns = columnService.createForCollection(it.id, collection.columns)
+        tableRepository.create(it.copy(columns = columns))
+      }
+    }
   }
 
   fun update(collection: WebContifyCollectionDto): WebContifyCollectionDto {

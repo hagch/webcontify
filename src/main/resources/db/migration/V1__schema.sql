@@ -4,7 +4,7 @@ drop type if exists "WEBCONTIFY_COLLECTION_COLUMN_TYPE" CASCADE;
 
 create table "WEBCONTIFY_COLLECTION"(
                                         "ID" SERIAL PRIMARY KEY,
-                                        "NAME" TEXT NOT NULL,
+                                        "NAME" TEXT UNIQUE NOT NULL,
                                         "DISPLAY_NAME" TEXT NOT NULL
 );
 create type "WEBCONTIFY_COLLECTION_COLUMN_TYPE" as enum (

@@ -102,4 +102,25 @@ class CollectionRepositoryTest(
   fun deleteByIdShouldNotThrowAnExceptionOnResourceNotExist() {
     assertDoesNotThrow { repository.deleteById(2) }
   }
+
+  @Test
+  @DisplayName("[11] create should create collection")
+  fun createShouldCreateCollection() {
+    assertNotNull(repository.create(WebContifyCollectionDto(null, "TEST")))
+    assertNotNull(repository.create(WebContifyCollectionDto(null, "TEST2")))
+  }
+
+  @Test
+  @DisplayName("[12] create shouldThrow exception if name already exists")
+  fun createShouldThrowExceptionIfNameAlreadyExists() {
+    repository.create(WebContifyCollectionDto(null, "TEST"))
+    assertThrows<RuntimeException> { repository.create(WebContifyCollectionDto(null, "TEST")) }
+  }
+
+  @Test
+  @DisplayName("[13] create should ignore id and create a new entry")
+  fun createShouldThrowExceptionIfIdAlreadyExists() {
+    repository.create(WebContifyCollectionDto(1, "TEST"))
+    repository.create(WebContifyCollectionDto(1, "TEST2"))
+  }
 }

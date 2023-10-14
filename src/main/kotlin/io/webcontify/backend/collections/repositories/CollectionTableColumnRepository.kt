@@ -28,7 +28,7 @@ class CollectionTableColumnRepository(
       dslContext.alterTable(collection.name).renameColumn(oldName).to(column.name).execute()
     }
     val columnType =
-        collection.columns?.find { it.name == oldName }?.type ?: throw RuntimeException()
+        collection.columns.find { it.name == oldName }?.type ?: throw RuntimeException()
     if (columnType != column.type) {
       throw RuntimeException("Update column type not supported")
       /*val type = columStrategy.getHandlerFor(column.type).getColumnType()

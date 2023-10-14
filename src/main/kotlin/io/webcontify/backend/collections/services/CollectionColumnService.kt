@@ -35,6 +35,13 @@ class CollectionColumnService(
     }
   }
 
+  fun createForCollection(
+      collectionId: Int,
+      columns: Collection<WebContifyCollectionColumnDto>?
+  ): List<WebContifyCollectionColumnDto> {
+    return columns?.map { create(it.copy(collectionId = collectionId)) } ?: listOf()
+  }
+
   fun update(
       oldName: String,
       newColumn: WebContifyCollectionColumnDto
