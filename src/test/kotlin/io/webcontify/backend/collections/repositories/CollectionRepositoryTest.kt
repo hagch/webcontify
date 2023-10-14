@@ -1,6 +1,9 @@
 package io.webcontify.backend.collections.repositories
 
-import io.webcontify.backend.JooqTestSetup
+import helpers.setups.JooqTestSetup
+import helpers.suppliers.collectionWithEmptyColumns
+import helpers.suppliers.collectionWithNameCollection
+import helpers.suppliers.collectionWithNameTest
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import org.jooq.DSLContext
@@ -11,9 +14,6 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
-import suppliers.collectionWithEmptyColumns
-import suppliers.collectionWithNameCollection
-import suppliers.collectionWithNameTest
 
 class CollectionRepositoryTest(
     @Autowired val context: DSLContext,
@@ -33,7 +33,7 @@ class CollectionRepositoryTest(
   @DisplayName("getAll should return a collection with column definitions")
   fun getAllShouldReturnCollectionWithColumnDefinitions() {
     assertDoesNotThrow {
-      repository.getAll().first { collection -> collection.columns.isNotEmpty() }
+      repository.getAll().first { collection -> !collection.columns.isNullOrEmpty() }
     }
   }
 
@@ -41,7 +41,9 @@ class CollectionRepositoryTest(
   @Sql("collection-without-columns.sql")
   @DisplayName("getAll should return a collection without column definitions")
   fun getAllShouldReturnCollectionWithoutColumnDefinitions() {
-    assertDoesNotThrow { repository.getAll().first { collection -> collection.columns.isEmpty() } }
+    assertDoesNotThrow {
+      repository.getAll().first { collection -> collection.columns.isNullOrEmpty() }
+    }
   }
 
   @Test
@@ -51,7 +53,7 @@ class CollectionRepositoryTest(
     val collection = repository.getById(collectionId)
 
     assertEquals(collectionId, collection.id)
-    assertTrue(collection.columns.isNotEmpty())
+    assertTrue(!collection.columns.isNullOrEmpty())
   }
 
   @Test
@@ -61,7 +63,7 @@ class CollectionRepositoryTest(
     val collection = repository.getById(collectionId)
 
     assertEquals(collectionId, collection.id)
-    assertTrue(collection.columns.isEmpty())
+    assertTrue(collection.columns.isNullOrEmpty())
   }
 
   @Test

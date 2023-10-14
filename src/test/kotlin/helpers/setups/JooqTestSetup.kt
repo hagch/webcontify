@@ -1,4 +1,4 @@
-package io.webcontify.backend
+package helpers.setups
 
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith

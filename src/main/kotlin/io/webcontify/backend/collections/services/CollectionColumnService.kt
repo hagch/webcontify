@@ -29,10 +29,9 @@ class CollectionColumnService(
   }
 
   fun create(column: WebContifyCollectionColumnDto): WebContifyCollectionColumnDto {
-    return repository.create(column).also {
-      val collection = collectionRepository.getById(it.collectionId)
-      tableColumnRepository.create(collection, column)
-    }
+    val collection = collectionRepository.getById(column.collectionId)
+    tableColumnRepository.create(collection, column)
+    return repository.create(column)
   }
 
   fun createForCollection(

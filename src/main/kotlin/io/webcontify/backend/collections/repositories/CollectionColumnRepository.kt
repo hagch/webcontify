@@ -1,9 +1,13 @@
 package io.webcontify.backend.collections.repositories
 
+import io.webcontify.backend.collections.exceptions.AlreadyExistsException
+import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.mappers.CollectionMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
 import org.jooq.*
+import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -18,7 +22,7 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
                 WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(collectionId)
                     .and(WEBCONTIFY_COLLECTION_COLUMN.NAME.eq(name)))
             .fetchOneInto(WebContifyCollectionColumnDto::class.java)
-    return column ?: throw RuntimeException()
+    return column ?: throw NotFoundException()
   }
 
   fun getAllForCollection(collectionId: Int?): Set<WebContifyCollectionColumnDto> {
@@ -37,11 +41,6 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
             WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(collectionId)
                 .and(WEBCONTIFY_COLLECTION_COLUMN.NAME.eq(name)))
         .execute()
-        .let {
-          if (it != 1) {
-            throw RuntimeException()
-          }
-        }
   }
 
   fun deleteAllForCollection(collectionId: Int?) {
@@ -55,16 +54,25 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
       record: WebContifyCollectionColumnDto,
       oldName: String
   ): WebContifyCollectionColumnDto {
-    dslContext
-        .update(WEBCONTIFY_COLLECTION_COLUMN)
-        .set(WEBCONTIFY_COLLECTION_COLUMN.NAME, record.name)
-        .set(WEBCONTIFY_COLLECTION_COLUMN.DISPLAY_NAME, record.displayName)
-        .set(WEBCONTIFY_COLLECTION_COLUMN.TYPE, record.type)
-        .set(WEBCONTIFY_COLLECTION_COLUMN.IS_PRIMARY_KEY, record.isPrimaryKey)
-        .where(
-            WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(record.collectionId)
-                .and(WEBCONTIFY_COLLECTION_COLUMN.NAME.eq(oldName)))
-        .execute()
+    val query =
+        dslContext
+            .update(WEBCONTIFY_COLLECTION_COLUMN)
+            .set(WEBCONTIFY_COLLECTION_COLUMN.NAME, record.name)
+            .set(WEBCONTIFY_COLLECTION_COLUMN.DISPLAY_NAME, record.displayName)
+            .set(WEBCONTIFY_COLLECTION_COLUMN.TYPE, record.type)
+            .set(WEBCONTIFY_COLLECTION_COLUMN.IS_PRIMARY_KEY, record.isPrimaryKey)
+            .where(
+                WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(record.collectionId)
+                    .and(WEBCONTIFY_COLLECTION_COLUMN.NAME.eq(oldName)))
+    try {
+      query.execute().let {
+        if (it == 0) {
+          throw NotFoundException()
+        }
+      }
+    } catch (e: DuplicateKeyException) {
+      throw AlreadyExistsException()
+    }
     return record
   }
 
@@ -75,7 +83,13 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
       it.displayName = column.displayName
       it.type = column.type
       it.isPrimaryKey = column.isPrimaryKey
-      it.insert()
+      try {
+        it.insert()
+      } catch (e: DuplicateKeyException) {
+        throw AlreadyExistsException()
+      } catch (e: DataIntegrityViolationException) {
+        throw NotFoundException() // collection not found
+      }
       return@let mapper.mapToDto(it)
     }
   }

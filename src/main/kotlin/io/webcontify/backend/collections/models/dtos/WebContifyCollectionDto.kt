@@ -6,11 +6,11 @@ data class WebContifyCollectionDto(
     val id: Int?,
     val name: String,
     val displayName: String = name,
-    val columns: List<WebContifyCollectionColumnDto> = listOf()
+    val columns: List<WebContifyCollectionColumnDto>? = listOf()
 )
 
 data class WebContifyCollectionColumnDto(
-    val collectionId: Int?,
+    var collectionId: Int?,
     val name: String,
     val displayName: String = name,
     val type: WebcontifyCollectionColumnType,

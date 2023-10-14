@@ -64,17 +64,17 @@ class CollectionRepository(
   }
 
   fun create(record: WebContifyCollectionDto): WebContifyCollectionDto {
-    try {
-      val collection =
-          dslContext.newRecord(WEBCONTIFY_COLLECTION).apply {
-            this.displayName = record.displayName
-            this.name = record.name
+    val collection =
+        dslContext.newRecord(WEBCONTIFY_COLLECTION).apply {
+          this.displayName = record.displayName
+          this.name = record.name
+          try {
             this.insert()
+          } catch (e: DuplicateKeyException) {
+            throw AlreadyExistsException()
           }
-      return mapper.mapCollectionToDto(collection, setOf())
-    } catch (e: DuplicateKeyException) {
-      throw AlreadyExistsException()
-    }
+        }
+    return mapper.mapCollectionToDto(collection, setOf())
   }
 
   private fun SelectConnectByStep<Record>.collectToCollectionMap():

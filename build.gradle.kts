@@ -11,6 +11,7 @@ buildscript {
 }
 
 plugins {
+  id("jacoco")
   id("org.springframework.boot") version "3.1.4"
   id("io.spring.dependency-management") version "1.1.3"
   id("nu.studer.jooq") version "8.2"
@@ -51,6 +52,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-testcontainers")
   testImplementation("org.testcontainers:junit-jupiter:1.19.1")
   testImplementation("org.testcontainers:postgresql:1.19.1")
+  testImplementation("io.mockk:mockk:1.13.8")
 }
 
 dependencyManagement {
@@ -146,3 +148,12 @@ jooq {
     }
   }
 }
+
+jacoco {
+  toolVersion = "0.8.11"
+  reportsDirectory = layout.buildDirectory.dir("reports/jacoco")
+}
+
+tasks.test { finalizedBy(tasks.jacocoTestReport) }
+
+tasks.jacocoTestReport { dependsOn(tasks.test) }

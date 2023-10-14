@@ -1,5 +1,6 @@
 package io.webcontify.backend
 
+import helpers.setups.PostgresApplicationConfiguration
 import org.springframework.boot.SpringApplication
 
 class WebContifyBackendTestApplication

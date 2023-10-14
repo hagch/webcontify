@@ -1,6 +1,7 @@
 package io.webcontify.backend.collections.services
 
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
+import io.webcontify.backend.collections.repositories.CollectionColumnRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
 import io.webcontify.backend.collections.repositories.CollectionTableRepository
 import org.springframework.stereotype.Service
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Service
 class CollectionService(
     val repository: CollectionRepository,
     val tableRepository: CollectionTableRepository,
-    val columnService: CollectionColumnService
+    val columnRepository: CollectionColumnRepository
 ) {
 
   fun getAll(): Set<WebContifyCollectionDto> {
@@ -26,18 +27,21 @@ class CollectionService(
   }
 
   fun create(collection: WebContifyCollectionDto): WebContifyCollectionDto {
-    return repository.create(collection).also {
-      if (it.id != null) {
-        val columns = columnService.createForCollection(it.id, collection.columns)
-        tableRepository.create(it.copy(columns = columns))
-      }
-    }
+    val createdCollection = repository.create(collection)
+    val createdCollectionWithColumns =
+        createdCollection.copy(
+            columns =
+                collection.columns?.map { column ->
+                  columnRepository.create(column.copy(collectionId = createdCollection.id))
+                })
+    tableRepository.create(createdCollectionWithColumns)
+    return createdCollectionWithColumns
   }
 
   fun update(collection: WebContifyCollectionDto): WebContifyCollectionDto {
     val oldCollection = repository.getById(collection.id)
     return repository.update(collection).also {
-      tableRepository.updateName(it.name, oldCollection.name)
+      tableRepository.updateName(collection.name, oldCollection.name)
     }
   }
 }

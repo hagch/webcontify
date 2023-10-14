@@ -2,6 +2,7 @@ package io.webcontify.backend.collections.advices
 
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
+import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
@@ -18,5 +19,10 @@ class ExceptionAdvice {
   @ExceptionHandler(value = [AlreadyExistsException::class])
   fun handleAlreadyExists(exception: AlreadyExistsException): ResponseEntity<*> {
     return ResponseEntity(exception.message, HttpStatus.CONFLICT)
+  }
+
+  @ExceptionHandler(value = [UnprocessableContentException::class])
+  fun handleUnprocessableContent(exception: UnprocessableContentException): ResponseEntity<*> {
+    return ResponseEntity(exception.message, HttpStatus.UNPROCESSABLE_ENTITY)
   }
 }

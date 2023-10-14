@@ -1,0 +1,1 @@
+create table "test" ("primary" bigint, "otherColumn" bigint, constraint "PK_test" primary key ("primary"));

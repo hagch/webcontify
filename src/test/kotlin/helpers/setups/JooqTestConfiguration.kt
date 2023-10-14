@@ -1,4 +1,4 @@
-package io.webcontify.backend
+package helpers.setups
 
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.ComponentScan

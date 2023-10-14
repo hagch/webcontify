@@ -2,7 +2,7 @@ package io.webcontify.backend.collections.utils
 
 fun String.snakeToCamelCase(): String {
   val pattern = "_[a-z]".toRegex()
-  return replace(pattern) { it.value.last().uppercase() }
+  return this.lowercase().replace(pattern) { it.value.last().uppercase() }
 }
 
 fun String.camelToSnakeCase(): String {
