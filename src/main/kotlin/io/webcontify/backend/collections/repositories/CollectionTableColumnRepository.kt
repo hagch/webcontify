@@ -37,9 +37,8 @@ class CollectionTableColumnRepository(
       column: WebContifyCollectionColumnDto,
       oldName: String
   ) {
-    val columnType =
-        collection.columns?.find { it.name == oldName }?.type ?: throw NotFoundException()
-    if (columnType != column.type) {
+    val oldColumn = collection.columns?.find { it.name == oldName } ?: throw NotFoundException()
+    if (oldColumn.type != column.type || oldColumn.isPrimaryKey != column.isPrimaryKey) {
       throw UnprocessableContentException()
     }
     if (oldName != column.name) {

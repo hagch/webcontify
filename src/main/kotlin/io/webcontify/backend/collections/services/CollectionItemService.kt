@@ -33,7 +33,7 @@ class CollectionItemService(
       throw UnprocessableContentException()
     }
     primaryKeys.forEach {
-      if (!identifierMap.containsKey(it.name.snakeToCamelCase())) {
+      if (!identifierMap.containsKey(it.name.snakeToCamelCase().lowercase())) {
         throw UnprocessableContentException()
       }
     }
@@ -55,8 +55,42 @@ class CollectionItemService(
     return collectionItemRepository.getAllFor(collection)
   }
 
-  fun create(collectionId: Int, item: Map<String, Any>): Map<String, Any> {
+  fun create(collectionId: Int, item: Map<String, Any?>): Map<String, Any?> {
     val collection = collectionService.getById(collectionId)
     return collectionItemRepository.create(collection, item)
+  }
+
+  fun updateById(
+      collectionId: Int,
+      identifierMap: Map<String, Any?>,
+      item: Map<String, Any?>
+  ): Map<String, Any?> {
+    val collection = collectionService.getById(collectionId)
+    if (collection.columns == null) {
+      throw UnprocessableContentException()
+    }
+    val primaryKeys = collection.columns.filter { it.isPrimaryKey }
+    if (primaryKeys.size != identifierMap.size) {
+      throw UnprocessableContentException()
+    }
+    val updateAbleItem = item.toMutableMap()
+    primaryKeys.map {
+      val camelCaseName = it.name.snakeToCamelCase()
+      updateAbleItem -= camelCaseName
+      if (!identifierMap.containsKey(camelCaseName.lowercase())) {
+        throw UnprocessableContentException()
+      }
+    }
+    return collectionItemRepository.update(collection, identifierMap, updateAbleItem)
+  }
+
+  fun updateById(collectionId: Int, itemId: Any, item: Map<String, Any?>): Map<String, Any?> {
+    val collection = collectionService.getById(collectionId)
+    if (collection.columns == null) {
+      throw UnprocessableContentException()
+    }
+    val primaryKey = collection.columns.first { it.isPrimaryKey }
+    return collectionItemRepository.update(
+        collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)), item)
   }
 }

@@ -4,6 +4,7 @@ import io.webcontify.backend.collections.services.CollectionItemService
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import org.springframework.web.bind.annotation.*
 
+// TODO cast types accoordingly
 @RestController
 class CollectionItemController(val collectionItemService: CollectionItemService) {
 
@@ -41,17 +42,23 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
   @PostMapping("$COLLECTIONS_PATH/{collectionId}/items")
   fun create(
       @PathVariable("collectionId") collectionId: Int,
-      @RequestBody item: Map<String, Any>
-  ): Map<String, Any> { // TODO primary key generation and always insert primary keys
+      @RequestBody item: Map<String, Any?>
+  ): Map<String, Any?> { // TODO primary key generation and always insert primary keys
     return collectionItemService.create(collectionId, item)
   }
 
-  @PutMapping("$COLLECTIONS_PATH/{collectionId}/items/{*identifierParameters}")
+  @PutMapping("$COLLECTIONS_PATH/{collectionId}/items/{*slugOrId}")
   fun updateById(
       @PathVariable("collectionId") collectionId: Int,
-      @PathVariable identifierParameters: String? // TODO throw if empty and update functionality
-  ): Map<String, Any> {
-    return collectionItemService.getById(collectionId, mapSlugToMap(identifierParameters))
+      @PathVariable slugOrId: String,
+      @RequestBody item: Map<String, Any?>
+  ): Map<String, Any?> {
+    slugOrId.substring(1).let {
+      if (isSlug(it)) {
+        return collectionItemService.updateById(collectionId, mapSlugToMap(it), item)
+      }
+      return collectionItemService.updateById(collectionId, it, item)
+    }
   }
 
   private fun mapSlugToMap(slug: String?): Map<String, String?> {

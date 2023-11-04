@@ -3,6 +3,7 @@ package io.webcontify.backend.collections.mappers
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiCreateRequest
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiUpdateRequest
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionColumnApiCreateRequest
+import io.webcontify.backend.collections.models.apis.WebContifyCollectionColumnApiUpdateRequest
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
@@ -53,5 +54,19 @@ interface CollectionMapper {
   @Mapping(source = "primaryKey", target = "isPrimaryKey")
   fun mapApiToDto(
       columnApiCreateRequest: WebContifyCollectionColumnApiCreateRequest
+  ): WebContifyCollectionColumnDto
+
+  @Mapping(source = "columnApiCreateRequest.primaryKey", target = "isPrimaryKey")
+  @Mapping(source = "collectionId", target = "collectionId")
+  fun mapApiToDto(
+      columnApiCreateRequest: WebContifyCollectionColumnApiCreateRequest,
+      collectionId: Int
+  ): WebContifyCollectionColumnDto
+
+  @Mapping(source = "collectionId", target = "collectionId")
+  @Mapping(source = "columnApiUpdateRequest.primaryKey", target = "isPrimaryKey")
+  fun mapApiToDto(
+      columnApiUpdateRequest: WebContifyCollectionColumnApiUpdateRequest,
+      collectionId: Int
   ): WebContifyCollectionColumnDto
 }

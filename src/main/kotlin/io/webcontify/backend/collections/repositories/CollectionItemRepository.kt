@@ -31,7 +31,8 @@ class CollectionItemRepository(
     val fields = getFieldsOf(collection, identifierTypeMap)
     val map =
         dslContext.selectFrom(collection.name.doubleQuote()).where(fields).fetchOne { record ->
-          identifierTypeMap.map { it.key.snakeToCamelCase() to record.getValue(it.key) }.toMap()
+          collection.columns?.associate { it.name.snakeToCamelCase() to record.getValue(it.name) }
+              ?: mapOf()
         }
             ?: throw NotFoundException()
     return map
@@ -47,14 +48,14 @@ class CollectionItemRepository(
     }
   }
 
-  fun create(collection: WebContifyCollectionDto, item: Map<String, Any>): Map<String, Any> {
+  fun create(collection: WebContifyCollectionDto, item: Map<String, Any?>): Map<String, Any?> {
     val identifierTypeMap = item.entries.toIdentifierMap(collection)
     val fields = item.keys.map { field(it.camelToSnakeCase().doubleQuote()) }
     val values =
         identifierTypeMap
             .map {
               if (it.value.second == null) {
-                it.value
+                it.value.first
               } else {
                 cast(it.value.first, it.value.second)
               }
@@ -76,6 +77,36 @@ class CollectionItemRepository(
     return item
   }
 
+  fun update(
+      collection: WebContifyCollectionDto,
+      identifierMap: Map<String, Any?>,
+      item: Map<String, Any?>
+  ): Map<String, Any?> {
+    val query = dslContext.update(table(collection.name.doubleQuote()))
+    val identifierTypeMap = identifierMap.entries.toIdentifierMap(collection)
+    val fieldMap =
+        item.entries.associate { field(it.key.camelToSnakeCase().doubleQuote()) to it.value }
+    val conditions =
+        identifierTypeMap.map {
+          val value =
+              if (it.value.second == null) {
+                it.value.first
+              } else {
+                cast(it.value.first, it.value.second)
+              }
+          return@map condition(
+              field("${collection.name.doubleQuote()}.${it.key.doubleQuote()}").eq(value))
+        }
+    query.set(fieldMap).where(conditions).execute().let {
+      if (it != 1) {
+        throw UnprocessableContentException()
+      }
+    }
+    val itemWithIdentifiers = identifierMap.toMutableMap()
+    itemWithIdentifiers.putAll(item)
+    return itemWithIdentifiers
+  }
+
   fun getAllFor(collection: WebContifyCollectionDto): List<Map<String, Any>> {
     var select = dslContext.selectFrom(collection.name.doubleQuote())
     try {
@@ -91,16 +122,16 @@ class CollectionItemRepository(
       collection: WebContifyCollectionDto
   ): Map<String, Pair<WebContifyCollectionColumnDto, DataType<*>>>? {
     return collection.columns?.associateBy(
-        { it.name.snakeToCamelCase() },
+        { it.name.snakeToCamelCase().lowercase() },
         { Pair(it, columnHandlerStrategy.getHandlerFor(it.type).getColumnType()) })
   }
 
-  private fun Set<Map.Entry<*, *>>.toIdentifierMap(
+  private fun Set<Map.Entry<String, *>>.toIdentifierMap(
       collection: WebContifyCollectionDto
   ): Map<String, Pair<Any?, DataType<*>?>> {
     val columnTypeMap = getColumnTypeMap(collection)
     return this.associate {
-      (columnTypeMap?.get(it.key)?.first?.name
+      (columnTypeMap?.get(it.key.lowercase())?.first?.name
           ?: throw UnprocessableContentException()) to Pair(it.value, columnTypeMap[it.key]?.second)
     }
   }
