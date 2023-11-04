@@ -4,7 +4,6 @@ import io.webcontify.backend.collections.services.CollectionItemService
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import org.springframework.web.bind.annotation.*
 
-// TODO cast types accoordingly
 @RestController
 class CollectionItemController(val collectionItemService: CollectionItemService) {
 

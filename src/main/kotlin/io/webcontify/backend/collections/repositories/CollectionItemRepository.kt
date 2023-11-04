@@ -51,6 +51,7 @@ class CollectionItemRepository(
   fun create(collection: WebContifyCollectionDto, item: Map<String, Any?>): Map<String, Any?> {
     val identifierTypeMap = item.entries.toIdentifierMap(collection)
     val fields = item.keys.map { field(it.camelToSnakeCase().doubleQuote()) }
+    // TODO change with casting from java implementation
     val values =
         identifierTypeMap
             .map {
@@ -86,6 +87,7 @@ class CollectionItemRepository(
     val identifierTypeMap = identifierMap.entries.toIdentifierMap(collection)
     val fieldMap =
         item.entries.associate { field(it.key.camelToSnakeCase().doubleQuote()) to it.value }
+    // TODO change with casting from java implementation
     val conditions =
         identifierTypeMap.map {
           val value =
@@ -104,7 +106,7 @@ class CollectionItemRepository(
     }
     val itemWithIdentifiers = identifierMap.toMutableMap()
     itemWithIdentifiers.putAll(item)
-    return itemWithIdentifiers
+    return mapItem(itemWithIdentifiers, collection)
   }
 
   fun getAllFor(collection: WebContifyCollectionDto): List<Map<String, Any>> {
@@ -140,6 +142,7 @@ class CollectionItemRepository(
       collection: WebContifyCollectionDto,
       identifierTypeMap: Map<String, Pair<Any?, DataType<*>?>>
   ): List<Condition> {
+    // TODO change with casting from java implementation
     return identifierTypeMap
         .map {
           if (it.value.second == null) {
@@ -150,5 +153,15 @@ class CollectionItemRepository(
           }
         }
         .toMutableList()
+  }
+
+  private fun mapItem(
+      item: Map<String, Any?>,
+      collection: WebContifyCollectionDto
+  ): Map<String, Any?> {
+    return collection.columns?.let {
+      return@let columnHandlerStrategy.castItemToJavaTypes(it, item)
+    }
+        ?: throw UnprocessableContentException()
   }
 }

@@ -7,4 +7,6 @@ interface ColumnHandler {
   fun getColumnType(): DataType<*>
 
   fun getColumnHandlerType(): WebcontifyCollectionColumnType
+
+  fun castToJavaType(value: Any): Any
 }

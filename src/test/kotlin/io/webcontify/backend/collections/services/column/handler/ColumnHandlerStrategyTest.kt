@@ -43,4 +43,8 @@ private class ColumnHandlerTestImpl : ColumnHandler {
   override fun getColumnHandlerType(): WebcontifyCollectionColumnType {
     return WebcontifyCollectionColumnType.NUMBER
   }
+
+  override fun castToJavaType(value: Any): Any {
+    return value
+  }
 }

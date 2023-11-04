@@ -1,5 +1,6 @@
 package io.webcontify.backend.collections.services.column.handler.strategies
 
+import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.services.column.handler.ColumnHandler
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import org.jooq.DataType
@@ -14,5 +15,9 @@ class TimestampColumnHandler : ColumnHandler {
 
   override fun getColumnHandlerType(): WebcontifyCollectionColumnType {
     return WebcontifyCollectionColumnType.TIMESTAMP
+  }
+
+  override fun castToJavaType(value: Any): Any {
+    throw UnprocessableContentException()
   }
 }
