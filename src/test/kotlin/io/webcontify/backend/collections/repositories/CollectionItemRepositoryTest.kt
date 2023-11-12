@@ -119,7 +119,7 @@ class CollectionItemRepositoryTest(
     val collection = collectionRepository.getAll().first()
 
     assertThrows<UnprocessableContentException> {
-      repository.getByIdFor(collection, mapOf(Pair("primary", 1)))
+      repository.getByIdFor(collection, mapOf(Pair("Name", 1)))
     }
   }
 

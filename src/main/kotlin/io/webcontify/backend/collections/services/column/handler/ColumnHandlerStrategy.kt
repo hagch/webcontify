@@ -26,8 +26,11 @@ class ColumnHandlerStrategy(private val handlers: List<ColumnHandler>) {
   ): Map<String, Any?> {
     return item.mapValues { entry ->
       val column =
-          columns?.first { it.name.snakeToCamelCase().lowercase() == entry.key.lowercase() }
-              ?: throw UnprocessableContentException()
+          try {
+            columns?.first { it.name.snakeToCamelCase().lowercase() == entry.key.lowercase() }
+          } catch (e: NoSuchElementException) {
+            throw UnprocessableContentException()
+          } ?: throw UnprocessableContentException()
       return@mapValues entry.value?.let {
         return@let getHandlerFor(column.type).castToJavaType(it)
       }
