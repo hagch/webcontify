@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.junit.jupiter.params.provider.ValueSource
 
 class StringExtensionMethodsTest {
 
@@ -18,12 +17,6 @@ class StringExtensionMethodsTest {
   @MethodSource("provideMapForConversions")
   fun snakeToCamelCaseShouldConvert(expected: String, toConvert: String) {
     assertEquals(expected, toConvert.snakeToCamelCase())
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = ["quote", ""])
-  fun doubleQuoteShouldDoubleQuote(testString: String) {
-    assertEquals("\"$testString\"", testString.doubleQuote())
   }
 
   companion object {

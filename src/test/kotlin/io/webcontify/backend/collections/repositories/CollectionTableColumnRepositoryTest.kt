@@ -6,7 +6,6 @@ import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
-import io.webcontify.backend.collections.utils.doubleQuote
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -22,15 +21,13 @@ class CollectionTableColumnRepositoryTest(
     @Autowired val repository: CollectionTableColumnRepository
 ) : JooqTestSetup() {
   private final val firstColumn =
-      WebContifyCollectionColumnDto(
-          1, "primary", "primary", WebcontifyCollectionColumnType.NUMBER, true)
+      WebContifyCollectionColumnDto(1, "id", "id", WebcontifyCollectionColumnType.NUMBER, true)
   private final val secondColumn =
       WebContifyCollectionColumnDto(
           1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false)
   private final val collection =
-      collectionWithColumns(listOf(Pair("primary", true), Pair("otherColumn", false)))
-  private final val fields =
-      listOf(DSL.field(firstColumn.name.doubleQuote()), DSL.field(secondColumn.name.doubleQuote()))
+      collectionWithColumns(listOf(Pair("id", true), Pair("otherColumn", false)))
+  private final val fields = listOf(DSL.field(firstColumn.name), DSL.field(secondColumn.name))
 
   @Test
   @Sql("create-test-table.sql")
@@ -43,9 +40,7 @@ class CollectionTableColumnRepositoryTest(
 
     assertDoesNotThrow {
       context
-          .insertInto(
-              DSL.table(collection.name.doubleQuote()),
-              fields.plus(DSL.field(newColumn.name.doubleQuote())))
+          .insertInto(DSL.table(collection.name), fields.plus(DSL.field(newColumn.name)))
           .values(1, 1, 1)
           .execute()
     }
@@ -77,8 +72,7 @@ class CollectionTableColumnRepositoryTest(
     repository.delete(collection, secondColumn.name)
     assertDoesNotThrow {
       context
-          .insertInto(
-              DSL.table(collection.name.doubleQuote()), DSL.field(firstColumn.name.doubleQuote()))
+          .insertInto(DSL.table(collection.name), DSL.field(firstColumn.name))
           .values(1)
           .execute()
     }
@@ -95,7 +89,7 @@ class CollectionTableColumnRepositoryTest(
   @Sql("create-test-table.sql")
   @DisplayName("Delete column should not throw exception if column not exists")
   fun deleteColumnShouldNotThrowExceptionIfColumnNotExists() {
-    assertDoesNotThrow { repository.delete(collection, "does not exist") }
+    assertDoesNotThrow { repository.delete(collection, "does_not_exist") }
   }
 
   @Test
@@ -110,7 +104,7 @@ class CollectionTableColumnRepositoryTest(
   @DisplayName("Update column should throw exception if table not exists")
   fun updateColumnShouldThrowExceptionIfTableNotExists() {
     assertThrows<UnprocessableContentException> {
-      repository.update(collection, firstColumn.copy(name = "new"), "primary")
+      repository.update(collection, firstColumn.copy(name = "new"), "id")
     }
   }
 
@@ -138,13 +132,10 @@ class CollectionTableColumnRepositoryTest(
   @Sql("create-test-table.sql")
   @DisplayName("Update column should update column")
   fun updateColumnShouldUpdateColumn() {
-    repository.update(collection, firstColumn.copy(name = "new"), "primary")
+    repository.update(collection, firstColumn.copy(name = "new"), "id")
 
     assertDoesNotThrow {
-      context
-          .insertInto(DSL.table(collection.name.doubleQuote()), DSL.field("new".doubleQuote()))
-          .values(1)
-          .execute()
+      context.insertInto(DSL.table(collection.name), DSL.field("new")).values(1).execute()
     }
   }
 
@@ -155,7 +146,7 @@ class CollectionTableColumnRepositoryTest(
       repository.update(
           collection,
           firstColumn.copy(name = "new", type = WebcontifyCollectionColumnType.CURRENCY),
-          "primary")
+          "id")
     }
   }
 
@@ -164,7 +155,7 @@ class CollectionTableColumnRepositoryTest(
   @DisplayName("Update column should throw exception if new name is empty")
   fun updateColumnShouldThrowExceptionIfColumnNameIsEmpty() {
     assertThrows<UnprocessableContentException> {
-      repository.update(collection, firstColumn.copy(name = ""), "primary")
+      repository.update(collection, firstColumn.copy(name = ""), "id")
     }
   }
 }

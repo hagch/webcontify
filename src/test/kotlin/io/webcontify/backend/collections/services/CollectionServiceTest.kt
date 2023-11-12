@@ -26,7 +26,7 @@ class CollectionServiceTest {
 
   @InjectMockKs lateinit var service: CollectionService
 
-  private val collection = collectionWithColumns(listOf(Pair("primary", true)))
+  private val collection = collectionWithColumns(listOf(Pair("id", true)))
 
   @Test
   fun getAllShouldCallCollectionRepository() {

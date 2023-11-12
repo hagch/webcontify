@@ -18,13 +18,13 @@ class CollectionTableRepository(
     val tableBuilder = dslContext.createTable(collection.name)
     collection.columns?.forEach { column ->
       columStrategy.getHandlerFor(column.type).let {
-        tableBuilder.column(column.name, it.getColumnType())
+        tableBuilder.column(field(column.name, it.getColumnType()))
       }
     }
     val primaryKeyColums =
         collection.columns
             ?.filter { column -> column.isPrimaryKey }
-            ?.map { column -> field(name(collection.name, column.name)) }
+            ?.map { column -> field(column.name) }
     if (primaryKeyColums.isNullOrEmpty()) {
       throw UnprocessableContentException()
     }

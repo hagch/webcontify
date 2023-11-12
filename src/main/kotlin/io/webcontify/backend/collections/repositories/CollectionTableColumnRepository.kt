@@ -6,7 +6,6 @@ import io.webcontify.backend.collections.exceptions.UnprocessableContentExceptio
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
-import io.webcontify.backend.collections.utils.doubleQuote
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.*
 import org.springframework.jdbc.BadSqlGrammarException
@@ -24,7 +23,7 @@ class CollectionTableColumnRepository(
         ?.firstOrNull { it.name == column.name }
         ?.let { throw AlreadyExistsException() }
 
-    val query = dslContext.alterTable(collection.name).addColumn(field(name(column.name), type))
+    val query = dslContext.alterTable(collection.name).addColumn(field(column.name, type))
     try {
       query.execute()
     } catch (_: BadSqlGrammarException) {
@@ -52,9 +51,6 @@ class CollectionTableColumnRepository(
   }
 
   fun delete(collection: WebContifyCollectionDto, name: String) {
-    dslContext
-        .alterTableIfExists(collection.name)
-        .dropColumnIfExists(field(name.doubleQuote()))
-        .execute()
+    dslContext.alterTableIfExists(collection.name).dropColumnIfExists(field(name)).execute()
   }
 }

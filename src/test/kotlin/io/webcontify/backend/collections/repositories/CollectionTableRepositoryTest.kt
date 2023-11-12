@@ -5,7 +5,6 @@ import helpers.suppliers.collectionWithColumns
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
-import io.webcontify.backend.collections.utils.doubleQuote
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
@@ -22,8 +21,7 @@ class CollectionTableRepositoryTest(
     @Autowired val repository: CollectionTableRepository
 ) : JooqTestSetup() {
   private final val firstColumn =
-      WebContifyCollectionColumnDto(
-          1, "primary", "primary", WebcontifyCollectionColumnType.NUMBER, true)
+      WebContifyCollectionColumnDto(1, "id", "id", WebcontifyCollectionColumnType.NUMBER, true)
   private final val secondColumn =
       WebContifyCollectionColumnDto(
           1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false)
@@ -35,16 +33,13 @@ class CollectionTableRepositoryTest(
           1, "primary2", "primary2", WebcontifyCollectionColumnType.NUMBER, false)
 
   private final val onePrimaryKeyCollection =
-      collectionWithColumns(listOf(Pair("primary", true), Pair("otherColumn", false)))
-  private final val onePrimaryKeyFields =
-      listOf(field(firstColumn.name.doubleQuote()), field(secondColumn.name.doubleQuote()))
+      collectionWithColumns(listOf(Pair("id", true), Pair("otherColumn", false)))
+  private final val onePrimaryKeyFields = listOf(field(firstColumn.name), field(secondColumn.name))
 
   private final val compositePrimaryKeyCollection =
       collectionWithColumns(listOf(Pair("primary1", true), Pair("primary2", true)))
   private final val compositePrimaryKeyFields =
-      listOf(
-          field(firstColumnPrimary.name.doubleQuote()),
-          field(secondColumnPrimary.name.doubleQuote()))
+      listOf(field(firstColumnPrimary.name), field(secondColumnPrimary.name))
 
   @Test
   @DisplayName("create should create table")
@@ -53,11 +48,14 @@ class CollectionTableRepositoryTest(
 
     assertDoesNotThrow { context.select().from(onePrimaryKeyCollection.name).execute() }
     assertDoesNotThrow {
-      context.insertInto(table("test".doubleQuote()), onePrimaryKeyFields).values(1, 1).execute()
+      context
+          .insertInto(table(onePrimaryKeyCollection.name), onePrimaryKeyFields)
+          .values(1, 1)
+          .execute()
     }
     assertThrows<RuntimeException> {
       context
-          .insertInto(table(onePrimaryKeyCollection.name.doubleQuote()), onePrimaryKeyFields)
+          .insertInto(table(onePrimaryKeyCollection.name), onePrimaryKeyFields)
           .values(1, null)
           .execute()
     }
@@ -71,15 +69,13 @@ class CollectionTableRepositoryTest(
     assertDoesNotThrow { context.select().from(compositePrimaryKeyCollection.name).execute() }
     assertDoesNotThrow {
       context
-          .insertInto(
-              table(compositePrimaryKeyCollection.name.doubleQuote()), compositePrimaryKeyFields)
+          .insertInto(table(compositePrimaryKeyCollection.name), compositePrimaryKeyFields)
           .values(1, 1)
           .execute()
     }
     assertThrows<RuntimeException> {
       context
-          .insertInto(
-              table(compositePrimaryKeyCollection.name.doubleQuote()), compositePrimaryKeyFields)
+          .insertInto(table(compositePrimaryKeyCollection.name), compositePrimaryKeyFields)
           .values(1, 1)
           .execute()
     }
@@ -95,7 +91,7 @@ class CollectionTableRepositoryTest(
             "Test",
             listOf(
                 WebContifyCollectionColumnDto(
-                    1, "primary1", "primary", WebcontifyCollectionColumnType.NUMBER, false)))
+                    1, "primary1", "id", WebcontifyCollectionColumnType.NUMBER, false)))
 
     assertThrows<UnprocessableContentException> { repository.create(collection) }
   }

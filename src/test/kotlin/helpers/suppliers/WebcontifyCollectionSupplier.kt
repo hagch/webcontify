@@ -5,11 +5,11 @@ import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 
 fun collectionWithNameCollection(): WebContifyCollectionDto {
-  return WebContifyCollectionDto(null, "COLLECTION")
+  return WebContifyCollectionDto(null, "collection")
 }
 
 fun collectionWithNameTest(): WebContifyCollectionDto {
-  return WebContifyCollectionDto(null, "TEST")
+  return WebContifyCollectionDto(null, "test")
 }
 
 fun collectionWithEmptyColumns(): WebContifyCollectionDto {

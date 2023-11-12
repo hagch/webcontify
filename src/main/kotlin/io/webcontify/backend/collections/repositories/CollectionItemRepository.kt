@@ -6,7 +6,6 @@ import io.webcontify.backend.collections.exceptions.UnprocessableContentExceptio
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
 import io.webcontify.backend.collections.utils.camelToSnakeCase
-import io.webcontify.backend.collections.utils.doubleQuote
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 import org.jooq.Condition
 import org.jooq.DSLContext
@@ -27,7 +26,7 @@ class CollectionItemRepository(
   ): Map<String, Any> {
     val fields = getConditionsFor(collection, identifierMap)
     try {
-      return dslContext.selectFrom(collection.name.doubleQuote()).where(fields).fetchOne { record ->
+      return dslContext.selectFrom(collection.name).where(fields).fetchOne { record ->
         collection.columns?.associate { it.name.snakeToCamelCase() to record.getValue(it.name) }
             ?: mapOf()
       }
@@ -40,25 +39,21 @@ class CollectionItemRepository(
   fun deleteById(collection: WebContifyCollectionDto, identifierMap: Map<String, Any?>) {
     val fields = getConditionsFor(collection, identifierMap)
     try {
-      dslContext.deleteFrom(table(collection.name.doubleQuote())).where(fields).execute()
+      dslContext.deleteFrom(table(collection.name)).where(fields).execute()
     } catch (e: BadSqlGrammarException) {
       throw UnprocessableContentException()
     }
   }
 
   fun create(collection: WebContifyCollectionDto, item: Map<String, Any?>): Map<String, Any?> {
-    val fields = item.keys.map { field(it.camelToSnakeCase().doubleQuote()) }
+    val fields = item.keys.map { field(it.camelToSnakeCase()) }
     val values = mapItem(item, collection).values
     try {
-      dslContext
-          .insertInto(table(collection.name.doubleQuote()), fields)
-          .values(values)
-          .execute()
-          .let {
-            if (it != 1) {
-              throw UnprocessableContentException()
-            }
-          }
+      dslContext.insertInto(table(collection.name), fields).values(values).execute().let {
+        if (it != 1) {
+          throw UnprocessableContentException()
+        }
+      }
     } catch (e: DuplicateKeyException) {
       throw AlreadyExistsException()
     }
@@ -70,14 +65,11 @@ class CollectionItemRepository(
       identifierMap: Map<String, Any?>,
       item: Map<String, Any?>
   ): Map<String, Any?> {
-    val query = dslContext.update(table(collection.name.doubleQuote()))
-    val fieldMap =
-        item.entries.associate { field(it.key.camelToSnakeCase().doubleQuote()) to it.value }
+    val query = dslContext.update(table(collection.name))
+    val fieldMap = item.entries.associate { field(it.key.camelToSnakeCase()) to it.value }
     val conditions =
         mapItem(identifierMap, collection).map {
-          condition(
-              field("${collection.name.doubleQuote()}.${it.key.camelToSnakeCase().doubleQuote()}")
-                  .eq(it.value))
+          condition(field("${collection.name}.${it.key.camelToSnakeCase()}").eq(it.value))
         }
     query.set(fieldMap).where(conditions).execute().let {
       if (it != 1) {
@@ -90,7 +82,7 @@ class CollectionItemRepository(
   }
 
   fun getAllFor(collection: WebContifyCollectionDto): List<Map<String, Any>> {
-    var select = dslContext.selectFrom(collection.name.doubleQuote())
+    var select = dslContext.selectFrom(collection.name)
     try {
       return select.fetch { record ->
         collection.columns?.associate { it.name.snakeToCamelCase() to record.getValue(it.name) }
@@ -105,7 +97,7 @@ class CollectionItemRepository(
       identifierTypeMap: Map<String, Any?>
   ): List<Condition> {
     return mapItem(identifierTypeMap, collection).map {
-      field("${collection.name.doubleQuote()}.${it.key.doubleQuote()}").eq(it.value)
+      field("${collection.name}.${it.key}").eq(it.value)
     }
   }
 
@@ -116,7 +108,7 @@ class CollectionItemRepository(
     return collection.columns?.let { columns ->
       return columnHandlerStrategy
           .castItemToJavaTypes(columns, item)
-          .map { it.key.camelToSnakeCase().uppercase() to it.value }
+          .map { it.key.camelToSnakeCase() to it.value }
           .toMap()
     }
         ?: throw UnprocessableContentException()

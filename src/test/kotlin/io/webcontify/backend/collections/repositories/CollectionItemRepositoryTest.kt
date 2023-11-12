@@ -5,7 +5,6 @@ import helpers.suppliers.collectionWithColumns
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
-import io.webcontify.backend.collections.utils.doubleQuote
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,15 +25,9 @@ class CollectionItemRepositoryTest(
   fun createItemShouldCreateItem() {
     val collection = collectionRepository.getAll().first()
 
-    repository.create(collection, mapOf(Pair("primary", 1), Pair("otherColumn", 1)))
+    repository.create(collection, mapOf(Pair("id", 1), Pair("otherColumn", 1)))
 
-    assertEquals(
-        1,
-        context
-            .select()
-            .from(collection.name.doubleQuote())
-            .where(field("PRIMARY".doubleQuote()).eq(1))
-            .execute())
+    assertEquals(1, context.select().from(collection.name).where(field("id").eq(1)).execute())
   }
 
   @Test
@@ -61,10 +54,10 @@ class CollectionItemRepositoryTest(
   @Sql("create-item-test-entities.sql")
   fun createItemShouldThrowAlreadyExistsIfPrimaryKeyIsAlreadyCreated() {
     val collection = collectionRepository.getAll().first()
-    repository.create(collection, mapOf(Pair("primary", 1), Pair("otherColumn", 1)))
+    repository.create(collection, mapOf(Pair("id", 1), Pair("otherColumn", 1)))
 
     assertThrows<AlreadyExistsException> {
-      repository.create(collection, mapOf(Pair("primary", 1), Pair("otherColumn", 1)))
+      repository.create(collection, mapOf(Pair("id", 1), Pair("otherColumn", 1)))
     }
   }
 
@@ -74,7 +67,7 @@ class CollectionItemRepositoryTest(
     val collection = collectionRepository.getAll().first()
 
     assertThrows<UnprocessableContentException> {
-      repository.create(collection, mapOf(Pair("primary", 1), Pair("otherColumn", 1)))
+      repository.create(collection, mapOf(Pair("id", 1), Pair("otherColumn", 1)))
     }
   }
 
@@ -107,10 +100,10 @@ class CollectionItemRepositoryTest(
   fun getByIdForShouldReturnItem() {
     val collection = collectionRepository.getAll().first()
 
-    val item = repository.getByIdFor(collection, mapOf(Pair("primary", 1)))
+    val item = repository.getByIdFor(collection, mapOf(Pair("id", 1)))
 
-    assertEquals(1L, item["primary"])
-    assertEquals(1L, item["primary"])
+    assertEquals(1L, item["id"])
+    assertEquals(1L, item["id"])
   }
 
   @Test
@@ -128,7 +121,7 @@ class CollectionItemRepositoryTest(
   fun getByIdForShouldThrowExceptionIfItemDoesNotExist() {
     val collection = collectionRepository.getAll().first()
 
-    assertThrows<NotFoundException> { repository.getByIdFor(collection, mapOf(Pair("primary", 1))) }
+    assertThrows<NotFoundException> { repository.getByIdFor(collection, mapOf(Pair("id", 1))) }
   }
 
   @Test
@@ -136,37 +129,27 @@ class CollectionItemRepositoryTest(
   fun deleteByIdShouldDeleteItem() {
     val collection = collectionRepository.getAll().first()
 
-    repository.deleteById(collection, mapOf(Pair("primary", 1)))
+    repository.deleteById(collection, mapOf(Pair("id", 1)))
 
-    assertEquals(
-        0,
-        context
-            .selectFrom(collection.name.doubleQuote())
-            .where(field("PRIMARY".doubleQuote()).eq(1))
-            .execute())
+    assertEquals(0, context.selectFrom(collection.name).where(field("id").eq(1)).execute())
   }
 
   @Test
   @Sql("create-item-test-entities.sql")
   fun deleteByIdShouldNotThrowExceptionIfItemDoesNotExist() {
     val collection = collectionRepository.getAll().first()
-    repository.deleteById(collection, mapOf(Pair("primary", 1)))
+    repository.deleteById(collection, mapOf(Pair("id", 1)))
 
-    assertEquals(
-        0,
-        context
-            .selectFrom(collection.name.doubleQuote())
-            .where(field("PRIMARY".doubleQuote()).eq(1))
-            .execute())
-    assertDoesNotThrow { repository.deleteById(collection, mapOf(Pair("primary", 1))) }
+    assertEquals(0, context.selectFrom(collection.name).where(field("id").eq(1)).execute())
+    assertDoesNotThrow { repository.deleteById(collection, mapOf(Pair("id", 1))) }
   }
 
   @Test
   fun deleteByIdShouldThrowExceptionIfTableDoesNotExist() {
-    val collection = collectionWithColumns(listOf(Pair("PRIMARY", true)))
+    val collection = collectionWithColumns(listOf(Pair("id", true)))
 
     assertThrows<UnprocessableContentException> {
-      repository.deleteById(collection, mapOf(Pair("primary", 1)))
+      repository.deleteById(collection, mapOf(Pair("id", 1)))
     }
   }
 }
