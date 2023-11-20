@@ -1,5 +1,6 @@
 package io.webcontify.backend.collections.services.column.handler
 
+import helpers.suppliers.firstSqlInsertedColumn
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import org.jooq.DataType
@@ -24,14 +25,12 @@ class ColumnHandlerStrategyTest {
   fun generateHandlerMapShouldRegisterHandlers() {
     strategy.generateHandlerMap()
 
-    assertEquals(handler, strategy.getHandlerFor(WebcontifyCollectionColumnType.NUMBER))
+    assertEquals(handler, strategy.getHandlerFor(firstSqlInsertedColumn()))
   }
 
   @Test
   fun getHandlerForShouldThrowUnprocessableContentExceptionOnNoHandlerFound() {
-    assertThrows<UnprocessableContentException> {
-      strategy.getHandlerFor(WebcontifyCollectionColumnType.NUMBER)
-    }
+    assertThrows<UnprocessableContentException> { strategy.getHandlerFor(firstSqlInsertedColumn()) }
   }
 }
 

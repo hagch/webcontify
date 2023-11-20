@@ -3,6 +3,7 @@ package io.webcontify.backend.collections.repositories
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.mappers.CollectionMapper
+import io.webcontify.backend.collections.models.apis.ErrorCode
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
 import org.jooq.*
@@ -22,7 +23,9 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
                 WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(collectionId)
                     .and(WEBCONTIFY_COLLECTION_COLUMN.NAME.eq(name)))
             .fetchOneInto(WebContifyCollectionColumnDto::class.java)
-    return column ?: throw NotFoundException()
+    return column
+        ?: throw NotFoundException(
+            ErrorCode.COLUMN_NOT_FOUND, listOf(name, collectionId?.toString() ?: ""))
   }
 
   fun getAllForCollection(collectionId: Int?): Set<WebContifyCollectionColumnDto> {
@@ -65,11 +68,14 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
     try {
       query.execute().let {
         if (it == 0) {
-          throw NotFoundException()
+          throw NotFoundException(
+              ErrorCode.COLUMN_NOT_UPDATED, listOf(oldName, record.collectionId?.toString() ?: ""))
         }
       }
     } catch (e: DuplicateKeyException) {
-      throw AlreadyExistsException()
+      throw AlreadyExistsException(
+          ErrorCode.COLUMN_WITH_NAME_ALREADY_EXISTS,
+          listOf(oldName, record.collectionId?.toString() ?: ""))
     }
     return record
   }
@@ -84,9 +90,12 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
       try {
         it.insert()
       } catch (e: DuplicateKeyException) {
-        throw AlreadyExistsException()
+        throw AlreadyExistsException(
+            ErrorCode.COLUMN_WITH_NAME_ALREADY_EXISTS,
+            listOf(column.name, column.collectionId?.toString() ?: ""))
       } catch (e: DataIntegrityViolationException) {
-        throw NotFoundException() // collection not found
+        throw NotFoundException(
+            ErrorCode.COLLECTION_NOT_FOUND, listOf(column.collectionId?.toString() ?: ""))
       }
       return@let mapper.mapToDto(it)
     }

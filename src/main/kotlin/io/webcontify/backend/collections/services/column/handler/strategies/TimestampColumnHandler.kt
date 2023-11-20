@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.services.column.handler.strategies
 
-import io.webcontify.backend.collections.exceptions.UnprocessableContentException
+import io.webcontify.backend.collections.models.dtos.CastException
 import io.webcontify.backend.collections.services.column.handler.ColumnHandler
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import org.jooq.DataType
@@ -18,6 +18,6 @@ class TimestampColumnHandler : ColumnHandler {
   }
 
   override fun castToJavaType(value: Any): Any {
-    throw UnprocessableContentException()
+    throw CastException()
   }
 }

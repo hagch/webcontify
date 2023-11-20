@@ -7,25 +7,16 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 
 data class WebContifyCollectionApiCreateRequest(
-    @field:Pattern(
-        regexp = "^(?!_)[0-9a-z_]*(?<!_)$",
-        message =
-            "name cannot have leading or ending '_' and only those values are allowed 0-9, a-z, _")
-    val name: String,
+    @field:Pattern(regexp = "^(?!_)[0-9a-z_]*(?<!_)$", message = "INVALID_NAME") val name: String,
     val displayName: String?,
-    @field:Size(min = 1)
-    @field:NotNull
+    @field:Size(min = 1, message = "COLUMN_REQUIRED")
     @field:Valid
     val columns: List<WebContifyCollectionColumnApiCreateRequest>
 )
 
 data class WebContifyCollectionColumnApiCreateRequest(
-    @field:Pattern(
-        regexp = "^(?!_)[0-9a-z_]*(?<!_)$",
-        message =
-            "name cannot have leading or ending '_' and only those values are allowed 0-9, a-z, _")
-    val name: String,
+    @field:Pattern(regexp = "^(?!_)[0-9a-z_]*(?<!_)$", message = "INVALID_NAME") val name: String,
     val displayName: String?,
-    @field:NotNull(message = "type cannot be null") val type: WebcontifyCollectionColumnType,
+    @field:NotNull(message = "TYPE_NON_NULLABLE") val type: WebcontifyCollectionColumnType,
     val isPrimaryKey: Boolean = false
 )

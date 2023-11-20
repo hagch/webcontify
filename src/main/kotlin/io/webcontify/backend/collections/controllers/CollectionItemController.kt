@@ -1,5 +1,7 @@
 package io.webcontify.backend.collections.controllers
 
+import io.webcontify.backend.collections.exceptions.UnprocessableContentException
+import io.webcontify.backend.collections.models.apis.ErrorCode
 import io.webcontify.backend.collections.services.CollectionItemService
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import org.springframework.web.bind.annotation.*
@@ -60,19 +62,18 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
     }
   }
 
-  private fun mapSlugToMap(slug: String?): Map<String, String?> {
+  private fun mapSlugToMap(slug: String): Map<String, String?> {
     return slug
-        ?.split("/")
+        .split("/")
         .apply {
-          if ((this?.size ?: 0) < 1) {
-            throw RuntimeException() // TODO at least one primary key
+          if (this.isEmpty()) {
+            throw UnprocessableContentException(ErrorCode.INVALID_PATH_PARAMETERS)
           }
         }
-        ?.chunked(2) {
+        .chunked(2) {
           Pair(it.elementAtOrElse(0) { "" }.lowercase(), mapNullString(it.elementAtOrNull(1)))
         }
-        ?.associateBy({ it.first }, { it.second })
-        ?: throw RuntimeException()
+        .associateBy({ it.first }, { it.second })
   }
 
   private fun mapNullString(stringToCheck: String?): String? {

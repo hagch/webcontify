@@ -3,6 +3,7 @@ package io.webcontify.backend.collections.repositories
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
+import io.webcontify.backend.collections.models.apis.ErrorCode
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
 import io.webcontify.backend.collections.utils.camelToSnakeCase
@@ -30,9 +31,17 @@ class CollectionItemRepository(
         collection.columns?.associate { it.name.snakeToCamelCase() to record.getValue(it.name) }
             ?: mapOf()
       }
-          ?: throw NotFoundException()
+          ?: throw NotFoundException(
+              ErrorCode.ITEM_NOT_FOUND,
+              listOf(
+                  identifierMap.entries.joinToString { "${it.key}= ${it.value}" },
+                  collection.id.toString()))
     } catch (e: BadSqlGrammarException) {
-      throw UnprocessableContentException()
+      throw UnprocessableContentException(
+          ErrorCode.UNABLE_TO_RETRIEVE_ITEM,
+          listOf(
+              identifierMap.entries.joinToString { "${it.key}= ${it.value}" },
+              collection.id.toString()))
     }
   }
 
@@ -41,7 +50,11 @@ class CollectionItemRepository(
     try {
       dslContext.deleteFrom(table(collection.name)).where(fields).execute()
     } catch (e: BadSqlGrammarException) {
-      throw UnprocessableContentException()
+      throw UnprocessableContentException(
+          ErrorCode.UNABLE_TO_DELETE_ITEM,
+          listOf(
+              identifierMap.entries.joinToString { "${it.key}= ${it.value}" },
+              collection.id.toString()))
     }
   }
 
@@ -49,13 +62,26 @@ class CollectionItemRepository(
     val fields = item.keys.map { field(it.camelToSnakeCase()) }
     val values = mapItem(item, collection).values
     try {
-      dslContext.insertInto(table(collection.name), fields).values(values).execute().let {
-        if (it != 1) {
-          throw UnprocessableContentException()
+      dslContext.insertInto(table(collection.name), fields).values(values).execute().let { isCreated
+        ->
+        if (isCreated != 1) {
+          throw UnprocessableContentException(
+              ErrorCode.UNABLE_TO_CREATE_ITEM,
+              listOf(
+                  item.entries.joinToString { "${it.key}= ${it.value}" }, collection.id.toString()))
         }
       }
     } catch (e: DuplicateKeyException) {
-      throw AlreadyExistsException()
+      throw AlreadyExistsException(
+          ErrorCode.ITEM_ALREADY_EXISTS,
+          listOf(
+              collection.columns
+                  ?.filter { it.isPrimaryKey }
+                  ?.joinToString {
+                    "${it.name.snakeToCamelCase()}= ${item[it.name.snakeToCamelCase()]}"
+                  }
+                  ?: "",
+              collection.id.toString()))
     }
     return item
   }
@@ -71,9 +97,12 @@ class CollectionItemRepository(
         mapItem(identifierMap, collection).map {
           condition(field("${collection.name}.${it.key.camelToSnakeCase()}").eq(it.value))
         }
-    query.set(fieldMap).where(conditions).execute().let {
-      if (it != 1) {
-        throw UnprocessableContentException()
+    query.set(fieldMap).where(conditions).execute().let { isUpdated ->
+      if (isUpdated != 1) {
+        throw UnprocessableContentException(
+            ErrorCode.ITEM_NOT_UPDATED,
+            listOf(
+                item.entries.joinToString { "${it.key}= ${it.value}" }, collection.id.toString()))
       }
     }
     val itemWithIdentifiers = identifierMap.toMutableMap()
@@ -88,7 +117,8 @@ class CollectionItemRepository(
         collection.columns?.associate { it.name.snakeToCamelCase() to record.getValue(it.name) }
       }
     } catch (e: BadSqlGrammarException) {
-      throw UnprocessableContentException()
+      throw UnprocessableContentException(
+          ErrorCode.UNABLE_TO_RETRIEVE_ITEMS, listOf(collection.id.toString()))
     }
   }
 
@@ -111,6 +141,6 @@ class CollectionItemRepository(
           .map { it.key.camelToSnakeCase() to it.value }
           .toMap()
     }
-        ?: throw UnprocessableContentException()
+        ?: emptyMap()
   }
 }

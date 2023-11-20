@@ -1,6 +1,8 @@
 package io.webcontify.backend.collections.services.column.handler
 
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
+import io.webcontify.backend.collections.models.apis.ErrorCode
+import io.webcontify.backend.collections.models.dtos.CastException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
@@ -12,11 +14,12 @@ class ColumnHandlerStrategy(private val handlers: List<ColumnHandler>) {
 
   private val handlerMap: MutableMap<WebcontifyCollectionColumnType, ColumnHandler> = mutableMapOf()
 
-  fun getHandlerFor(type: WebcontifyCollectionColumnType): ColumnHandler {
+  fun getHandlerFor(column: WebContifyCollectionColumnDto): ColumnHandler {
     try {
-      return handlerMap.getValue(type)
+      return handlerMap.getValue(column.type)
     } catch (e: NoSuchElementException) {
-      throw UnprocessableContentException()
+      throw UnprocessableContentException(
+          ErrorCode.NO_HANDLER_FOR_COLUMN_TYPE, listOf(column.name, column.type.name))
     }
   }
 
@@ -29,10 +32,15 @@ class ColumnHandlerStrategy(private val handlers: List<ColumnHandler>) {
           try {
             columns?.first { it.name.snakeToCamelCase().lowercase() == entry.key.lowercase() }
           } catch (e: NoSuchElementException) {
-            throw UnprocessableContentException()
-          } ?: throw UnprocessableContentException()
+            throw UnprocessableContentException(ErrorCode.UNDEFINED_COLUMN, listOf(entry.key))
+          } ?: throw UnprocessableContentException(ErrorCode.UNDEFINED_COLUMN, listOf(entry.key))
       return@mapValues entry.value?.let {
-        return@let getHandlerFor(column.type).castToJavaType(it)
+        try {
+          return@let getHandlerFor(column).castToJavaType(it)
+        } catch (exception: CastException) {
+          throw UnprocessableContentException(
+              ErrorCode.CAN_NOT_CAST_VALUE, listOf(entry.value.toString(), entry.key))
+        }
       }
           ?: entry.value
     }
