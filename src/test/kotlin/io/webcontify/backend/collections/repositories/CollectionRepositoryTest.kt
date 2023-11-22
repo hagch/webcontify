@@ -6,6 +6,7 @@ import helpers.suppliers.collectionWithNameCollection
 import helpers.suppliers.collectionWithNameTest
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
+import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.DisplayName
@@ -97,10 +98,17 @@ class CollectionRepositoryTest(
   }
 
   @Test
-  @Sql("collection-with-columns.sql")
+  @Sql("collection-without-columns.sql")
   @DisplayName("deleteById should be success full on resource exists")
   fun deleteByIdShouldDeleteExistingResource() {
     assertDoesNotThrow { repository.deleteById(collectionId) }
+  }
+
+  @Test
+  @Sql("collection-with-columns.sql")
+  @DisplayName("deleteById should throw exception on collection with columns exist")
+  fun deleteByIdShouldThrowException() {
+    assertThrows<UnprocessableContentException> { repository.deleteById(collectionId) }
   }
 
   @Test

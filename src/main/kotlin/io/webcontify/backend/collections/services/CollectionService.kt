@@ -1,5 +1,6 @@
 package io.webcontify.backend.collections.services
 
+import io.webcontify.backend.collections.mappers.CollectionMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.repositories.CollectionColumnRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
@@ -10,7 +11,8 @@ import org.springframework.stereotype.Service
 class CollectionService(
     val repository: CollectionRepository,
     val tableRepository: CollectionTableRepository,
-    val columnRepository: CollectionColumnRepository
+    val columnRepository: CollectionColumnRepository,
+    val collectionMapper: CollectionMapper
 ) {
 
   fun getAll(): Set<WebContifyCollectionDto> {
@@ -23,7 +25,9 @@ class CollectionService(
 
   fun deleteById(id: Int) {
     val collection = repository.getById(id)
-    return repository.deleteById(id).also { tableRepository.delete(collection.name) }
+    columnRepository.deleteAllForCollection(id)
+    repository.deleteById(id)
+    tableRepository.delete(collection.name)
   }
 
   fun create(collection: WebContifyCollectionDto): WebContifyCollectionDto {
@@ -40,8 +44,9 @@ class CollectionService(
 
   fun update(collection: WebContifyCollectionDto): WebContifyCollectionDto {
     val oldCollection = repository.getById(collection.id)
-    return repository.update(collection).also {
+    return repository.update(collection).let {
       tableRepository.updateName(collection.name, oldCollection.name)
+      collectionMapper.addColumnsToDto(it, columnRepository.getAllForCollection(it.id))
     }
   }
 }

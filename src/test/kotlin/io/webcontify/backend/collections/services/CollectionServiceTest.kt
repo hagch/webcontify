@@ -8,6 +8,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
+import io.webcontify.backend.collections.mappers.CollectionMapper
 import io.webcontify.backend.collections.repositories.CollectionColumnRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
 import io.webcontify.backend.collections.repositories.CollectionTableRepository
@@ -23,6 +24,8 @@ class CollectionServiceTest {
   @RelaxedMockK lateinit var collectionTableRepository: CollectionTableRepository
 
   @RelaxedMockK lateinit var collectionRepository: CollectionRepository
+
+  @RelaxedMockK lateinit var collectionMapper: CollectionMapper
 
   @InjectMockKs lateinit var service: CollectionService
 

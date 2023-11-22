@@ -23,6 +23,17 @@ interface CollectionMapper {
       columns: Set<WebcontifyCollectionColumnRecord>
   ): WebContifyCollectionDto
 
+  fun mapToDto(collection: WebcontifyCollectionRecord): WebContifyCollectionDto
+
+  @Mapping(source = "collection.id", target = "id")
+  @Mapping(source = "collection.name", target = "name")
+  @Mapping(source = "collection.displayName", target = "displayName")
+  @Mapping(source = "columns", target = "columns")
+  fun addColumnsToDto(
+      collection: WebContifyCollectionDto,
+      columns: Set<WebContifyCollectionColumnDto>
+  ): WebContifyCollectionDto
+
   @Mapping(source = "collection.id", target = "id")
   @Mapping(source = "collection.name", target = "name")
   @Mapping(source = "collection.displayName", target = "displayName")

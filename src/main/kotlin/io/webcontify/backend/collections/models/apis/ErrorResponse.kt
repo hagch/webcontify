@@ -54,5 +54,7 @@ enum class ErrorCode(var message: String) {
   UNABLE_TO_CREATE_ITEM("Could not create item with values %s for collection with id %s"),
   ITEM_ALREADY_EXISTS("Item with key %s for collection with id %s already exists"),
   UNABLE_TO_RETRIEVE_ITEMS("Could not load items for collection with id %s"),
-  ITEM_NOT_UPDATED("Could not update item with values %s for collection with id %s")
+  ITEM_NOT_UPDATED("Could not update item with values %s for collection with id %s"),
+  CANNOT_DELETE_COLLECTION(
+      "Could not delete collection with id %s, because collection has existing columns")
 }

@@ -37,8 +37,7 @@ class CollectionTableRepository(
     try {
       dslContext.alterTableIfExists(oldName).renameTo(newName).execute()
     } catch (_: Exception) {
-      throw UnprocessableContentException(
-          ErrorCode.UNABLE_TO_UPDATE_TABLE_NAME, listOf(oldName, newName))
+      throw UnprocessableContentException(ErrorCode.UNABLE_TO_UPDATE_TABLE_NAME, oldName, newName)
     }
   }
 

@@ -17,7 +17,7 @@ class CollectionColumnController(
 
   @DeleteMapping("$COLLECTIONS_PATH/{collectionId}/columns/{name}")
   fun delete(@PathVariable("collectionId") collectionId: Int, @PathVariable("name") name: String) {
-    return service.deleteById(collectionId, name.uppercase())
+    return service.deleteById(collectionId, name.lowercase())
   }
 
   @GetMapping("$COLLECTIONS_PATH/{collectionId}/columns/{name}")
@@ -25,7 +25,7 @@ class CollectionColumnController(
       @PathVariable("collectionId") collectionId: Int,
       @PathVariable("name") name: String
   ): WebContifyCollectionColumnDto {
-    return service.getById(collectionId, name.uppercase())
+    return service.getById(collectionId, name.lowercase())
   }
 
   @GetMapping("$COLLECTIONS_PATH/{collectionId}/columns")
@@ -49,6 +49,6 @@ class CollectionColumnController(
       @PathVariable("name") oldName: String,
       @RequestBody @Valid newColumn: WebContifyCollectionColumnApiUpdateRequest
   ): WebContifyCollectionColumnDto {
-    return service.update(oldName.uppercase(), mapper.mapApiToDto(newColumn, collectionId))
+    return service.update(oldName.lowercase(), mapper.mapApiToDto(newColumn, collectionId))
   }
 }

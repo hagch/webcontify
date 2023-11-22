@@ -25,7 +25,7 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
             .fetchOneInto(WebContifyCollectionColumnDto::class.java)
     return column
         ?: throw NotFoundException(
-            ErrorCode.COLUMN_NOT_FOUND, listOf(name, collectionId?.toString() ?: ""))
+            ErrorCode.COLUMN_NOT_FOUND, name.toString(), collectionId?.toString().toString())
   }
 
   fun getAllForCollection(collectionId: Int?): Set<WebContifyCollectionColumnDto> {
@@ -69,13 +69,12 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
       query.execute().let {
         if (it == 0) {
           throw NotFoundException(
-              ErrorCode.COLUMN_NOT_UPDATED, listOf(oldName, record.collectionId?.toString() ?: ""))
+              ErrorCode.COLUMN_NOT_UPDATED, oldName, record.collectionId.toString())
         }
       }
     } catch (e: DuplicateKeyException) {
       throw AlreadyExistsException(
-          ErrorCode.COLUMN_WITH_NAME_ALREADY_EXISTS,
-          listOf(oldName, record.collectionId?.toString() ?: ""))
+          ErrorCode.COLUMN_WITH_NAME_ALREADY_EXISTS, oldName, record.collectionId.toString())
     }
     return record
   }
@@ -91,11 +90,9 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
         it.insert()
       } catch (e: DuplicateKeyException) {
         throw AlreadyExistsException(
-            ErrorCode.COLUMN_WITH_NAME_ALREADY_EXISTS,
-            listOf(column.name, column.collectionId?.toString() ?: ""))
+            ErrorCode.COLUMN_WITH_NAME_ALREADY_EXISTS, column.name, column.collectionId.toString())
       } catch (e: DataIntegrityViolationException) {
-        throw NotFoundException(
-            ErrorCode.COLLECTION_NOT_FOUND, listOf(column.collectionId?.toString() ?: ""))
+        throw NotFoundException(ErrorCode.COLLECTION_NOT_FOUND, column.collectionId.toString())
       }
       return@let mapper.mapToDto(it)
     }

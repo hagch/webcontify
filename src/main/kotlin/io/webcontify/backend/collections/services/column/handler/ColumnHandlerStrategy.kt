@@ -19,7 +19,7 @@ class ColumnHandlerStrategy(private val handlers: List<ColumnHandler>) {
       return handlerMap.getValue(column.type)
     } catch (e: NoSuchElementException) {
       throw UnprocessableContentException(
-          ErrorCode.NO_HANDLER_FOR_COLUMN_TYPE, listOf(column.name, column.type.name))
+          ErrorCode.NO_HANDLER_FOR_COLUMN_TYPE, column.name, column.type.name)
     }
   }
 
@@ -28,23 +28,31 @@ class ColumnHandlerStrategy(private val handlers: List<ColumnHandler>) {
       item: Map<String, Any?>
   ): Map<String, Any?> {
     return item.mapValues { entry ->
-      val column =
-          try {
-            columns?.first { it.name.snakeToCamelCase().lowercase() == entry.key.lowercase() }
-          } catch (e: NoSuchElementException) {
-            throw UnprocessableContentException(ErrorCode.UNDEFINED_COLUMN, listOf(entry.key))
-          } ?: throw UnprocessableContentException(ErrorCode.UNDEFINED_COLUMN, listOf(entry.key))
-      return@mapValues entry.value?.let {
+      val column = getFirstMatchingColumnFor(entry.key, columns)
+      return@mapValues mapEntry(entry, column)
+    }
+  }
+
+  private fun mapEntry(entry: Map.Entry<String, Any?>, column: WebContifyCollectionColumnDto) =
+      (entry.value?.let {
         try {
           return@let getHandlerFor(column).castToJavaType(it)
         } catch (exception: CastException) {
           throw UnprocessableContentException(
-              ErrorCode.CAN_NOT_CAST_VALUE, listOf(entry.value.toString(), entry.key))
+              ErrorCode.CAN_NOT_CAST_VALUE, entry.value.toString(), entry.key)
         }
       }
-          ?: entry.value
-    }
-  }
+          ?: entry.value)
+
+  private fun getFirstMatchingColumnFor(
+      key: String,
+      columns: List<WebContifyCollectionColumnDto>?,
+  ) =
+      try {
+        columns?.first { it.name.snakeToCamelCase().lowercase() == key.lowercase() }
+      } catch (e: NoSuchElementException) {
+        throw UnprocessableContentException(ErrorCode.UNDEFINED_COLUMN, key)
+      } ?: throw UnprocessableContentException(ErrorCode.UNDEFINED_COLUMN, key)
 
   @PostConstruct
   fun generateHandlerMap() {

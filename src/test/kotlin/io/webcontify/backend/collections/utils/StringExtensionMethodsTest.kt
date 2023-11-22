@@ -23,9 +23,9 @@ class StringExtensionMethodsTest {
     @JvmStatic
     private fun provideMapForConversions(): List<Arguments> {
       return listOf(
-          Arguments.of("thatIsWorking", "THAT_IS_WORKING"),
-          Arguments.of("that-IsWorking", "THAT-_IS_WORKING"),
-          Arguments.of("that\$IsWorking", "THAT\$_IS_WORKING"),
+          Arguments.of("thatIsWorking", "that_is_working"),
+          Arguments.of("that-IsWorking", "that-_is_working"),
+          Arguments.of("that\$IsWorking", "that\$_is_working"),
           Arguments.of("", ""))
     }
   }

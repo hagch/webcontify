@@ -20,21 +20,17 @@ class CollectionTableColumnRepository(
 
   fun create(collection: WebContifyCollectionDto, column: WebContifyCollectionColumnDto) {
     val type = columStrategy.getHandlerFor(column).getColumnType()
-    collection.columns
-        ?.firstOrNull { it.name == column.name }
-        ?.let {
-          throw AlreadyExistsException(
-              ErrorCode.COLUMN_WITH_NAME_ALREADY_EXISTS,
-              listOf(column.name, column.collectionId?.toString() ?: ""))
-        }
+    collection.getColumnWithName(column.name)?.let {
+      throw AlreadyExistsException(
+          ErrorCode.COLUMN_WITH_NAME_ALREADY_EXISTS, column.name, column.collectionId.toString())
+    }
 
     val query = dslContext.alterTable(collection.name).addColumn(field(column.name, type))
     try {
       query.execute()
     } catch (_: BadSqlGrammarException) {
-      throw throw UnprocessableContentException(
-          ErrorCode.UNABLE_TO_CREATE_COLUMN,
-          listOf(column.name, column.collectionId?.toString() ?: ""))
+      throw UnprocessableContentException(
+          ErrorCode.UNABLE_TO_CREATE_COLUMN, column.name, column.collectionId.toString())
     }
   }
 
@@ -44,10 +40,10 @@ class CollectionTableColumnRepository(
       oldName: String
   ) {
     val oldColumn =
-        collection.columns?.find { it.name == oldName }
+        collection.getColumnWithName(oldName)
             ?: throw NotFoundException(
-                ErrorCode.COLUMN_NOT_FOUND, listOf(oldName, column.collectionId?.toString() ?: ""))
-    if (oldColumn.type != column.type || oldColumn.isPrimaryKey != column.isPrimaryKey) {
+                ErrorCode.COLUMN_NOT_FOUND, oldName, column.collectionId.toString())
+    if (!oldColumn.isUpdateAble(column)) {
       throw UnprocessableContentException(ErrorCode.UNSUPPORTED_COLUMN_OPERATION)
     }
     if (oldName != column.name) {
@@ -56,8 +52,7 @@ class CollectionTableColumnRepository(
         query.execute()
       } catch (_: BadSqlGrammarException) {
         throw UnprocessableContentException(
-            ErrorCode.UNABLE_TO_RENAME_COLUMN,
-            listOf(oldName, column.name, column.collectionId.toString()))
+            ErrorCode.UNABLE_TO_RENAME_COLUMN, oldName, column.name, column.collectionId.toString())
       }
     }
   }
