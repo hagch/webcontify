@@ -9,6 +9,7 @@ import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnD
 import io.webcontify.backend.collections.repositories.CollectionItemRepository
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class CollectionItemService(
@@ -16,11 +17,13 @@ class CollectionItemService(
     val collectionItemRepository: CollectionItemRepository
 ) {
 
+  @Transactional(readOnly = true)
   fun getById(collectionId: Int, identifierMap: IdentifierMap): Item {
     val collection = collectionService.getById(collectionId)
     return collectionItemRepository.getByIdFor(collection, identifierMap)
   }
 
+  @Transactional(readOnly = true)
   fun getById(collectionId: Int, itemId: Any): Item {
     val collection = collectionService.getById(collectionId)
     if (collection.columns == null) {
@@ -31,6 +34,7 @@ class CollectionItemService(
         collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)))
   }
 
+  @Transactional
   fun deleteById(collectionId: Int, identifierMap: IdentifierMap) {
     val collection = collectionService.getById(collectionId)
     val primaryKeys = collection.columns?.filter { it.isPrimaryKey }
@@ -46,6 +50,7 @@ class CollectionItemService(
     return collectionItemRepository.deleteById(collection, identifierMap)
   }
 
+  @Transactional
   fun deleteById(collectionId: Int, itemId: Any) {
     val collection = collectionService.getById(collectionId)
     if (collection.columns == null) {
@@ -56,16 +61,19 @@ class CollectionItemService(
         collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)))
   }
 
+  @Transactional(readOnly = true)
   fun getAllFor(collectionId: Int): List<Item> {
     val collection = collectionService.getById(collectionId)
     return collectionItemRepository.getAllFor(collection)
   }
 
+  @Transactional
   fun create(collectionId: Int, item: Item): Item {
     val collection = collectionService.getById(collectionId)
     return collectionItemRepository.create(collection, item)
   }
 
+  @Transactional
   fun updateById(collectionId: Int, identifierMap: IdentifierMap, item: Item): Item {
     val collection = collectionService.getById(collectionId)
     if (collection.columns == null) {
@@ -77,6 +85,7 @@ class CollectionItemService(
     return collectionItemRepository.update(collection, identifierMap, updateAbleItem)
   }
 
+  @Transactional
   fun updateById(collectionId: Int, itemId: Any, item: Item): Item {
     val collection = collectionService.getById(collectionId)
     if (collection.columns == null) {

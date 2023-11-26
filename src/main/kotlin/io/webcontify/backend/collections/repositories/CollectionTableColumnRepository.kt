@@ -11,6 +11,7 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL.*
 import org.springframework.jdbc.BadSqlGrammarException
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 @Repository
 class CollectionTableColumnRepository(
@@ -18,6 +19,7 @@ class CollectionTableColumnRepository(
     val columStrategy: ColumnHandlerStrategy
 ) {
 
+  @Transactional
   fun create(collection: WebContifyCollectionDto, column: WebContifyCollectionColumnDto) {
     val type = columStrategy.getHandlerFor(column).getColumnType()
     collection.getColumnWithName(column.name)?.let {
@@ -34,6 +36,7 @@ class CollectionTableColumnRepository(
     }
   }
 
+  @Transactional
   fun update(
       collection: WebContifyCollectionDto,
       column: WebContifyCollectionColumnDto,
@@ -57,6 +60,7 @@ class CollectionTableColumnRepository(
     }
   }
 
+  @Transactional
   fun delete(collection: WebContifyCollectionDto, name: String) {
     dslContext.alterTableIfExists(collection.name).dropColumnIfExists(field(name)).execute()
   }

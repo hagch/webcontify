@@ -6,6 +6,7 @@ import io.webcontify.backend.collections.repositories.CollectionColumnRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
 import io.webcontify.backend.collections.repositories.CollectionTableRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class CollectionService(
@@ -15,14 +16,17 @@ class CollectionService(
     val collectionMapper: CollectionMapper
 ) {
 
+  @Transactional(readOnly = true)
   fun getAll(): Set<WebContifyCollectionDto> {
     return repository.getAll()
   }
 
+  @Transactional(readOnly = true)
   fun getById(id: Int): WebContifyCollectionDto {
     return repository.getById(id)
   }
 
+  @Transactional
   fun deleteById(id: Int) {
     val collection = repository.getById(id)
     columnRepository.deleteAllForCollection(id)
@@ -30,6 +34,7 @@ class CollectionService(
     tableRepository.delete(collection.name)
   }
 
+  @Transactional
   fun create(collection: WebContifyCollectionDto): WebContifyCollectionDto {
     val createdCollection = repository.create(collection)
     val createdCollectionWithColumns =
@@ -42,6 +47,7 @@ class CollectionService(
     return createdCollectionWithColumns
   }
 
+  @Transactional
   fun update(collection: WebContifyCollectionDto): WebContifyCollectionDto {
     val oldCollection = repository.getById(collection.id)
     return repository.update(collection).let {

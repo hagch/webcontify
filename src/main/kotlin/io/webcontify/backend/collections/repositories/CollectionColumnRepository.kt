@@ -10,10 +10,12 @@ import org.jooq.*
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 @Repository
 class CollectionColumnRepository(val dslContext: DSLContext, val mapper: CollectionMapper) {
 
+  @Transactional(readOnly = true)
   fun getById(collectionId: Int?, name: String?): WebContifyCollectionColumnDto {
     val column =
         dslContext
@@ -28,6 +30,7 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
             ErrorCode.COLUMN_NOT_FOUND, name.toString(), collectionId?.toString().toString())
   }
 
+  @Transactional(readOnly = true)
   fun getAllForCollection(collectionId: Int?): Set<WebContifyCollectionColumnDto> {
     return dslContext
         .select()
@@ -37,6 +40,7 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
         .toHashSet()
   }
 
+  @Transactional
   fun deleteById(collectionId: Int?, name: String?) {
     dslContext
         .deleteFrom(WEBCONTIFY_COLLECTION_COLUMN)
@@ -46,6 +50,7 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
         .execute()
   }
 
+  @Transactional
   fun deleteAllForCollection(collectionId: Int?) {
     dslContext
         .deleteFrom(WEBCONTIFY_COLLECTION_COLUMN)
@@ -53,6 +58,7 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
         .execute()
   }
 
+  @Transactional
   fun update(
       record: WebContifyCollectionColumnDto,
       oldName: String
@@ -79,6 +85,7 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
     return record
   }
 
+  @Transactional
   fun create(column: WebContifyCollectionColumnDto): WebContifyCollectionColumnDto {
     return dslContext.newRecord(WEBCONTIFY_COLLECTION_COLUMN).let {
       it.collectionId = column.collectionId

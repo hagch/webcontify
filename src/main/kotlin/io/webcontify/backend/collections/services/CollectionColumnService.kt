@@ -5,6 +5,7 @@ import io.webcontify.backend.collections.repositories.CollectionColumnRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
 import io.webcontify.backend.collections.repositories.CollectionTableColumnRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class CollectionColumnService(
@@ -13,14 +14,17 @@ class CollectionColumnService(
     val tableColumnRepository: CollectionTableColumnRepository
 ) {
 
+  @Transactional(readOnly = true)
   fun getAllForCollection(collectionId: Int): Set<WebContifyCollectionColumnDto> {
     return repository.getAllForCollection(collectionId)
   }
 
+  @Transactional(readOnly = true)
   fun getById(collectionId: Int, name: String): WebContifyCollectionColumnDto {
     return repository.getById(collectionId, name)
   }
 
+  @Transactional
   fun deleteById(collectionId: Int, name: String) {
     return repository.deleteById(collectionId, name).also {
       val collection = collectionRepository.getById(collectionId)
@@ -28,12 +32,14 @@ class CollectionColumnService(
     }
   }
 
+  @Transactional
   fun create(column: WebContifyCollectionColumnDto): WebContifyCollectionColumnDto {
     val collection = collectionRepository.getById(column.collectionId)
     tableColumnRepository.create(collection, column)
     return repository.create(column)
   }
 
+  @Transactional
   fun createForCollection(
       collectionId: Int,
       columns: Collection<WebContifyCollectionColumnDto>?
@@ -41,6 +47,7 @@ class CollectionColumnService(
     return columns?.map { create(it.copy(collectionId = collectionId)) } ?: listOf()
   }
 
+  @Transactional
   fun update(
       oldName: String,
       newColumn: WebContifyCollectionColumnDto

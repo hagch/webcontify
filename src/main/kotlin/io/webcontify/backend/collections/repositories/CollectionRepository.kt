@@ -16,10 +16,12 @@ import org.jooq.*
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 @Repository
 class CollectionRepository(val dslContext: DSLContext, val mapper: CollectionMapper) {
 
+  @Transactional(readOnly = true)
   fun getById(id: Int?): WebContifyCollectionDto {
     val collection =
         dslContext
@@ -32,6 +34,7 @@ class CollectionRepository(val dslContext: DSLContext, val mapper: CollectionMap
     return collection ?: throw NotFoundException(ErrorCode.COLLECTION_NOT_FOUND, id.toString())
   }
 
+  @Transactional(readOnly = true)
   fun getAll(): Set<WebContifyCollectionDto> {
     return dslContext
         .select()
@@ -41,6 +44,7 @@ class CollectionRepository(val dslContext: DSLContext, val mapper: CollectionMap
         .asWebcontifyCollectionDtoSet(mapper)
   }
 
+  @Transactional
   fun deleteById(id: Int?) {
     try {
       dslContext.deleteFrom(WEBCONTIFY_COLLECTION).where(WEBCONTIFY_COLLECTION.ID.eq(id)).execute()
@@ -49,6 +53,7 @@ class CollectionRepository(val dslContext: DSLContext, val mapper: CollectionMap
     }
   }
 
+  @Transactional
   fun update(record: WebContifyCollectionDto): WebContifyCollectionDto {
     return dslContext.newRecord(WEBCONTIFY_COLLECTION).let { updateAbleRecord ->
       updateAbleRecord.displayName = record.displayName
@@ -64,6 +69,7 @@ class CollectionRepository(val dslContext: DSLContext, val mapper: CollectionMap
     }
   }
 
+  @Transactional
   fun create(record: WebContifyCollectionDto): WebContifyCollectionDto {
     val collection =
         dslContext.newRecord(WEBCONTIFY_COLLECTION).apply {

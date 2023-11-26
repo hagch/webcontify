@@ -18,6 +18,7 @@ import org.jooq.impl.DSL.*
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.jdbc.BadSqlGrammarException
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 @Repository
 class CollectionItemRepository(
@@ -25,6 +26,7 @@ class CollectionItemRepository(
     val columnHandlerStrategy: ColumnHandlerStrategy
 ) {
 
+  @Transactional(readOnly = true)
   fun getByIdFor(collection: WebContifyCollectionDto, identifierMap: IdentifierMap): Item {
     val fields = getFieldConditionsFor(collection, identifierMap)
     try {
@@ -41,6 +43,7 @@ class CollectionItemRepository(
     }
   }
 
+  @Transactional
   fun deleteById(collection: WebContifyCollectionDto, identifierMap: IdentifierMap) {
     val fields = getFieldConditionsFor(collection, identifierMap)
     try {
@@ -53,6 +56,7 @@ class CollectionItemRepository(
     }
   }
 
+  @Transactional
   fun create(collection: WebContifyCollectionDto, item: Item): Item {
     val fields = item.keys.map { field(it.camelToSnakeCase()) }
     val values = mapItem(item, collection).values
@@ -73,6 +77,7 @@ class CollectionItemRepository(
     return item
   }
 
+  @Transactional
   fun update(collection: WebContifyCollectionDto, identifierMap: IdentifierMap, item: Item): Item {
     val query = dslContext.update(table(collection.name))
     val fieldMap = item.entries.associate { field(it.key.camelToSnakeCase()) to it.value }
@@ -88,6 +93,7 @@ class CollectionItemRepository(
     return mapItem(itemWithIdentifiers, collection)
   }
 
+  @Transactional
   fun getAllFor(collection: WebContifyCollectionDto): List<Item> {
     val select = dslContext.selectFrom(collection.name)
     try {

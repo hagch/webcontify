@@ -7,6 +7,7 @@ import io.webcontify.backend.collections.services.column.handler.ColumnHandlerSt
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.*
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 @Repository
 class CollectionTableRepository(
@@ -14,6 +15,7 @@ class CollectionTableRepository(
     val columStrategy: ColumnHandlerStrategy
 ) {
 
+  @Transactional
   fun create(collection: WebContifyCollectionDto) {
 
     val tableBuilder = dslContext.createTable(collection.name)
@@ -33,6 +35,7 @@ class CollectionTableRepository(
     tableBuilder.execute()
   }
 
+  @Transactional
   fun updateName(newName: String, oldName: String) {
     try {
       dslContext.alterTableIfExists(oldName).renameTo(newName).execute()
@@ -41,6 +44,7 @@ class CollectionTableRepository(
     }
   }
 
+  @Transactional
   fun delete(name: String) {
     dslContext.dropTableIfExists(name).execute()
   }
