@@ -1,25 +1,4 @@
-package io.webcontify.backend.collections.models.apis
-
-import io.webcontify.backend.collections.exceptions.BaseException
-import java.time.LocalDateTime
-
-data class ErrorResponse(val instance: String, val errors: List<Error>) {
-  val timestamp: LocalDateTime = LocalDateTime.now()
-
-  constructor(instance: String, exception: BaseException) : this(instance, listOf(Error(exception)))
-
-  constructor(instance: String, code: ErrorCode) : this(instance, listOf(Error(code)))
-}
-
-data class Error(val code: ErrorCode, val message: String) {
-  constructor(code: ErrorCode) : this(code, code.message)
-
-  constructor(
-      stringCode: String
-  ) : this(ErrorCode.valueOf(stringCode), ErrorCode.valueOf(stringCode).message)
-
-  constructor(exception: BaseException) : this(exception.code, exception.code.message)
-}
+package io.webcontify.backend.collections.models.errors
 
 enum class ErrorCode(var message: String) {
   INTERNAL_SERVER_ERROR("Unhandled error occurred"),

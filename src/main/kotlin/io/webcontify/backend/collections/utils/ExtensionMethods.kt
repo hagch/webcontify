@@ -2,7 +2,7 @@ package io.webcontify.backend.collections.utils
 
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.IdentifierMap
-import io.webcontify.backend.collections.models.apis.ErrorCode
+import io.webcontify.backend.collections.models.errors.ErrorCode
 
 fun String.snakeToCamelCase(): String {
   val pattern = "_[a-z]".toRegex()

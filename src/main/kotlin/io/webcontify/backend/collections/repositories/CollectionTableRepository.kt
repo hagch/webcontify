@@ -1,8 +1,8 @@
 package io.webcontify.backend.collections.repositories
 
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
-import io.webcontify.backend.collections.models.apis.ErrorCode
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
+import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.*

@@ -5,8 +5,8 @@ import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.IdentifierMap
 import io.webcontify.backend.collections.models.Item
-import io.webcontify.backend.collections.models.apis.ErrorCode
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
+import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
 import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.collections.utils.snakeToCamelCase

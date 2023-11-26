@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.controllers
 
-import io.webcontify.backend.collections.mappers.CollectionMapper
+import io.webcontify.backend.collections.mappers.CollectionColumnMapper
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionColumnApiCreateRequest
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionColumnApiUpdateRequest
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 class CollectionColumnController(
     val service: CollectionColumnService,
-    val mapper: CollectionMapper
+    val mapper: CollectionColumnMapper
 ) {
 
   @DeleteMapping("$COLLECTIONS_PATH/{collectionId}/columns/{name}")

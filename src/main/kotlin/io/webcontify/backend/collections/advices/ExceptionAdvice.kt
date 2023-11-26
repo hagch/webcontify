@@ -3,9 +3,9 @@ package io.webcontify.backend.collections.advices
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
-import io.webcontify.backend.collections.models.apis.Error
-import io.webcontify.backend.collections.models.apis.ErrorCode
-import io.webcontify.backend.collections.models.apis.ErrorResponse
+import io.webcontify.backend.collections.models.errors.Error
+import io.webcontify.backend.collections.models.errors.ErrorCode
+import io.webcontify.backend.collections.models.errors.ErrorResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.springframework.http.HttpStatus

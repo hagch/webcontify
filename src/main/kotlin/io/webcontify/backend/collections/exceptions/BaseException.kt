@@ -1,7 +1,7 @@
 package io.webcontify.backend.collections.exceptions
 
-import io.webcontify.backend.collections.models.apis.Error
-import io.webcontify.backend.collections.models.apis.ErrorCode
+import io.webcontify.backend.collections.models.errors.Error
+import io.webcontify.backend.collections.models.errors.ErrorCode
 
 abstract class BaseException(val code: ErrorCode, private vararg val messageInclusions: String) :
     RuntimeException() {

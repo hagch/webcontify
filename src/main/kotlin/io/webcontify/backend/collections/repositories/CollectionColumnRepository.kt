@@ -2,9 +2,9 @@ package io.webcontify.backend.collections.repositories
 
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
-import io.webcontify.backend.collections.mappers.CollectionMapper
-import io.webcontify.backend.collections.models.apis.ErrorCode
+import io.webcontify.backend.collections.mappers.CollectionColumnMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
 import org.jooq.*
 import org.springframework.dao.DataIntegrityViolationException
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 
 @Repository
-class CollectionColumnRepository(val dslContext: DSLContext, val mapper: CollectionMapper) {
+class CollectionColumnRepository(val dslContext: DSLContext, val mapper: CollectionColumnMapper) {
 
   @Transactional(readOnly = true)
   fun getById(collectionId: Int?, name: String?): WebContifyCollectionColumnDto {

@@ -4,8 +4,8 @@ import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.IdentifierMap
 import io.webcontify.backend.collections.models.Item
-import io.webcontify.backend.collections.models.apis.ErrorCode
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.repositories.CollectionItemRepository
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 import org.springframework.stereotype.Service
