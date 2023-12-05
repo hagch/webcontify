@@ -8,3 +8,5 @@ spring:
       password: ${datasourcePassword}
   jooq:
       sql-dialect: postgres
+server:
+  port: 8081

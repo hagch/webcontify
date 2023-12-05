@@ -52,6 +52,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-testcontainers")
   testImplementation("org.testcontainers:junit-jupiter:1.19.1")
   testImplementation("org.testcontainers:postgresql:1.19.1")
+  implementation("org.jooq:jooq-jackson-extensions:3.17.12")
   testImplementation("io.mockk:mockk:1.13.8")
 }
 

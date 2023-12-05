@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class BooleanColumnHandler : ColumnHandler {
+
   override fun getColumnType(): DataType<Boolean> {
     return SQLDataType.BOOLEAN
   }

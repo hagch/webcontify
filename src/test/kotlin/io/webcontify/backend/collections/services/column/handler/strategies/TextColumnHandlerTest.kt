@@ -5,17 +5,17 @@ import org.jooq.impl.SQLDataType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class LongTextColumnHandlerTest {
+class TextColumnHandlerTest {
 
-  private val handler = LongTextColumnHandler()
+  private val handler = TextColumnHandler()
 
   @Test
   fun getColumnTypeShouldReturnType() {
-    assertEquals(SQLDataType.LONGVARCHAR, handler.getColumnType())
+    assertEquals(SQLDataType.VARCHAR, handler.getColumnType())
   }
 
   @Test
   fun getColumnHandlerTypeShouldReturnType() {
-    assertEquals(WebcontifyCollectionColumnType.LONG_TEXT, handler.getColumnHandlerType())
+    assertEquals(WebcontifyCollectionColumnType.TEXT, handler.getColumnHandlerType())
   }
 }

@@ -21,16 +21,17 @@ class CollectionTableRepositoryTest(
     @Autowired val repository: CollectionTableRepository
 ) : JooqTestSetup() {
   private final val firstColumn =
-      WebContifyCollectionColumnDto(1, "id", "id", WebcontifyCollectionColumnType.NUMBER, true)
+      WebContifyCollectionColumnDto(
+          1, "id", "id", WebcontifyCollectionColumnType.NUMBER, true, null)
   private final val secondColumn =
       WebContifyCollectionColumnDto(
-          1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false)
+          1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false, null)
   private final val firstColumnPrimary =
       WebContifyCollectionColumnDto(
-          1, "primary1", "primary1", WebcontifyCollectionColumnType.NUMBER, true)
+          1, "primary1", "primary1", WebcontifyCollectionColumnType.NUMBER, true, null)
   private final val secondColumnPrimary =
       WebContifyCollectionColumnDto(
-          1, "primary2", "primary2", WebcontifyCollectionColumnType.NUMBER, false)
+          1, "primary2", "primary2", WebcontifyCollectionColumnType.NUMBER, false, null)
 
   private final val onePrimaryKeyCollection =
       collectionWithColumns(listOf(Pair("id", true), Pair("otherColumn", false)))
@@ -91,7 +92,7 @@ class CollectionTableRepositoryTest(
             "Test",
             listOf(
                 WebContifyCollectionColumnDto(
-                    1, "primary1", "id", WebcontifyCollectionColumnType.NUMBER, false)))
+                    1, "primary1", "id", WebcontifyCollectionColumnType.NUMBER, false, null)))
 
     assertThrows<UnprocessableContentException> { repository.create(collection) }
   }

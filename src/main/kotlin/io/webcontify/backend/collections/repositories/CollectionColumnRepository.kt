@@ -5,6 +5,7 @@ import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.mappers.CollectionColumnMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
+import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
 import org.jooq.*
 import org.springframework.dao.DataIntegrityViolationException
@@ -24,8 +25,8 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
             .where(
                 WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(collectionId)
                     .and(WEBCONTIFY_COLLECTION_COLUMN.NAME.eq(name)))
-            .fetchOneInto(WebContifyCollectionColumnDto::class.java)
-    return column
+            .fetchOneInto(WebcontifyCollectionColumnRecord::class.java)
+    return column?.let { mapper.mapToDto(column) }
         ?: throw NotFoundException(
             ErrorCode.COLUMN_NOT_FOUND, name.toString(), collectionId?.toString().toString())
   }
@@ -36,8 +37,10 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
         .select()
         .from(WEBCONTIFY_COLLECTION_COLUMN)
         .where(WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(collectionId))
-        .fetchInto(WebContifyCollectionColumnDto::class.java)
+        .fetchInto(WebcontifyCollectionColumnRecord::class.java)
         .toHashSet()
+        .map { mapper.mapToDto(it) }
+        .toSet()
   }
 
   @Transactional
@@ -93,6 +96,7 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
       it.displayName = column.displayName
       it.type = column.type
       it.isPrimaryKey = column.isPrimaryKey
+      it.configuration = mapper.mapConfigurationToPersistence(column)
       try {
         it.insert()
       } catch (e: DuplicateKeyException) {

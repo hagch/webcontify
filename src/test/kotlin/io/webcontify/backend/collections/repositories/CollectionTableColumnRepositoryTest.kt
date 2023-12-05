@@ -21,10 +21,11 @@ class CollectionTableColumnRepositoryTest(
     @Autowired val repository: CollectionTableColumnRepository
 ) : JooqTestSetup() {
   private final val firstColumn =
-      WebContifyCollectionColumnDto(1, "id", "id", WebcontifyCollectionColumnType.NUMBER, true)
+      WebContifyCollectionColumnDto(
+          1, "id", "id", WebcontifyCollectionColumnType.NUMBER, true, null)
   private final val secondColumn =
       WebContifyCollectionColumnDto(
-          1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false)
+          1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false, null)
   private final val collection =
       collectionWithColumns(listOf(Pair("id", true), Pair("otherColumn", false)))
   private final val fields = listOf(DSL.field(firstColumn.name), DSL.field(secondColumn.name))
@@ -35,7 +36,7 @@ class CollectionTableColumnRepositoryTest(
   fun createColumnShouldAddColumnToTable() {
     val newColumn =
         WebContifyCollectionColumnDto(
-            1, "otherColumn2", "otherColumn2", WebcontifyCollectionColumnType.NUMBER, false)
+            1, "otherColumn2", "otherColumn2", WebcontifyCollectionColumnType.NUMBER, false, null)
     repository.create(collection, newColumn)
 
     assertDoesNotThrow {
@@ -52,7 +53,7 @@ class CollectionTableColumnRepositoryTest(
   fun createColumnShouldThrowExceptionIfColumnAlreadyExists() {
     val newColumn =
         WebContifyCollectionColumnDto(
-            1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false)
+            1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false, null)
     assertThrows<AlreadyExistsException> { repository.create(collection, newColumn) }
   }
 
@@ -61,7 +62,7 @@ class CollectionTableColumnRepositoryTest(
   @DisplayName("Create column should throw exception if column name is empty")
   fun createColumnShouldThrowExceptionIfColumnNameIsMalformed() {
     val newColumn2 =
-        WebContifyCollectionColumnDto(1, "", "", WebcontifyCollectionColumnType.NUMBER, false)
+        WebContifyCollectionColumnDto(1, "", "", WebcontifyCollectionColumnType.NUMBER, false, null)
     assertThrows<UnprocessableContentException> { repository.create(collection, newColumn2) }
   }
 

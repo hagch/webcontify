@@ -2,11 +2,13 @@ package io.webcontify.backend.collections.services.column.handler
 
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.dtos.CastException
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnConfigurationDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import jakarta.annotation.PostConstruct
+import org.jooq.JSONB
 import org.springframework.stereotype.Service
 
 @Service
@@ -57,5 +59,16 @@ class ColumnHandlerStrategy(private val handlers: List<ColumnHandler>) {
   @PostConstruct
   fun generateHandlerMap() {
     handlers.forEach { handlerMap[it.getColumnHandlerType()] = it }
+  }
+
+  fun mapConfigurationToJSONB(column: WebContifyCollectionColumnDto): JSONB? {
+    return getHandlerFor(column).mapConfigurationToJSONB(column.configuration)
+  }
+
+  fun mapJSONBToConfiguration(
+      column: WebContifyCollectionColumnDto,
+      configuration: JSONB?
+  ): WebContifyCollectionColumnConfigurationDto? {
+    return getHandlerFor(column).mapJSONBToConfiguration(configuration)
   }
 }

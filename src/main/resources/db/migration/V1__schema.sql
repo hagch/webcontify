@@ -10,8 +10,7 @@ create table WEBCONTIFY_COLLECTION(
 create type WEBCONTIFY_COLLECTION_COLUMN_TYPE as enum (
     'NUMBER',
     'DECIMAL',
-    'SHORT_TEXT',
-    'LONG_TEXT',
+    'TEXT',
     'TIMESTAMP',
     'CURRENCY',
     'BOOLEAN'
@@ -22,5 +21,6 @@ create table WEBCONTIFY_COLLECTION_COLUMN(
                                                DISPLAY_NAME TEXT NOT NULL,
                                                TYPE WEBCONTIFY_COLLECTION_COLUMN_TYPE NOT NULL,
                                                IS_PRIMARY_KEY BOOLEAN NOT NULL,
+                                               CONFIGURATION JSONB,
                                                PRIMARY KEY (COLLECTION_ID, NAME)
 );
