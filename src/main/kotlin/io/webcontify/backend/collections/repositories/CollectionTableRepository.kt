@@ -4,6 +4,7 @@ import io.webcontify.backend.collections.exceptions.UnprocessableContentExceptio
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
+import org.jooq.ConstraintEnforcementStep
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.*
 import org.springframework.stereotype.Repository
@@ -17,13 +18,6 @@ class CollectionTableRepository(
 
   @Transactional
   fun create(collection: WebContifyCollectionDto) {
-
-    val tableBuilder = dslContext.createTable(collection.name)
-    collection.columns?.forEach { column ->
-      columStrategy.getHandlerFor(column).let {
-        tableBuilder.column(field(column.name, it.getColumnType()))
-      }
-    }
     val primaryKeyColums =
         collection.columns
             ?.filter { column -> column.isPrimaryKey }
@@ -31,7 +25,16 @@ class CollectionTableRepository(
     if (primaryKeyColums.isNullOrEmpty()) {
       throw UnprocessableContentException(ErrorCode.UNABLE_TO_CREATE_TABLE)
     }
-    tableBuilder.constraints(constraint("PK_" + collection.name).primaryKey(primaryKeyColums))
+    val constraints: MutableList<ConstraintEnforcementStep> =
+        mutableListOf(constraint("pk_" + collection.name).primaryKey(primaryKeyColums))
+    val tableBuilder = dslContext.createTable(collection.name)
+    collection.columns.forEach { column ->
+      columStrategy.getHandlerFor(column).let {
+        tableBuilder.column(field(column.name, it.getColumnType(column.configuration)))
+        constraints.addAll(it.getColumnConstraints(column))
+      }
+    }
+    tableBuilder.constraints(constraints)
     tableBuilder.execute()
   }
 
