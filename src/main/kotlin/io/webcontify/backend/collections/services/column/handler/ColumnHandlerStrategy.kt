@@ -12,11 +12,12 @@ import org.jooq.JSONB
 import org.springframework.stereotype.Service
 
 @Service
-class ColumnHandlerStrategy(private val handlers: List<ColumnHandler>) {
+class ColumnHandlerStrategy(private val handlers: List<ColumnHandler<*>>) {
 
-  private val handlerMap: MutableMap<WebcontifyCollectionColumnType, ColumnHandler> = mutableMapOf()
+  private val handlerMap: MutableMap<WebcontifyCollectionColumnType, ColumnHandler<*>> =
+      mutableMapOf()
 
-  fun getHandlerFor(column: WebContifyCollectionColumnDto): ColumnHandler {
+  fun getHandlerFor(column: WebContifyCollectionColumnDto): ColumnHandler<*> {
     try {
       return handlerMap.getValue(column.type)
     } catch (e: NoSuchElementException) {

@@ -23,8 +23,6 @@ data class WebContifyCollectionColumnApiCreateRequest(
             value = WebContifyCollectionColumnDecimalConfigurationDto::class, name = "DECIMAL"),
         JsonSubTypes.Type(
             value = WebContifyCollectionColumnTimestampConfigurationDto::class, name = "TIMESTAMP"),
-        JsonSubTypes.Type(
-            value = WebContifyCollectionColumnCurrencyConfigurationDto::class, name = "CURRENCY"),
     )
     val configuration: WebContifyCollectionColumnConfigurationDto?
 )

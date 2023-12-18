@@ -8,7 +8,7 @@ import org.jooq.impl.SQLDataType
 import org.springframework.stereotype.Service
 
 @Service
-class BooleanColumnHandler : ColumnHandler {
+class BooleanColumnHandler : ColumnHandler<Boolean> {
 
   override fun getColumnType(): DataType<Boolean> {
     return SQLDataType.BOOLEAN
@@ -18,7 +18,7 @@ class BooleanColumnHandler : ColumnHandler {
     return WebcontifyCollectionColumnType.BOOLEAN
   }
 
-  override fun castToJavaType(value: Any): Any {
+  override fun castToJavaType(value: Any): Boolean {
     if (value is Boolean) {
       return value
     }

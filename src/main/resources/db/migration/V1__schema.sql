@@ -12,8 +12,8 @@ create type WEBCONTIFY_COLLECTION_COLUMN_TYPE as enum (
     'DECIMAL',
     'TEXT',
     'TIMESTAMP',
-    'CURRENCY',
-    'BOOLEAN'
+    'BOOLEAN',
+    'UUID'
     );
 create table WEBCONTIFY_COLLECTION_COLUMN(
                                                COLLECTION_ID SERIAL REFERENCES WEBCONTIFY_COLLECTION(ID),

@@ -34,16 +34,16 @@ class ColumnHandlerStrategyTest {
   }
 }
 
-private class ColumnHandlerTestImpl : ColumnHandler {
-  override fun getColumnType(): DataType<*> {
-    return SQLDataType.TIME
+private class ColumnHandlerTestImpl : ColumnHandler<Long> {
+  override fun getColumnType(): DataType<Long> {
+    return SQLDataType.BIGINT
   }
 
   override fun getColumnHandlerType(): WebcontifyCollectionColumnType {
     return WebcontifyCollectionColumnType.NUMBER
   }
 
-  override fun castToJavaType(value: Any): Any {
-    return value
+  override fun castToJavaType(value: Any): Long {
+    return value.toString().toLong()
   }
 }

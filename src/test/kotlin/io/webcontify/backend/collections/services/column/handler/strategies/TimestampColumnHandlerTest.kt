@@ -11,7 +11,7 @@ class TimestampColumnHandlerTest {
 
   @Test
   fun getColumnTypeShouldReturnType() {
-    assertEquals(SQLDataType.TIMESTAMP, handler.getColumnType())
+    assertEquals(SQLDataType.LOCALDATETIME, handler.getColumnType())
   }
 
   @Test

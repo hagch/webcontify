@@ -30,8 +30,8 @@ class CollectionTableRepository(
     val tableBuilder = dslContext.createTable(collection.name)
     collection.columns.forEach { column ->
       columStrategy.getHandlerFor(column).let {
-        tableBuilder.column(field(column.name, it.getColumnType(column.configuration)))
-        constraints.addAll(it.getColumnConstraints(column))
+        tableBuilder.column(field(column.name, it.getColumnType(column)))
+        constraints.addAll(it.getColumnConstraints(column, collection.name))
       }
     }
     tableBuilder.constraints(constraints)

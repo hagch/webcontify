@@ -146,7 +146,7 @@ class CollectionTableColumnRepositoryTest(
     assertThrows<UnprocessableContentException> {
       repository.update(
           collection,
-          firstColumn.copy(name = "new", type = WebcontifyCollectionColumnType.CURRENCY),
+          firstColumn.copy(name = "new", type = WebcontifyCollectionColumnType.TIMESTAMP),
           "id")
     }
   }
