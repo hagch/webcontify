@@ -7,6 +7,7 @@ import io.webcontify.backend.collections.utils.addLessThanIfPresent
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import org.jooq.ConstraintEnforcementStep
 import org.jooq.DataType
 import org.jooq.JSONB
@@ -23,7 +24,7 @@ class TimestampColumnHandler : ColumnHandler<LocalDateTime> {
 
   override fun mapJSONBToConfiguration(
       configuration: JSONB?
-  ): WebContifyCollectionColumnConfigurationDto? {
+  ): WebContifyCollectionColumnTimestampConfigurationDto? {
     return converter.from(configuration)
   }
 
@@ -41,23 +42,54 @@ class TimestampColumnHandler : ColumnHandler<LocalDateTime> {
   ): List<ConstraintEnforcementStep> {
     val list = super.getColumnConstraints(column, tableName).toMutableList()
     column.configuration?.let {
-      if (it is WebContifyCollectionColumnTimestampConfigurationDto) {
+        it as WebContifyCollectionColumnTimestampConfigurationDto
         list.addLessThanIfPresent(
-            tableName, column.name, it.lowerThan, castToJavaType(it.lowerThan))
+            tableName,
+            column.name,
+            it.lowerThan,
+            it.lowerThan)
         list.addGreaterThanIfPresent(
-            tableName, column.name, it.greaterThan, castToJavaType(it.greaterThan))
-      }
+            tableName,
+            column.name,
+            it.greaterThan,
+            it.greaterThan)
     }
     return list.toList()
   }
 
   override fun castToJavaType(value: Any?): LocalDateTime? {
+    if (value == null) {
+      return null
+    }
     if (value is LocalDateTime) {
       return value
     }
     if (value is String) {
-      return LocalDateTime.parse(value, formatter)
+      try {
+        return LocalDateTime.parse(value, formatter)
+      } catch (exception: DateTimeParseException) {
+        throw CastException()
+      }
     }
     throw CastException()
+  }
+
+  override fun validateColumn(
+      value: LocalDateTime?,
+      configuration: WebContifyCollectionColumnConfigurationDto<Any>?
+  ) {
+    super.validateColumn(value, configuration)
+    configuration?.let {
+        it as WebContifyCollectionColumnTimestampConfigurationDto
+        if (value == null) {
+          return
+        }
+        if (it.lowerThan != null && value.isAfter(it.lowerThan)) {
+          throw ValidationException()
+        }
+        if (it.greaterThan != null && value.isBefore(it.greaterThan)) {
+          throw ValidationException()
+        }
+    }
   }
 }

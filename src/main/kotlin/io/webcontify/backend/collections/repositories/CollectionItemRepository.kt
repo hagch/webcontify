@@ -11,6 +11,7 @@ import io.webcontify.backend.collections.services.column.handler.ColumnHandlerSt
 import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.collections.utils.toKeyValueString
+import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
@@ -58,8 +59,9 @@ class CollectionItemRepository(
 
   @Transactional
   fun create(collection: WebContifyCollectionDto, item: Item): Item {
-    val fields = item.keys.map { field(it.camelToSnakeCase()) }
-    val values = mapItem(item, collection).values
+    val createAbleItem = getCreateAbleItem(collection, item)
+    val fields = createAbleItem.keys.map { field(it.camelToSnakeCase()) }
+    val values = createAbleItem.values
     try {
       dslContext.insertInto(table(collection.name), fields).values(values).execute().let { isCreated
         ->
@@ -77,10 +79,32 @@ class CollectionItemRepository(
     return item
   }
 
+  private fun getCreateAbleItem(collection: WebContifyCollectionDto, item: Item): Item {
+    val removeAblePrimaryKeys =
+        collection.columns
+            ?.filter {
+              it.isPrimaryKey &&
+                  (it.type == WebcontifyCollectionColumnType.NUMBER ||
+                      it.type == WebcontifyCollectionColumnType.UUID)
+            }
+            ?.map { it.name }
+            ?.toList()
+            ?: emptyList()
+    val itemWithoutRemovablePrimaryKeys =
+        item.entries
+            .filter { !(removeAblePrimaryKeys.contains(it.key) && it.value == null) }
+            .associateBy({ it.key }, { it.value })
+    val mappedItem = mapItem(itemWithoutRemovablePrimaryKeys, collection)
+    return mappedItem
+  }
+
   @Transactional
   fun update(collection: WebContifyCollectionDto, identifierMap: IdentifierMap, item: Item): Item {
     val query = dslContext.update(table(collection.name))
-    val fieldMap = item.entries.associate { field(it.key.camelToSnakeCase()) to it.value }
+    val fieldMap =
+        columnHandlerStrategy.castItemToJavaTypes(collection.columns, item).entries.associate {
+          field(it.key.camelToSnakeCase()) to it.value
+        }
     val conditions = getConditions(identifierMap, collection)
     query.set(fieldMap).where(conditions).execute().let { isUpdated ->
       if (isUpdated != 1) {

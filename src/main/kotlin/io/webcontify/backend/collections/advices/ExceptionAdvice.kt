@@ -64,11 +64,11 @@ class ExceptionAdvice {
 
   @ExceptionHandler(value = [Exception::class])
   fun handleUnknownBehaviour(
-      exception: Exception,
-      request: HttpServletRequest
+    exception: Exception,
+    request: HttpServletRequest
   ): ResponseEntity<ErrorResponse> {
     return ResponseEntity(
-        ErrorResponse(request.servletPath, ErrorCode.INTERNAL_SERVER_ERROR),
-        HttpStatus.INTERNAL_SERVER_ERROR)
+      ErrorResponse(request.servletPath, ErrorCode.INTERNAL_SERVER_ERROR),
+      HttpStatus.INTERNAL_SERVER_ERROR)
   }
 }

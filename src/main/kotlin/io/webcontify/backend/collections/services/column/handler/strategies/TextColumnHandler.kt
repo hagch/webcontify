@@ -19,7 +19,7 @@ class TextColumnHandler : ColumnHandler<String> {
 
   override fun mapJSONBToConfiguration(
       configuration: JSONB?
-  ): WebContifyCollectionColumnConfigurationDto? {
+  ): WebContifyCollectionColumnTextConfigurationDto? {
     return converter.from(configuration)
   }
 
@@ -37,7 +37,7 @@ class TextColumnHandler : ColumnHandler<String> {
   ): List<ConstraintEnforcementStep> {
     val list = super.getColumnConstraints(column, tableName).toMutableList()
     column.configuration?.let {
-      if (it is WebContifyCollectionColumnTextConfigurationDto) {
+      it as WebContifyCollectionColumnTextConfigurationDto
         val field = DSL.field(column.name, SQLDataType.VARCHAR)
         if (it.minLength != null) {
           list.add(
@@ -53,15 +53,36 @@ class TextColumnHandler : ColumnHandler<String> {
           list.add(
               DSL.constraint("regex_${tableName}_${column.name}").check(field.likeRegex(it.regex)))
         }
-      }
     }
     return list.toList()
   }
 
   override fun castToJavaType(value: Any?): String? {
+    if (value == null) {
+      return null
+    }
     if (value is String) {
       return value
     }
     throw CastException()
+  }
+
+  override fun validateColumn(
+      value: String?,
+      configuration: WebContifyCollectionColumnConfigurationDto<Any>?
+  ) {
+    super.validateColumn(value, configuration)
+    configuration?.let {
+      it as WebContifyCollectionColumnTextConfigurationDto
+        if (value == null) {
+          return
+        }
+        if (it.minLength != null && value.length < it.minLength) {
+          throw ValidationException()
+        }
+        if (it.maxLength != null && value.length > it.maxLength) {
+          throw ValidationException()
+        }
+    }
   }
 }

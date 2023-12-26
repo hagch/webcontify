@@ -1,15 +1,17 @@
 package io.webcontify.backend.collections.services.column.handler
 
-import io.webcontify.backend.collections.models.dtos.CastException
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnConfigurationDto
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.exceptions.UnprocessableContentException
+import io.webcontify.backend.collections.models.dtos.*
+import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
+import java.util.*
 import org.jooq.ConstraintEnforcementStep
 import org.jooq.DataType
 import org.jooq.JSONB
 import org.jooq.impl.DSL.constraint
 import org.jooq.impl.DSL.field
 import org.jooq.jackson.extensions.converters.JSONBtoJacksonConverter
+import org.springframework.util.CollectionUtils
 
 interface ColumnHandler<T> {
   fun getColumnType(): DataType<T>
@@ -26,7 +28,7 @@ interface ColumnHandler<T> {
           type = type.nullable(it.nullable!!)
         }
         if (it.defaultValue != null) {
-          type = type.defaultValue(castToJavaType(it.defaultValue!!))
+          type = type.defaultValue(it.defaultValue as T)
         }
       }
     }
@@ -44,23 +46,52 @@ interface ColumnHandler<T> {
       if (configuration.unique == true) {
         constraints.add(constraint("unique_${tableName}_${column.name}").unique(field(column.name)))
       }
-      if (!configuration.inValues.isNullOrEmpty()) {
-        constraints.add(
-            constraint("in_values_${tableName}_${column.name}")
-                .check(field(column.name).`in`(configuration.inValues?.map { it })))
+      try {
+        if (!configuration.inValues.isNullOrEmpty()) {
+          constraints.add(
+              constraint("in_values_${tableName}_${column.name}")
+                  .check(
+                      field(column.name).`in`(configuration.inValues?.map { it })))
+        }
+      } catch (exception: CastException) {
+        throw UnprocessableContentException(
+            ErrorCode.INVALID_IN_VALUE_CONFIGURATION,
+            configuration.inValues.toString(),
+            column.name,
+            column.type.name)
       }
       return constraints.toList()
     }
     return listOf()
   }
 
-  fun mapConfigurationToJSONB(configuration: WebContifyCollectionColumnConfigurationDto?): JSONB? {
+  fun mapConfigurationToJSONB(
+      configuration: WebContifyCollectionColumnConfigurationDto<*>?
+  ): JSONB? {
     return JSONBtoJacksonConverter(WebContifyCollectionColumnConfigurationDto::class.java)
         .to(configuration)
   }
 
-  fun mapJSONBToConfiguration(configuration: JSONB?): WebContifyCollectionColumnConfigurationDto? {
-    return JSONBtoJacksonConverter(WebContifyCollectionColumnConfigurationDto::class.java)
-        .from(configuration)
+  fun mapJSONBToConfiguration(configuration: JSONB?): WebContifyCollectionColumnConfigurationDto<T>?
+
+  @Throws(ValidationException::class)
+  fun validateColumn(value: T?, configuration: WebContifyCollectionColumnConfigurationDto<Any>?) {
+    configuration?.let {
+      if (it.nullable == false && Objects.isNull(value) && Objects.isNull(it.defaultValue)) {
+        throw ValidationException()
+      }
+      if (!CollectionUtils.isEmpty(it.inValues) && it.inValues?.contains(value) == false) {
+        throw ValidationException()
+      }
+    }
+  }
+
+  fun castAndValidate(
+      value: Any?,
+      configuration: WebContifyCollectionColumnConfigurationDto<Any>?
+  ): T? {
+    val castedValue = castToJavaType(value)
+    validateColumn(castedValue, configuration)
+    return castedValue
   }
 }

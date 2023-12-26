@@ -35,5 +35,9 @@ enum class ErrorCode(var message: String) {
   UNABLE_TO_RETRIEVE_ITEMS("Could not load items for collection with id %s"),
   ITEM_NOT_UPDATED("Could not update item with values %s for collection with id %s"),
   CANNOT_DELETE_COLLECTION(
-      "Could not delete collection with id %s, because collection has existing columns")
+      "Could not delete collection with id %s, because collection has existing columns"),
+  INVALID_VALUE_PASSED(
+      "Value %s for field %s is invalid, please check if value complies to configuration %s"),
+  INVALID_IN_VALUE_CONFIGURATION(
+      "Value %s for inValue configuration of field %s is invalid, please check if inValues are of same type of field type %s")
 }

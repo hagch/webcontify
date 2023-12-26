@@ -20,7 +20,7 @@ class NumberColumnHandler : ColumnHandler<Long> {
 
   override fun mapJSONBToConfiguration(
       configuration: JSONB?
-  ): WebContifyCollectionColumnConfigurationDto? {
+  ): WebContifyCollectionColumnNumberConfigurationDto? {
     return converter.from(configuration)
   }
 
@@ -42,11 +42,12 @@ class NumberColumnHandler : ColumnHandler<Long> {
   ): List<ConstraintEnforcementStep> {
     val list = super.getColumnConstraints(column, tableName).toMutableList()
     column.configuration?.let {
-      if (it is WebContifyCollectionColumnNumberConfigurationDto) {
+      if (WebContifyCollectionColumnNumberConfigurationDto::class.isInstance(it)) {
+        it as WebContifyCollectionColumnNumberConfigurationDto
         list.addLessThanIfPresent(
-            tableName, column.name, it.lowerThan, castToJavaType(it.lowerThan))
+            tableName, column.name, it.lowerThan, it.lowerThan)
         list.addGreaterThanIfPresent(
-            tableName, column.name, it.lowerThan, castToJavaType(it.lowerThan))
+            tableName, column.name, it.lowerThan, it.lowerThan)
       }
     }
     return list.toList()
@@ -56,7 +57,10 @@ class NumberColumnHandler : ColumnHandler<Long> {
     return WebcontifyCollectionColumnType.NUMBER
   }
 
-  override fun castToJavaType(value: Any?): Long {
+  override fun castToJavaType(value: Any?): Long? {
+    if (value == null) {
+      return null
+    }
     if (value is Long) {
       return value
     }
@@ -64,8 +68,31 @@ class NumberColumnHandler : ColumnHandler<Long> {
       return value.toLong()
     }
     if (value is String) {
-      return value.toLong()
+      try {
+        return value.toLong()
+      } catch (exception: NumberFormatException) {
+        throw CastException()
+      }
     }
     throw CastException()
+  }
+
+  override fun validateColumn(
+      value: Long?,
+      configuration: WebContifyCollectionColumnConfigurationDto<Any>?
+  ) {
+    super.validateColumn(value, configuration)
+    configuration?.let {
+      it as WebContifyCollectionColumnNumberConfigurationDto
+        if (value == null) {
+          return
+        }
+        if (it.greaterThan != null && value <= it.greaterThan) {
+          throw ValidationException()
+        }
+        if (it.lowerThan != null && value >= it.lowerThan) {
+          throw ValidationException()
+        }
+    }
   }
 }

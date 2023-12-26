@@ -115,7 +115,7 @@ class CollectionColumnRepositoryTest(
   @Test
   @Sql("collection-without-columns.sql")
   @DisplayName("create should create collection")
-  fun createShouldCreateColumn() {
+  fun createShouldCreateCollection() {
     assertNotNull(repository.create(firstSqlInsertedColumn()))
     assertNotNull(repository.create(secondSqlInsertedColumn()))
   }

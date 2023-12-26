@@ -8,7 +8,7 @@ data class WebContifyCollectionColumnDto(
     val displayName: String = name,
     val type: WebcontifyCollectionColumnType,
     val isPrimaryKey: Boolean,
-    val configuration: WebContifyCollectionColumnConfigurationDto?
+    val configuration: WebContifyCollectionColumnConfigurationDto<Any>?
 ) {
 
   fun isUpdateAble(newColumn: WebContifyCollectionColumnDto): Boolean {

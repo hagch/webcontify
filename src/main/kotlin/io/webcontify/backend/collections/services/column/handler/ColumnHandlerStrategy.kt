@@ -1,9 +1,7 @@
 package io.webcontify.backend.collections.services.column.handler
 
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
-import io.webcontify.backend.collections.models.dtos.CastException
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnConfigurationDto
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.dtos.*
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
@@ -37,12 +35,18 @@ class ColumnHandlerStrategy(private val handlers: List<ColumnHandler<*>>) {
   }
 
   private fun mapEntry(entry: Map.Entry<String, Any?>, column: WebContifyCollectionColumnDto) =
-      (entry.value?.let {
+      (entry.value.let {
         try {
-          return@let getHandlerFor(column).castToJavaType(it)
+          return@let getHandlerFor(column).castAndValidate(it, column.configuration)
         } catch (exception: CastException) {
           throw UnprocessableContentException(
               ErrorCode.CAN_NOT_CAST_VALUE, entry.value.toString(), entry.key)
+        } catch (exception: ValidationException) {
+          throw UnprocessableContentException(
+              ErrorCode.INVALID_VALUE_PASSED,
+              entry.value.toString(),
+              entry.key,
+              column.configuration.toString())
         }
       }
           ?: entry.value)
@@ -69,7 +73,7 @@ class ColumnHandlerStrategy(private val handlers: List<ColumnHandler<*>>) {
   fun mapJSONBToConfiguration(
       column: WebContifyCollectionColumnDto,
       configuration: JSONB?
-  ): WebContifyCollectionColumnConfigurationDto? {
+  ): WebContifyCollectionColumnConfigurationDto<Any?>? {
     return getHandlerFor(column).mapJSONBToConfiguration(configuration)
   }
 }

@@ -21,14 +21,14 @@ class DecimalColumnHandler : ColumnHandler<BigDecimal> {
 
   override fun mapJSONBToConfiguration(
       configuration: JSONB?
-  ): WebContifyCollectionColumnConfigurationDto? {
+  ): WebContifyCollectionColumnDecimalConfigurationDto? {
     return converter.from(configuration)
   }
 
   override fun getColumnType(column: WebContifyCollectionColumnDto): DataType<BigDecimal> {
     var type = super.getColumnType(column)
     column.configuration?.let {
-      if (it is WebContifyCollectionColumnDecimalConfigurationDto) {
+        it as WebContifyCollectionColumnDecimalConfigurationDto
         if (it.precision != null) {
           type = type.precision(it.precision)
         }
@@ -36,7 +36,6 @@ class DecimalColumnHandler : ColumnHandler<BigDecimal> {
           type = type.scale(it.scale)
         }
       }
-    }
     return type
   }
 
@@ -54,11 +53,12 @@ class DecimalColumnHandler : ColumnHandler<BigDecimal> {
   ): List<ConstraintEnforcementStep> {
     val list = super.getColumnConstraints(column, tableName).toMutableList()
     column.configuration?.let {
-      if (it is WebContifyCollectionColumnDecimalConfigurationDto) {
+      if (WebContifyCollectionColumnDecimalConfigurationDto::class.isInstance(it)) {
+        it as WebContifyCollectionColumnDecimalConfigurationDto
         list.addGreaterThanIfPresent(
-            tableName, column.name, it.greaterThan, castToJavaType(it.greaterThan))
+            tableName, column.name, it.greaterThan, it.greaterThan)
         list.addLessThanIfPresent(
-            tableName, column.name, it.lowerThan, castToJavaType(it.lowerThan))
+            tableName, column.name, it.lowerThan, it.lowerThan)
       }
     }
     return list.toList()
@@ -69,8 +69,31 @@ class DecimalColumnHandler : ColumnHandler<BigDecimal> {
       return value.toBigDecimal()
     }
     if (value is String) {
-      return value.toBigDecimal()
+      try {
+        return value.toBigDecimal()
+      } catch (exception: NumberFormatException) {
+        throw CastException()
+      }
     }
     throw CastException()
+  }
+
+  override fun validateColumn(
+      value: BigDecimal?,
+      configuration: WebContifyCollectionColumnConfigurationDto<Any>?
+  ) {
+    super.validateColumn(value, configuration)
+    configuration?.let {
+      it as WebContifyCollectionColumnDecimalConfigurationDto
+        if (value == null) {
+          return
+        }
+        if (it.greaterThan != null && value <= it.greaterThan) {
+          throw ValidationException()
+        }
+        if (it.lowerThan != null && value >= it.lowerThan) {
+          throw ValidationException()
+        }
+    }
   }
 }

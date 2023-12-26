@@ -49,7 +49,7 @@ abstract class CollectionColumnMapper {
   @Named("mapConfiguration")
   fun mapConfiguration(
       column: WebcontifyCollectionColumnRecord
-  ): WebContifyCollectionColumnConfigurationDto? {
+  ): WebContifyCollectionColumnConfigurationDto<Any?>? {
     return column.configuration?.let {
       return handler.mapJSONBToConfiguration(
           WebContifyCollectionColumnDto(
