@@ -33,7 +33,7 @@ interface ColumnHandler<T> {
     return type
   }
 
-  @Throws(CastException::class) fun castToJavaType(value: Any): T
+  @Throws(CastException::class) fun castToJavaType(value: Any?): T?
 
   fun getColumnConstraints(
       column: WebContifyCollectionColumnDto,

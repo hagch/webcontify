@@ -38,7 +38,3 @@ fun String.toIdentifierMap(): IdentifierMap {
       }
       .associateBy({ it.first }, { it.second })
 }
-
-fun Map<String, Any?>.toKeyValueString(): String {
-  return this.entries.joinToString { "${it.key}= ${it.value}" }
-}

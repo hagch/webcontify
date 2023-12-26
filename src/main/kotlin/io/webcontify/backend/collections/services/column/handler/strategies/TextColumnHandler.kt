@@ -38,7 +38,7 @@ class TextColumnHandler : ColumnHandler<String> {
     val list = super.getColumnConstraints(column, tableName).toMutableList()
     column.configuration?.let {
       if (it is WebContifyCollectionColumnTextConfigurationDto) {
-        var field = DSL.field(column.name, SQLDataType.VARCHAR)
+        val field = DSL.field(column.name, SQLDataType.VARCHAR)
         if (it.minLength != null) {
           list.add(
               DSL.constraint("min_length_${tableName}_${column.name}")
@@ -58,7 +58,7 @@ class TextColumnHandler : ColumnHandler<String> {
     return list.toList()
   }
 
-  override fun castToJavaType(value: Any): String {
+  override fun castToJavaType(value: Any?): String? {
     if (value is String) {
       return value
     }

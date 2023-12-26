@@ -43,7 +43,7 @@ private class ColumnHandlerTestImpl : ColumnHandler<Long> {
     return WebcontifyCollectionColumnType.NUMBER
   }
 
-  override fun castToJavaType(value: Any): Long {
+  override fun castToJavaType(value: Any?): Long {
     return value.toString().toLong()
   }
 }

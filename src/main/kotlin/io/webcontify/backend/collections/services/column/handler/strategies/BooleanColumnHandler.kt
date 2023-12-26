@@ -18,7 +18,7 @@ class BooleanColumnHandler : ColumnHandler<Boolean> {
     return WebcontifyCollectionColumnType.BOOLEAN
   }
 
-  override fun castToJavaType(value: Any): Boolean {
+  override fun castToJavaType(value: Any?): Boolean? {
     if (value is Boolean) {
       return value
     }

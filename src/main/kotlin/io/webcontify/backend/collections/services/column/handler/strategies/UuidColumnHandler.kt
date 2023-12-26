@@ -29,7 +29,7 @@ class UuidColumnHandler : ColumnHandler<UUID> {
     return WebcontifyCollectionColumnType.UUID
   }
 
-  override fun castToJavaType(value: Any): UUID {
+  override fun castToJavaType(value: Any?): UUID? {
     if (value is UUID) {
       return value
     }

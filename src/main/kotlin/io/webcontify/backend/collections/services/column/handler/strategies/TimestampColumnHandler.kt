@@ -2,13 +2,14 @@ package io.webcontify.backend.collections.services.column.handler.strategies
 
 import io.webcontify.backend.collections.models.dtos.*
 import io.webcontify.backend.collections.services.column.handler.ColumnHandler
+import io.webcontify.backend.collections.utils.addGreaterThanIfPresent
+import io.webcontify.backend.collections.utils.addLessThanIfPresent
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import org.jooq.ConstraintEnforcementStep
 import org.jooq.DataType
 import org.jooq.JSONB
-import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
 import org.jooq.jackson.extensions.converters.JSONBtoJacksonConverter
 import org.springframework.stereotype.Service
@@ -41,22 +42,16 @@ class TimestampColumnHandler : ColumnHandler<LocalDateTime> {
     val list = super.getColumnConstraints(column, tableName).toMutableList()
     column.configuration?.let {
       if (it is WebContifyCollectionColumnTimestampConfigurationDto) {
-        if (it.lowerThan != null) {
-          list.add(
-              DSL.constraint("lt_${tableName}_${column.name}")
-                  .check(DSL.field(column.name).lessThan(castToJavaType(it.lowerThan))))
-        }
-        if (it.greaterThan != null) {
-          list.add(
-              DSL.constraint("gt_${tableName}_${column.name}")
-                  .check(DSL.field(column.name).greaterThan(castToJavaType(it.greaterThan))))
-        }
+        list.addLessThanIfPresent(
+            tableName, column.name, it.lowerThan, castToJavaType(it.lowerThan))
+        list.addGreaterThanIfPresent(
+            tableName, column.name, it.greaterThan, castToJavaType(it.greaterThan))
       }
     }
     return list.toList()
   }
 
-  override fun castToJavaType(value: Any): LocalDateTime {
+  override fun castToJavaType(value: Any?): LocalDateTime? {
     if (value is LocalDateTime) {
       return value
     }
