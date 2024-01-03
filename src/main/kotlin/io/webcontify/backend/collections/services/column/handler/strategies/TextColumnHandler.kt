@@ -38,21 +38,21 @@ class TextColumnHandler : ColumnHandler<String> {
     val list = super.getColumnConstraints(column, tableName).toMutableList()
     column.configuration?.let {
       it as WebContifyCollectionColumnTextConfigurationDto
-        val field = DSL.field(column.name, SQLDataType.VARCHAR)
-        if (it.minLength != null) {
-          list.add(
-              DSL.constraint("min_length_${tableName}_${column.name}")
-                  .check(DSL.length(field).greaterOrEqual(it.minLength)))
-        }
-        if (it.maxLength != null) {
-          list.add(
-              DSL.constraint("max_length_${tableName}_${column.name}")
-                  .check(DSL.length(field).lessOrEqual(it.maxLength)))
-        }
-        if (it.regex != null) {
-          list.add(
-              DSL.constraint("regex_${tableName}_${column.name}").check(field.likeRegex(it.regex)))
-        }
+      val field = DSL.field(column.name, SQLDataType.VARCHAR)
+      if (it.minLength != null) {
+        list.add(
+            DSL.constraint("min_length_${tableName}_${column.name}")
+                .check(DSL.length(field).greaterOrEqual(it.minLength)))
+      }
+      if (it.maxLength != null) {
+        list.add(
+            DSL.constraint("max_length_${tableName}_${column.name}")
+                .check(DSL.length(field).lessOrEqual(it.maxLength)))
+      }
+      if (it.regex != null) {
+        list.add(
+            DSL.constraint("regex_${tableName}_${column.name}").check(field.likeRegex(it.regex)))
+      }
     }
     return list.toList()
   }
@@ -74,15 +74,15 @@ class TextColumnHandler : ColumnHandler<String> {
     super.validateColumn(value, configuration)
     configuration?.let {
       it as WebContifyCollectionColumnTextConfigurationDto
-        if (value == null) {
-          return
-        }
-        if (it.minLength != null && value.length < it.minLength) {
-          throw ValidationException()
-        }
-        if (it.maxLength != null && value.length > it.maxLength) {
-          throw ValidationException()
-        }
+      if (value == null) {
+        return
+      }
+      if (it.minLength != null && value.length < it.minLength) {
+        throw ValidationException()
+      }
+      if (it.maxLength != null && value.length > it.maxLength) {
+        throw ValidationException()
+      }
     }
   }
 }

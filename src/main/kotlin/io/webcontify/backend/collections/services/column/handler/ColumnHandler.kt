@@ -50,8 +50,7 @@ interface ColumnHandler<T> {
         if (!configuration.inValues.isNullOrEmpty()) {
           constraints.add(
               constraint("in_values_${tableName}_${column.name}")
-                  .check(
-                      field(column.name).`in`(configuration.inValues?.map { it })))
+                  .check(field(column.name).`in`(configuration.inValues?.map { it })))
         }
       } catch (exception: CastException) {
         throw UnprocessableContentException(

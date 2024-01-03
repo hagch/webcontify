@@ -14,7 +14,6 @@ import io.webcontify.backend.collections.utils.toKeyValueString
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import org.jooq.Condition
 import org.jooq.DSLContext
-import org.jooq.Record
 import org.jooq.impl.DSL.*
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.jdbc.BadSqlGrammarException
@@ -32,7 +31,7 @@ class CollectionItemRepository(
     val fields = getFieldConditionsFor(collection, identifierMap)
     try {
       return dslContext.selectFrom(collection.name).where(fields).fetchOne {
-        mapRecordToItem(collection, it)
+        mapItemToResult(it.intoMap(), collection)
       }
           ?: throw NotFoundException(
               ErrorCode.ITEM_NOT_FOUND, identifierMap.toKeyValueString(), collection.id.toString())
@@ -60,23 +59,25 @@ class CollectionItemRepository(
   @Transactional
   fun create(collection: WebContifyCollectionDto, item: Item): Item {
     val createAbleItem = getCreateAbleItem(collection, item)
-    val fields = createAbleItem.keys.map { field(it.camelToSnakeCase()) }
-    val values = createAbleItem.values
+    val fields = createAbleItem.keys.map { field(it) }
+    val allFields = collection.columns?.map { field(it.name) } ?: emptyList()
     try {
-      dslContext.insertInto(table(collection.name), fields).values(values).execute().let { isCreated
-        ->
-        if (isCreated != 1) {
-          throw UnprocessableContentException(
-              ErrorCode.UNABLE_TO_CREATE_ITEM, item.toKeyValueString(), collection.id.toString())
-        }
-      }
+      dslContext
+          .insertInto(table(collection.name), fields)
+          .values(createAbleItem.values)
+          .returning(allFields)
+          .fetchOne()
+          ?.let {
+            return mapItemToResult(it.intoMap(), collection)
+          }
     } catch (e: DuplicateKeyException) {
       throw AlreadyExistsException(
           ErrorCode.ITEM_ALREADY_EXISTS,
           collection.primaryColumnItemValueString(item),
           collection.id.toString())
     }
-    return item
+    throw UnprocessableContentException(
+        ErrorCode.UNABLE_TO_CREATE_ITEM, item.toKeyValueString(), collection.id.toString())
   }
 
   private fun getCreateAbleItem(collection: WebContifyCollectionDto, item: Item): Item {
@@ -91,10 +92,10 @@ class CollectionItemRepository(
             ?.toList()
             ?: emptyList()
     val itemWithoutRemovablePrimaryKeys =
-        item.entries
+        item
+            .mapKeys { it.key.camelToSnakeCase() }
             .filter { !(removeAblePrimaryKeys.contains(it.key) && it.value == null) }
-            .associateBy({ it.key }, { it.value })
-    val mappedItem = mapItem(itemWithoutRemovablePrimaryKeys, collection)
+    val mappedItem = mapItemToStore(itemWithoutRemovablePrimaryKeys, collection)
     return mappedItem
   }
 
@@ -102,40 +103,32 @@ class CollectionItemRepository(
   fun update(collection: WebContifyCollectionDto, identifierMap: IdentifierMap, item: Item): Item {
     val query = dslContext.update(table(collection.name))
     val fieldMap =
-        columnHandlerStrategy.castItemToJavaTypes(collection.columns, item).entries.associate {
-          field(it.key.camelToSnakeCase()) to it.value
+        mapItemToStore(item.mapKeys { it.key.camelToSnakeCase() }, collection).entries.associate {
+          field(it.key) to it.value
         }
     val conditions = getConditions(identifierMap, collection)
-    query.set(fieldMap).where(conditions).execute().let { isUpdated ->
-      if (isUpdated != 1) {
-        throw UnprocessableContentException(
-            ErrorCode.ITEM_NOT_UPDATED, item.toKeyValueString(), collection.id.toString())
-      }
+    query.set(fieldMap).where(conditions).returning(fieldMap.keys).fetchOne()?.let {
+      val updatedItemValues = it.intoMap().toMutableMap()
+      updatedItemValues.putAll(identifierMap.mapKeys { entry -> entry.key.camelToSnakeCase() })
+      return mapItemToResult(updatedItemValues, collection).toMutableMap()
     }
-    val itemWithIdentifiers = identifierMap.toMutableMap()
-    itemWithIdentifiers.putAll(item)
-    return mapItem(itemWithIdentifiers, collection)
+    throw UnprocessableContentException(
+        ErrorCode.ITEM_NOT_UPDATED, item.toKeyValueString(), collection.id.toString())
   }
 
   @Transactional
   fun getAllFor(collection: WebContifyCollectionDto): List<Item> {
     val select = dslContext.selectFrom(collection.name)
     try {
-      return select.fetch { record ->
-        collection.columns?.associate { it.name.snakeToCamelCase() to record.getValue(it.name) }
-      }
+      return select.fetch { record -> mapItemToResult(record.intoMap(), collection) }
     } catch (e: BadSqlGrammarException) {
       throw UnprocessableContentException(
           ErrorCode.UNABLE_TO_RETRIEVE_ITEMS, collection.id.toString())
     }
   }
 
-  private fun mapRecordToItem(collection: WebContifyCollectionDto, record: Record) =
-      (collection.columns?.associate { it.name.snakeToCamelCase() to record.getValue(it.name) }
-          ?: mapOf())
-
   private fun getConditions(identifierMap: IdentifierMap, collection: WebContifyCollectionDto) =
-      mapItem(identifierMap, collection).map {
+      mapItemToStore(identifierMap, collection).map {
         condition(field("${collection.name}.${it.key.camelToSnakeCase()}").eq(it.value))
       }
 
@@ -143,16 +136,23 @@ class CollectionItemRepository(
       collection: WebContifyCollectionDto,
       identifierTypeMap: IdentifierMap
   ): List<Condition> {
-    return mapItem(identifierTypeMap, collection).map {
-      field("${collection.name}.${it.key}").eq(it.value)
+    return mapItemToStore(identifierTypeMap, collection).map {
+      field("${collection.name}.${it.key.camelToSnakeCase()}").eq(it.value)
     }
   }
 
-  private fun mapItem(item: Item, collection: WebContifyCollectionDto): Item {
+  private fun mapItemToStore(item: Item, collection: WebContifyCollectionDto): Item {
+    return collection.columns?.let { columns ->
+      return columnHandlerStrategy.castItemToJavaTypes(columns, item).toMap()
+    }
+        ?: emptyMap()
+  }
+
+  private fun mapItemToResult(item: Item, collection: WebContifyCollectionDto): Item {
     return collection.columns?.let { columns ->
       return columnHandlerStrategy
           .castItemToJavaTypes(columns, item)
-          .map { it.key.camelToSnakeCase() to it.value }
+          .map { it.key.snakeToCamelCase() to it.value }
           .toMap()
     }
         ?: emptyMap()

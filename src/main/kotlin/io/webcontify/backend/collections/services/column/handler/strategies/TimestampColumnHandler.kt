@@ -42,17 +42,9 @@ class TimestampColumnHandler : ColumnHandler<LocalDateTime> {
   ): List<ConstraintEnforcementStep> {
     val list = super.getColumnConstraints(column, tableName).toMutableList()
     column.configuration?.let {
-        it as WebContifyCollectionColumnTimestampConfigurationDto
-        list.addLessThanIfPresent(
-            tableName,
-            column.name,
-            it.lowerThan,
-            it.lowerThan)
-        list.addGreaterThanIfPresent(
-            tableName,
-            column.name,
-            it.greaterThan,
-            it.greaterThan)
+      it as WebContifyCollectionColumnTimestampConfigurationDto
+      list.addLessThanIfPresent(tableName, column.name, it.lowerThan, it.lowerThan)
+      list.addGreaterThanIfPresent(tableName, column.name, it.greaterThan, it.greaterThan)
     }
     return list.toList()
   }
@@ -80,16 +72,16 @@ class TimestampColumnHandler : ColumnHandler<LocalDateTime> {
   ) {
     super.validateColumn(value, configuration)
     configuration?.let {
-        it as WebContifyCollectionColumnTimestampConfigurationDto
-        if (value == null) {
-          return
-        }
-        if (it.lowerThan != null && value.isAfter(it.lowerThan)) {
-          throw ValidationException()
-        }
-        if (it.greaterThan != null && value.isBefore(it.greaterThan)) {
-          throw ValidationException()
-        }
+      it as WebContifyCollectionColumnTimestampConfigurationDto
+      if (value == null) {
+        return
+      }
+      if (it.lowerThan != null && value.isAfter(it.lowerThan)) {
+        throw ValidationException()
+      }
+      if (it.greaterThan != null && value.isBefore(it.greaterThan)) {
+        throw ValidationException()
+      }
     }
   }
 }

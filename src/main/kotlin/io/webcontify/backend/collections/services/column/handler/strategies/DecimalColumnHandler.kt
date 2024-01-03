@@ -28,14 +28,14 @@ class DecimalColumnHandler : ColumnHandler<BigDecimal> {
   override fun getColumnType(column: WebContifyCollectionColumnDto): DataType<BigDecimal> {
     var type = super.getColumnType(column)
     column.configuration?.let {
-        it as WebContifyCollectionColumnDecimalConfigurationDto
-        if (it.precision != null) {
-          type = type.precision(it.precision)
-        }
-        if (it.scale != null) {
-          type = type.scale(it.scale)
-        }
+      it as WebContifyCollectionColumnDecimalConfigurationDto
+      if (it.precision != null) {
+        type = type.precision(it.precision)
       }
+      if (it.scale != null) {
+        type = type.scale(it.scale)
+      }
+    }
     return type
   }
 
@@ -55,10 +55,8 @@ class DecimalColumnHandler : ColumnHandler<BigDecimal> {
     column.configuration?.let {
       if (WebContifyCollectionColumnDecimalConfigurationDto::class.isInstance(it)) {
         it as WebContifyCollectionColumnDecimalConfigurationDto
-        list.addGreaterThanIfPresent(
-            tableName, column.name, it.greaterThan, it.greaterThan)
-        list.addLessThanIfPresent(
-            tableName, column.name, it.lowerThan, it.lowerThan)
+        list.addGreaterThanIfPresent(tableName, column.name, it.greaterThan, it.greaterThan)
+        list.addLessThanIfPresent(tableName, column.name, it.lowerThan, it.lowerThan)
       }
     }
     return list.toList()
@@ -85,15 +83,15 @@ class DecimalColumnHandler : ColumnHandler<BigDecimal> {
     super.validateColumn(value, configuration)
     configuration?.let {
       it as WebContifyCollectionColumnDecimalConfigurationDto
-        if (value == null) {
-          return
-        }
-        if (it.greaterThan != null && value <= it.greaterThan) {
-          throw ValidationException()
-        }
-        if (it.lowerThan != null && value >= it.lowerThan) {
-          throw ValidationException()
-        }
+      if (value == null) {
+        return
+      }
+      if (it.greaterThan != null && value <= it.greaterThan) {
+        throw ValidationException()
+      }
+      if (it.lowerThan != null && value >= it.lowerThan) {
+        throw ValidationException()
+      }
     }
   }
 }

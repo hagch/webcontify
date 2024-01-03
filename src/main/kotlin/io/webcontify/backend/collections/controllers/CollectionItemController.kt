@@ -42,10 +42,7 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
   }
 
   @PostMapping("$COLLECTIONS_PATH/{collectionId}/items")
-  fun create(
-      @PathVariable("collectionId") collectionId: Int,
-      @RequestBody item: Item
-  ): Item { // TODO primary key generation and always insert primary keys
+  fun create(@PathVariable("collectionId") collectionId: Int, @RequestBody item: Item): Item {
     return collectionItemService.create(collectionId, item)
   }
 

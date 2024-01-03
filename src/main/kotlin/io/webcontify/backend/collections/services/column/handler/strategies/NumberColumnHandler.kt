@@ -44,10 +44,8 @@ class NumberColumnHandler : ColumnHandler<Long> {
     column.configuration?.let {
       if (WebContifyCollectionColumnNumberConfigurationDto::class.isInstance(it)) {
         it as WebContifyCollectionColumnNumberConfigurationDto
-        list.addLessThanIfPresent(
-            tableName, column.name, it.lowerThan, it.lowerThan)
-        list.addGreaterThanIfPresent(
-            tableName, column.name, it.lowerThan, it.lowerThan)
+        list.addLessThanIfPresent(tableName, column.name, it.lowerThan, it.lowerThan)
+        list.addGreaterThanIfPresent(tableName, column.name, it.lowerThan, it.lowerThan)
       }
     }
     return list.toList()
@@ -84,15 +82,15 @@ class NumberColumnHandler : ColumnHandler<Long> {
     super.validateColumn(value, configuration)
     configuration?.let {
       it as WebContifyCollectionColumnNumberConfigurationDto
-        if (value == null) {
-          return
-        }
-        if (it.greaterThan != null && value <= it.greaterThan) {
-          throw ValidationException()
-        }
-        if (it.lowerThan != null && value >= it.lowerThan) {
-          throw ValidationException()
-        }
+      if (value == null) {
+        return
+      }
+      if (it.greaterThan != null && value <= it.greaterThan) {
+        throw ValidationException()
+      }
+      if (it.lowerThan != null && value >= it.lowerThan) {
+        throw ValidationException()
+      }
     }
   }
 }

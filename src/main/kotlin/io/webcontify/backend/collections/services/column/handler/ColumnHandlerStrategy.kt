@@ -3,7 +3,6 @@ package io.webcontify.backend.collections.services.column.handler
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.dtos.*
 import io.webcontify.backend.collections.models.errors.ErrorCode
-import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import jakarta.annotation.PostConstruct
 import org.jooq.JSONB
@@ -56,7 +55,7 @@ class ColumnHandlerStrategy(private val handlers: List<ColumnHandler<*>>) {
       columns: List<WebContifyCollectionColumnDto>?,
   ) =
       try {
-        columns?.first { it.name.snakeToCamelCase().lowercase() == key.lowercase() }
+        columns?.first { it.name.lowercase() == key.lowercase() }
       } catch (e: NoSuchElementException) {
         throw UnprocessableContentException(ErrorCode.UNDEFINED_COLUMN, key)
       } ?: throw UnprocessableContentException(ErrorCode.UNDEFINED_COLUMN, key)

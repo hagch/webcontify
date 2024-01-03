@@ -3,7 +3,6 @@ package io.webcontify.backend.collections.services.column.handler
 import helpers.suppliers.firstSqlInsertedColumn
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnConfigurationDto
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnNumberConfigurationDto
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import org.jooq.DataType
 import org.jooq.JSONB
@@ -50,7 +49,9 @@ private class ColumnHandlerTestImpl : ColumnHandler<Long> {
     return value.toString().toLong()
   }
 
-  override fun mapJSONBToConfiguration(configuration: JSONB?): WebContifyCollectionColumnConfigurationDto<Long>? {
+  override fun mapJSONBToConfiguration(
+      configuration: JSONB?
+  ): WebContifyCollectionColumnConfigurationDto<Long>? {
     TODO("Not yet implemented")
   }
 }
