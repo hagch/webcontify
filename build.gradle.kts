@@ -103,7 +103,7 @@ spotless {
     endWithNewline()
   }
   kotlin {
-    targetExclude("build/**")
+    targetExclude("build/**", "**.sql")
     ktfmt()
   }
   kotlinGradle {

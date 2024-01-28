@@ -20,4 +20,24 @@ data class WebContifyCollectionDto(
   fun getColumnWithName(name: String): WebContifyCollectionColumnDto? {
     return this.columns?.firstOrNull { it.name == name }
   }
+
+  fun sourceRelationFields(
+      fields: Set<WebContifyCollectionRelationDto>
+  ): Set<WebContifyCollectionColumnDto> {
+    return columns
+        ?.filter { fields.find { field -> field.sourceCollectionColumnName == it.name } != null }
+        ?.toSet()
+        ?: setOf()
+  }
+
+  fun referencedRelationFields(
+      fields: Set<WebContifyCollectionRelationDto>
+  ): Set<WebContifyCollectionColumnDto> {
+    return columns
+        ?.filter {
+          fields.find { field -> field.referencedCollectionColumnName == it.name } != null
+        }
+        ?.toSet()
+        ?: setOf()
+  }
 }

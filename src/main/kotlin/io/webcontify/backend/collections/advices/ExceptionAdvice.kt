@@ -61,14 +61,4 @@ class ExceptionAdvice {
     val errors = exception.allErrors.map { Error(ErrorCode.valueOf(it.defaultMessage.toString())) }
     return ResponseEntity(ErrorResponse(request.servletPath, errors), HttpStatus.BAD_REQUEST)
   }
-
-  @ExceptionHandler(value = [Exception::class])
-  fun handleUnknownBehaviour(
-      exception: Exception,
-      request: HttpServletRequest
-  ): ResponseEntity<ErrorResponse> {
-    return ResponseEntity(
-        ErrorResponse(request.servletPath, ErrorCode.INTERNAL_SERVER_ERROR),
-        HttpStatus.INTERNAL_SERVER_ERROR)
-  }
 }

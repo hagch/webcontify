@@ -17,7 +17,7 @@ class CollectionTableRepository(
 ) {
 
   @Transactional
-  fun create(collection: WebContifyCollectionDto) {
+  fun create(collection: WebContifyCollectionDto, enableFieldAutoGeneration: Boolean = true) {
     val primaryKeyColums =
         collection.columns
             ?.filter { column -> column.isPrimaryKey }
@@ -30,7 +30,7 @@ class CollectionTableRepository(
     val tableBuilder = dslContext.createTable(collection.name)
     collection.columns.forEach { column ->
       columStrategy.getHandlerFor(column).let {
-        tableBuilder.column(field(column.name, it.getColumnType(column)))
+        tableBuilder.column(field(column.name, it.getColumnType(column, enableFieldAutoGeneration)))
         constraints.addAll(it.getColumnConstraints(column, collection.name))
       }
     }
