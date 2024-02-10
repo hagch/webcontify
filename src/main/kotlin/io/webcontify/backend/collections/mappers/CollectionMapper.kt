@@ -43,6 +43,7 @@ interface CollectionMapper {
   ): WebContifyCollectionDto
 
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "relations", ignore = true)
   fun mapApiToDto(
       collectionCreateRequest: WebContifyCollectionApiCreateRequest
   ): WebContifyCollectionDto

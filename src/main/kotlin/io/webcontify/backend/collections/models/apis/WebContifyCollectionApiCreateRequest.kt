@@ -9,5 +9,6 @@ data class WebContifyCollectionApiCreateRequest(
     val displayName: String?,
     @field:Size(min = 1, message = "COLUMN_REQUIRED")
     @field:Valid
-    val columns: List<WebContifyCollectionColumnApiCreateRequest>
+    val columns: List<WebContifyCollectionColumnApiCreateRequest>,
+    val relations: Set<WebContifyCollectionRelationApiCreateRequest>?
 )

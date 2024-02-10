@@ -70,7 +70,8 @@ class ManyToManyRelationHandler(
                               displayName =
                                   getReferenceColumnDisplayName(referencedCollection, col))
                         }
-                        .toTypedArray()))
+                        .toTypedArray()),
+            relations = listOf())
     val createdCollection = collectionRepository.create(mappingCollection)
     val createdCollectionWithColumns =
         createdCollection.copy(

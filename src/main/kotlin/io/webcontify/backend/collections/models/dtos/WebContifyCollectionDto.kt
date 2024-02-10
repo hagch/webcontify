@@ -7,7 +7,8 @@ data class WebContifyCollectionDto(
     val id: Int?,
     val name: String,
     val displayName: String = name,
-    val columns: List<WebContifyCollectionColumnDto>? = listOf()
+    val columns: List<WebContifyCollectionColumnDto>? = listOf(),
+    val relations: List<WebContifyCollectionRelationDto>? = listOf()
 ) {
 
   fun primaryColumnItemValueString(item: Item): String {

@@ -7,10 +7,15 @@ import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.services.CollectionService
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import jakarta.validation.Valid
+import org.springframework.util.CollectionUtils
 import org.springframework.web.bind.annotation.*
 
 @RestController
-class CollectionController(val service: CollectionService, val mapper: CollectionMapper) {
+class CollectionController(
+    val service: CollectionService,
+    val mapper: CollectionMapper,
+    val relationController: CollectionRelationController
+) {
 
   @DeleteMapping("$COLLECTIONS_PATH/{id}")
   fun delete(@PathVariable("id") id: Int) {
@@ -31,7 +36,13 @@ class CollectionController(val service: CollectionService, val mapper: Collectio
   fun create(
       @RequestBody @Valid collection: WebContifyCollectionApiCreateRequest
   ): WebContifyCollectionDto {
-    return service.create(mapper.mapApiToDto(collection))
+    var createdCollection = service.create(mapper.mapApiToDto(collection))
+    if (!CollectionUtils.isEmpty(collection.relations)) {
+      val relations =
+          collection.relations?.map { relationController.create(createdCollection.id!!, it) }
+      createdCollection = createdCollection.copy(relations = relations)
+    }
+    return createdCollection
   }
 
   @PutMapping("$COLLECTIONS_PATH/{id}")
