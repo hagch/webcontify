@@ -1,6 +1,5 @@
 package io.webcontify.backend.collections.services
 
-import io.webcontify.backend.collections.models.apis.WebContifyCollectionRelationApiUpdateRequest
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionRelationDto
 import io.webcontify.backend.collections.repositories.CollectionRelationRepository
 import io.webcontify.backend.collections.services.relation.RelationHandlerStrategy
@@ -20,15 +19,13 @@ class CollectionRelationService(
   }
 
   @Transactional
-  fun create(relation: Set<WebContifyCollectionRelationDto>): Set<WebContifyCollectionRelationDto> {
+  fun create(relation: WebContifyCollectionRelationDto): WebContifyCollectionRelationDto {
     relationHandlerStrategy.createRelation(relation)
     return relation
   }
 
   @Transactional
-  fun update(
-      relation: Set<WebContifyCollectionRelationApiUpdateRequest>
-  ): Set<WebContifyCollectionRelationApiUpdateRequest> {
+  fun update(relation: WebContifyCollectionRelationDto): WebContifyCollectionRelationDto {
     // TODO add relationService
     return relationRepository.update(relation)
   }

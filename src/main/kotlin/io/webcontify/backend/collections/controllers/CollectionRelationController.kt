@@ -24,26 +24,25 @@ class CollectionRelationController(
   @PostMapping("$COLLECTIONS_PATH/{sourceCollectionId}/relations")
   fun create(
       @PathVariable sourceCollectionId: Int,
-      @RequestBody relation: Set<WebContifyCollectionRelationApiCreateRequest>
-  ): Set<WebContifyCollectionRelationDto> {
+      @RequestBody relation: WebContifyCollectionRelationApiCreateRequest
+  ): WebContifyCollectionRelationDto {
+    val sourceCollection = collectionService.getById(sourceCollectionId)
+    val referencedCollection = collectionService.getById(relation.referencedCollectionId)
     // TODO check if its the same relation
     return relationService.create(
-        relation
-            .map {
-              relationMapper.mapToDto(
-                  it,
-                  collectionService.getById(sourceCollectionId),
-                  collectionService.getById(it.referencedCollectionId))
-            }
-            .toSet())
+        relationMapper.mapToDto(relation, sourceCollection, referencedCollection))
   }
 
-  @PutMapping("$COLLECTIONS_PATH/{sourceCollectionId}/relations")
+  @PutMapping("$COLLECTIONS_PATH/{sourceCollectionId}/relations/{name}")
   fun update(
       @PathVariable sourceCollectionId: Int,
-      @RequestBody relation: Set<WebContifyCollectionRelationApiUpdateRequest>
-  ): Set<WebContifyCollectionRelationApiUpdateRequest> {
+      @PathVariable name: String,
+      @RequestBody relation: WebContifyCollectionRelationApiUpdateRequest
+  ): WebContifyCollectionRelationDto {
     // TODO check if its the same relation
-    return relationService.update(relation)
+    val sourceCollection = collectionService.getById(sourceCollectionId)
+    val referencedCollection = collectionService.getById(relation.referencedCollectionId)
+    return relationService.update(
+        relationMapper.mapToDto(relation, sourceCollection, referencedCollection, name))
   }
 }

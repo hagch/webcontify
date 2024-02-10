@@ -4,7 +4,6 @@ import io.webcontify.backend.collections.models.dtos.WebContifyCollectionRelatio
 import io.webcontify.backend.collections.repositories.CollectionRelationRepository
 import io.webcontify.backend.collections.repositories.CollectionTableRelationRepository
 import io.webcontify.backend.collections.services.relation.RelationHandler
-import io.webcontify.backend.collections.utils.switchReferences
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionRelationType
 import org.springframework.stereotype.Service
 
@@ -17,9 +16,9 @@ class OneToManyRelationHandler(
     return WebcontifyCollectionRelationType.ONE_TO_MANY
   }
 
-  override fun createRelation(relation: Set<WebContifyCollectionRelationDto>) {
+  override fun createRelation(relation: WebContifyCollectionRelationDto) {
     relationRepository.create(relation)
-    val oneToManyRelation = relation.switchReferences(WebcontifyCollectionRelationType.MANY_TO_ONE)
+    val oneToManyRelation = relation.switchReference(WebcontifyCollectionRelationType.MANY_TO_ONE)
     tableRelationRepository.create(oneToManyRelation)
     relationRepository.create(oneToManyRelation)
   }

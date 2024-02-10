@@ -22,7 +22,7 @@ data class WebContifyCollectionDto(
   }
 
   fun sourceRelationFields(
-      fields: Set<WebContifyCollectionRelationDto>
+      fields: Set<WebContifyCollectionRelationFieldDto>
   ): Set<WebContifyCollectionColumnDto> {
     return columns
         ?.filter { fields.find { field -> field.sourceCollectionColumnName == it.name } != null }
@@ -31,7 +31,7 @@ data class WebContifyCollectionDto(
   }
 
   fun referencedRelationFields(
-      fields: Set<WebContifyCollectionRelationDto>
+      fields: Set<WebContifyCollectionRelationFieldDto>
   ): Set<WebContifyCollectionColumnDto> {
     return columns
         ?.filter {

@@ -5,7 +5,6 @@ import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionRelationDto
 import io.webcontify.backend.collections.repositories.*
 import io.webcontify.backend.collections.services.relation.RelationHandler
-import io.webcontify.backend.collections.utils.switchReferences
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionRelationType
 import org.springframework.stereotype.Service
 
@@ -21,23 +20,32 @@ class ManyToManyRelationHandler(
     return WebcontifyCollectionRelationType.MANY_TO_MANY
   }
 
-  private fun getReferenceColumnName(collection: WebContifyCollectionDto, column: WebContifyCollectionColumnDto): String {
-    return getReferenceColumnName(collection,column.name)
+  private fun getReferenceColumnName(
+      collection: WebContifyCollectionDto,
+      column: WebContifyCollectionColumnDto
+  ): String {
+    return getReferenceColumnName(collection, column.name)
   }
 
-  private fun getReferenceColumnName(collection: WebContifyCollectionDto, columnName: String): String {
+  private fun getReferenceColumnName(
+      collection: WebContifyCollectionDto,
+      columnName: String
+  ): String {
     return "ref_${collection.name}_${columnName}"
   }
 
-  private fun getReferenceColumnDisplayName(collection: WebContifyCollectionDto, column: WebContifyCollectionColumnDto): String {
+  private fun getReferenceColumnDisplayName(
+      collection: WebContifyCollectionDto,
+      column: WebContifyCollectionColumnDto
+  ): String {
     return "Reference ${collection.displayName} ${column.displayName}"
   }
 
   private fun prepareRelation(
-      relation: Set<WebContifyCollectionRelationDto>
-  ): Pair<WebContifyCollectionDto,Set<WebContifyCollectionRelationDto>> {
-    val sourceCollection = relation.first().sourceCollection
-    val referencedCollection = relation.first().referencedCollection
+      relation: WebContifyCollectionRelationDto
+  ): Pair<WebContifyCollectionDto, WebContifyCollectionRelationDto> {
+    val sourceCollection = relation.sourceCollection
+    val referencedCollection = relation.referencedCollection
     val mappingCollection =
         WebContifyCollectionDto(
             id = null,
@@ -47,21 +55,20 @@ class ManyToManyRelationHandler(
             columns =
                 listOf(
                     *sourceCollection
-                        .sourceRelationFields(relation)
+                        .sourceRelationFields(relation.fields)
                         .map { col ->
                           col.copy(
                               name = getReferenceColumnName(sourceCollection, col),
-                              displayName =
-                                  getReferenceColumnDisplayName(sourceCollection, col))
+                              displayName = getReferenceColumnDisplayName(sourceCollection, col))
                         }
                         .toTypedArray(),
                     *referencedCollection
-                        .referencedRelationFields(relation)
+                        .referencedRelationFields(relation.fields)
                         .map { col ->
                           col.copy(
                               name = getReferenceColumnName(referencedCollection, col),
                               displayName =
-                                  getReferenceColumnDisplayName(referencedCollection,col))
+                                  getReferenceColumnDisplayName(referencedCollection, col))
                         }
                         .toTypedArray()))
     val createdCollection = collectionRepository.create(mappingCollection)
@@ -71,39 +78,49 @@ class ManyToManyRelationHandler(
                 mappingCollection.columns?.map { column ->
                   columnRepository.create(column.copy(collectionId = createdCollection.id))
                 })
-    tableRepository.create(createdCollectionWithColumns,false)
-    return Pair(createdCollectionWithColumns,relation)
+    tableRepository.create(createdCollectionWithColumns, false)
+    return Pair(createdCollectionWithColumns, relation)
   }
 
-  override fun createRelation(relation: Set<WebContifyCollectionRelationDto>) {
+  override fun createRelation(relation: WebContifyCollectionRelationDto) {
     val preparedRelation = prepareRelation(relation)
-    val manyToOneFromSourceToMappingCollection =
-        preparedRelation
-            .second.map {
+    val manyToOneFromSourceToMappingCollectionFields =
+        preparedRelation.second.fields
+            .map {
               it.copy(
-                  referencedCollection = preparedRelation.first,
-                   referencedCollectionColumnName =
-                      getReferenceColumnName(it.sourceCollection, it.sourceCollectionColumnName))
+                  referencedCollectionColumnName =
+                      getReferenceColumnName(
+                          preparedRelation.second.sourceCollection, it.sourceCollectionColumnName))
             }
             .toSet()
+    val manyToOneFromSourceToMappingCollection =
+        preparedRelation.second.copy(
+            referencedCollection = preparedRelation.first,
+            fields = manyToOneFromSourceToMappingCollectionFields)
     createMirror(manyToOneFromSourceToMappingCollection)
     relationRepository.create(manyToOneFromSourceToMappingCollection)
-    val manyToOneFromReferenceToMappingCollection =
-        preparedRelation
-            .second.map {
+    val manyToOneFromReferenceToMappingCollectionFields =
+        preparedRelation.second.fields
+            .map {
               it.copy(
-                  sourceCollection = it.referencedCollection,
-                  sourceCollectionColumnName = it.referencedCollectionColumnName,
-                referencedCollection = preparedRelation.first,
-                referencedCollectionColumnName = getReferenceColumnName(it.referencedCollection, it.referencedCollectionColumnName))
+                  referencedCollectionColumnName =
+                      getReferenceColumnName(
+                          preparedRelation.second.referencedCollection,
+                          it.referencedCollectionColumnName),
+                  sourceCollectionColumnName = it.referencedCollectionColumnName)
             }
             .toSet()
+    val manyToOneFromReferenceToMappingCollection =
+        preparedRelation.second.copy(
+            sourceCollection = relation.referencedCollection,
+            referencedCollection = preparedRelation.first,
+            fields = manyToOneFromReferenceToMappingCollectionFields)
     relationRepository.create(manyToOneFromReferenceToMappingCollection)
     createMirror(manyToOneFromReferenceToMappingCollection)
   }
 
-  private fun createMirror(relation: Set<WebContifyCollectionRelationDto>) {
-    val mirrorRelation = relation.switchReferences(WebcontifyCollectionRelationType.MANY_TO_MANY)
+  private fun createMirror(relation: WebContifyCollectionRelationDto) {
+    val mirrorRelation = relation.switchReference(WebcontifyCollectionRelationType.MANY_TO_MANY)
     relationRepository.create(mirrorRelation)
     tableRelationRepository.create(mirrorRelation)
   }

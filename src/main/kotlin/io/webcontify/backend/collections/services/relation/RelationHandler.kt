@@ -7,5 +7,5 @@ interface RelationHandler {
 
   fun getType(): WebcontifyCollectionRelationType
 
-  fun createRelation(relation: Set<WebContifyCollectionRelationDto>)
+  fun createRelation(relation: WebContifyCollectionRelationDto)
 }

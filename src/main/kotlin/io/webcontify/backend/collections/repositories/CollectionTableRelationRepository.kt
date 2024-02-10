@@ -8,16 +8,15 @@ import org.springframework.stereotype.Repository
 @Repository
 class CollectionTableRelationRepository(val dslContext: DSLContext) {
 
-  fun create(relation: Set<WebContifyCollectionRelationDto>) {
-    val firstRelationEntry = relation.first()
-    val sourceFields = relation.map { field(name(it.sourceCollectionColumnName)) }
-    val referencedFields = relation.map { name(it.referencedCollectionColumnName) }
+  fun create(relation: WebContifyCollectionRelationDto) {
+    val sourceFields = relation.fields.map { field(name(it.sourceCollectionColumnName)) }
+    val referencedFields = relation.fields.map { name(it.referencedCollectionColumnName) }
     dslContext
-        .alterTableIfExists(name(firstRelationEntry.sourceCollection.name))
+        .alterTableIfExists(name(relation.sourceCollection.name))
         .add(
-            constraint("fk_relation_${firstRelationEntry.referencedCollection.name}_${firstRelationEntry.name}")
+            constraint("fk_relation_${relation.referencedCollection.name}_${relation.name}")
                 .foreignKey(sourceFields)
-                .references(name(firstRelationEntry.referencedCollection.name), referencedFields))
+                .references(name(relation.referencedCollection.name), referencedFields))
         .execute()
   }
 }

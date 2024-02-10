@@ -1,8 +1,8 @@
 package io.webcontify.backend.collections.repositories
 
-import io.webcontify.backend.collections.models.apis.WebContifyCollectionRelationApiUpdateRequest
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionRelationDto
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_RELATION
+import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_RELATION_FIELD
 import org.jooq.DSLContext
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.DuplicateKeyException
@@ -22,62 +22,52 @@ class CollectionRelationRepository(val dslContext: DSLContext) {
   }
 
   @Transactional
-  fun update(
-      relationFields: Set<WebContifyCollectionRelationApiUpdateRequest>
-  ): Set<WebContifyCollectionRelationApiUpdateRequest> {
-    val updateStatements =
-        relationFields
-            .map {
-              dslContext
-                  .update(WEBCONTIFY_COLLECTION_RELATION)
-                  .set(WEBCONTIFY_COLLECTION_RELATION.NAME, it.name)
-                  .set(WEBCONTIFY_COLLECTION_RELATION.DISPLAY_NAME, it.displayName)
-                  .where(
-                      WEBCONTIFY_COLLECTION_RELATION.SOURCE_COLLECTION_ID.eq(it.sourceCollectionId)
-                          .and(
-                              WEBCONTIFY_COLLECTION_RELATION.SOURCE_COLLECTION_COLUMN_NAME.eq(
-                                  it.sourceCollectionColumnName))
-                          .and(
-                              WEBCONTIFY_COLLECTION_RELATION.REFERENCED_COLLECTION_ID.eq(
-                                  it.referencedCollectionId))
-                          .and(
-                              WEBCONTIFY_COLLECTION_RELATION.REFERENCED_COLLECTION_COLUMN_NAME.eq(
-                                  it.referencedCollectionColumnName))
-                          .and(WEBCONTIFY_COLLECTION_RELATION.TYPE.eq(it.type))
-                          .and(WEBCONTIFY_COLLECTION_RELATION.NAME.eq(it.name)))
-            }
-            .toList()
-
+  fun update(relation: WebContifyCollectionRelationDto): WebContifyCollectionRelationDto {
+    val relationUpdate =
+        dslContext
+            .update(WEBCONTIFY_COLLECTION_RELATION)
+            .set(WEBCONTIFY_COLLECTION_RELATION.DISPLAY_NAME, relation.displayName)
+            .where(
+                WEBCONTIFY_COLLECTION_RELATION.SOURCE_COLLECTION_ID.eq(relation.sourceCollection.id)
+                    .and(WEBCONTIFY_COLLECTION_RELATION.NAME.eq(relation.name))
+                    .and(
+                        WEBCONTIFY_COLLECTION_RELATION.REFERENCED_COLLECTION_ID.eq(
+                            relation.referencedCollection.id))
+                    .and(WEBCONTIFY_COLLECTION_RELATION.TYPE.eq(relation.type)))
     try {
-      dslContext.batch(updateStatements).execute()
-      return relationFields
+      relationUpdate.execute()
+      return relation
     } catch (e: DuplicateKeyException) {
       throw RuntimeException("TODO")
     }
   }
 
   @Transactional
-  fun create(
-      relationFields: Set<WebContifyCollectionRelationDto>
-  ): Set<WebContifyCollectionRelationDto> {
-    val insertableRecords =
-        relationFields
+  fun create(relation: WebContifyCollectionRelationDto): WebContifyCollectionRelationDto {
+    val relationInsert =
+        dslContext.newRecord(WEBCONTIFY_COLLECTION_RELATION).apply {
+          this.sourceCollectionId = relation.sourceCollection.id
+          this.referencedCollectionId = relation.referencedCollection.id
+          this.name = relation.name
+          this.displayName = relation.displayName
+          this.type = relation.type
+        }
+    val fields =
+        relation.fields
             .map {
-              dslContext.newRecord(WEBCONTIFY_COLLECTION_RELATION).let { record ->
-                record.sourceCollectionId = it.sourceCollection.id
-                record.sourceCollectionColumnName = it.sourceCollectionColumnName
-                record.referencedCollectionId = it.referencedCollection.id
-                record.referencedCollectionColumnName = it.referencedCollectionColumnName
-                record.name = it.name
-                record.displayName = it.displayName
-                record.type = it.type
-                return@map record
+              dslContext.newRecord(WEBCONTIFY_COLLECTION_RELATION_FIELD).apply {
+                this.sourceCollectionId = relation.sourceCollection.id
+                this.sourceCollectionColumnName = it.sourceCollectionColumnName
+                this.referencedCollectionId = relation.referencedCollection.id
+                this.referencedCollectionColumnName = it.referencedCollectionColumnName
+                this.name = relation.name
+                this.type = relation.type
               }
             }
-            .toList()
+            .toTypedArray()
     try {
-      dslContext.batchInsert(insertableRecords).execute()
-      return relationFields
+      dslContext.batchInsert(relationInsert, *fields).execute()
+      return relation
     } catch (e: DuplicateKeyException) {
       throw RuntimeException("TODO")
     } catch (e: DataIntegrityViolationException) {

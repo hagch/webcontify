@@ -24,7 +24,7 @@ class RelationHandlerStrategy(private val handlers: List<RelationHandler>) {
     }
   }
 
-  fun createRelation(relation: Set<WebContifyCollectionRelationDto>) {
-    getHandlerFor(relation.first().type).createRelation(relation)
+  fun createRelation(relation: WebContifyCollectionRelationDto) {
+    getHandlerFor(relation.type).createRelation(relation)
   }
 }
