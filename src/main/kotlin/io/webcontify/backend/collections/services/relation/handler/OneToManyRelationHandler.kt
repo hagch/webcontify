@@ -16,10 +16,13 @@ class OneToManyRelationHandler(
     return WebcontifyCollectionRelationType.ONE_TO_MANY
   }
 
-  override fun createRelation(relation: WebContifyCollectionRelationDto) {
+  override fun createRelation(
+      relation: WebContifyCollectionRelationDto
+  ): WebContifyCollectionRelationDto {
     relationRepository.create(relation)
     val oneToManyRelation = relation.switchReference(WebcontifyCollectionRelationType.MANY_TO_ONE)
     tableRelationRepository.create(oneToManyRelation)
     relationRepository.create(oneToManyRelation)
+    return relation
   }
 }

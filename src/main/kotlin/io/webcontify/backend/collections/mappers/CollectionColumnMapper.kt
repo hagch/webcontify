@@ -2,7 +2,8 @@ package io.webcontify.backend.collections.mappers
 
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionColumnApiCreateRequest
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionColumnApiUpdateRequest
-import io.webcontify.backend.collections.models.dtos.*
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnConfigurationDto
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
 import org.jooq.JSONB

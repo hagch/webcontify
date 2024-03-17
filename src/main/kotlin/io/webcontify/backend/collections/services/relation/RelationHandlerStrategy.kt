@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.services.relation
 
-import io.webcontify.backend.collections.models.dtos.*
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionRelationDto
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionRelationType
 import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Service
@@ -24,7 +24,7 @@ class RelationHandlerStrategy(private val handlers: List<RelationHandler>) {
     }
   }
 
-  fun createRelation(relation: WebContifyCollectionRelationDto) {
-    getHandlerFor(relation.type).createRelation(relation)
+  fun createRelation(relation: WebContifyCollectionRelationDto): WebContifyCollectionRelationDto {
+    return getHandlerFor(relation.type).createRelation(relation)
   }
 }

@@ -6,7 +6,8 @@ import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
 import org.jooq.ConstraintEnforcementStep
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.*
+import org.jooq.impl.DSL.constraint
+import org.jooq.impl.DSL.field
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 

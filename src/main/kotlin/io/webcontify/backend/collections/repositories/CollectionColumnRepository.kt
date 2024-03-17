@@ -7,7 +7,7 @@ import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnD
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
-import org.jooq.*
+import org.jooq.DSLContext
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Repository

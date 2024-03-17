@@ -83,7 +83,9 @@ class ManyToManyRelationHandler(
     return Pair(createdCollectionWithColumns, relation)
   }
 
-  override fun createRelation(relation: WebContifyCollectionRelationDto) {
+  override fun createRelation(
+      relation: WebContifyCollectionRelationDto
+  ): WebContifyCollectionRelationDto {
     val preparedRelation = prepareRelation(relation)
     val manyToOneFromSourceToMappingCollectionFields =
         preparedRelation.second.fields
@@ -118,10 +120,21 @@ class ManyToManyRelationHandler(
             fields = manyToOneFromReferenceToMappingCollectionFields)
     relationRepository.create(manyToOneFromReferenceToMappingCollection)
     createMirror(manyToOneFromReferenceToMappingCollection)
+    return relation.copy(
+        referencedCollection = preparedRelation.first,
+        fields =
+            relation.fields
+                .map {
+                  it.copy(
+                      referencedCollectionColumnName =
+                          getReferenceColumnName(
+                              relation.sourceCollection, it.sourceCollectionColumnName))
+                }
+                .toSet())
   }
 
   private fun createMirror(relation: WebContifyCollectionRelationDto) {
-    val mirrorRelation = relation.switchReference(WebcontifyCollectionRelationType.MANY_TO_MANY)
+    val mirrorRelation = relation.switchReference(WebcontifyCollectionRelationType.MANY_TO_ONE)
     relationRepository.create(mirrorRelation)
     tableRelationRepository.create(mirrorRelation)
   }

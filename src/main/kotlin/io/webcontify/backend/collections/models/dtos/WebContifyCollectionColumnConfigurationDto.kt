@@ -2,7 +2,7 @@ package io.webcontify.backend.collections.models.dtos
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 open class WebContifyCollectionColumnConfigurationDto<out T>(
     open val nullable: Boolean?,

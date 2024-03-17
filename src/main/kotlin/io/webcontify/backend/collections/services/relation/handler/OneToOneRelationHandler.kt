@@ -16,9 +16,12 @@ class OneToOneRelationHandler(
     return WebcontifyCollectionRelationType.ONE_TO_ONE
   }
 
-  override fun createRelation(relation: WebContifyCollectionRelationDto) {
+  override fun createRelation(
+      relation: WebContifyCollectionRelationDto
+  ): WebContifyCollectionRelationDto {
     tableRelationRepository.create(relation)
     relationRepository.create(relation)
     relationRepository.create(relation.switchReference(WebcontifyCollectionRelationType.ONE_TO_ONE))
+    return relation
   }
 }

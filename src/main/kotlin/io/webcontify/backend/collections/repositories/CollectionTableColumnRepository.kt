@@ -8,7 +8,7 @@ import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.*
+import org.jooq.impl.DSL.field
 import org.springframework.jdbc.BadSqlGrammarException
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
