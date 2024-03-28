@@ -78,13 +78,18 @@ class CollectionRepository(
       updateAbleRecord.displayName = record.displayName
       updateAbleRecord.name = record.name
       updateAbleRecord.id = record.id
-      updateAbleRecord.update().let {
-        if (it == 0) {
-          throw NotFoundException(ErrorCode.COLLECTION_NOT_FOUND, updateAbleRecord.id.toString())
+      try {
+        updateAbleRecord.update().let {
+          if (it == 0) {
+            throw NotFoundException(ErrorCode.COLLECTION_NOT_FOUND, updateAbleRecord.id.toString())
+          }
         }
+      } catch (e: DuplicateKeyException) {
+        throw AlreadyExistsException(
+            ErrorCode.COLLECTION_WITH_NAME_ALREADY_EXISTS, updateAbleRecord.id.toString())
       }
 
-      return@let mapper.mapToDto(updateAbleRecord)
+      return getById(record.id)
     }
   }
 

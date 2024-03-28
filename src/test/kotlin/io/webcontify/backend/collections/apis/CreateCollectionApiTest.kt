@@ -25,7 +25,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 
-// TODO max size of column and table names cause constraint names cannot be endless long, transaction testing
+// TODO max size of column and table names cause constraint names cannot be endless long,
+// transaction testing
 class CreateCollectionApiTest : ApiTestSetup() {
 
   @Test
