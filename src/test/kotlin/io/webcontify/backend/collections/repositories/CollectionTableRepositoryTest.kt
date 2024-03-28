@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.repositories
 
-import helpers.setups.JooqTestSetup
+import helpers.setups.repository.JooqTestSetup
 import helpers.suppliers.collectionWithColumns
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto

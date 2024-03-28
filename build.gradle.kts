@@ -54,6 +54,7 @@ dependencies {
   testImplementation("org.testcontainers:postgresql:1.19.1")
   implementation("org.jooq:jooq-jackson-extensions:3.18.0")
   testImplementation("io.mockk:mockk:1.13.8")
+  testImplementation("io.rest-assured:spring-mock-mvc-kotlin-extensions:5.4.0")
 }
 
 dependencyManagement {

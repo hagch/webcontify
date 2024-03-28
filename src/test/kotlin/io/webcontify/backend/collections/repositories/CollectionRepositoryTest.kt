@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.repositories
 
-import helpers.setups.JooqTestSetup
+import helpers.setups.repository.JooqTestSetup
 import helpers.suppliers.collectionWithEmptyColumns
 import helpers.suppliers.collectionWithNameCollection
 import helpers.suppliers.collectionWithNameTest

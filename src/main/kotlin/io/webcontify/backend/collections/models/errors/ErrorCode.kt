@@ -2,9 +2,10 @@ package io.webcontify.backend.collections.models.errors
 
 enum class ErrorCode(var message: String) {
   INTERNAL_SERVER_ERROR("Unhandled error occurred"),
-  INVALID_REQUEST_BODY(""),
+  INVALID_REQUEST_BODY("Request body cannot be processed"),
   INVALID_PATH_PARAMETERS("Atleast one primary key column has to be specified"),
   INVALID_NAME("Name cannot have leading or ending '_', following values are allowed 0-9, a-z, _"),
+  NAME_REQUIRED("Name cannot be null or empty"),
   TYPE_NON_NULLABLE("Type cannot be null"),
   COLUMN_REQUIRED("At least one column is required for collection creation"),
   GET_ITEM_COLLECTION_WITHOUT_COLUMNS("Collection without columns cannot have items"),
@@ -25,7 +26,7 @@ enum class ErrorCode(var message: String) {
   UNABLE_TO_CREATE_COLUMN("Could not create column with name %s for collection with id"),
   UNSUPPORTED_COLUMN_OPERATION("Currently changing type or is primary key is not supported"),
   UNABLE_TO_RENAME_COLUMN("Could not rename column with name %s to %s for collection with id %s"),
-  UNABLE_TO_CREATE_TABLE("Could not create table without primary keys"),
+  UNABLE_TO_CREATE_COLLECTION("Could not create collection without primary columns"),
   UNABLE_TO_UPDATE_TABLE_NAME("Could not update table name from %s to %s"),
   ITEM_NOT_FOUND("Item with key %s does not exist for collection with id %s"),
   UNABLE_TO_RETRIEVE_ITEM("Could not load item with key %s for collection with id %s"),

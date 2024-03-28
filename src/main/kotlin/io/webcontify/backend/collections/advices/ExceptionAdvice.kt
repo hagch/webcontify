@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -23,7 +24,7 @@ class ExceptionAdvice {
       request: HttpServletRequest
   ): ResponseEntity<ErrorResponse> {
     return ResponseEntity(
-        ErrorResponse(request.servletPath, exception.toErrors()), HttpStatus.NOT_FOUND)
+        ErrorResponse(request.requestURI, exception.toErrors()), HttpStatus.NOT_FOUND)
   }
 
   @ExceptionHandler(value = [AlreadyExistsException::class])
@@ -32,16 +33,28 @@ class ExceptionAdvice {
       request: HttpServletRequest
   ): ResponseEntity<ErrorResponse> {
     return ResponseEntity(
-        ErrorResponse(request.servletPath, exception.toErrors()), HttpStatus.CONFLICT)
+        ErrorResponse(request.requestURI, exception.toErrors()), HttpStatus.CONFLICT)
   }
 
-  @ExceptionHandler(value = [UnprocessableContentException::class])
+  @ExceptionHandler(
+      value = [UnprocessableContentException::class, HttpMessageNotReadableException::class])
   fun handleUnprocessableContent(
-      exception: UnprocessableContentException,
+      exception: Exception,
       request: HttpServletRequest
   ): ResponseEntity<ErrorResponse> {
+    if (exception is UnprocessableContentException) {
+      return ResponseEntity(
+          ErrorResponse(request.requestURI, exception.toErrors()), HttpStatus.BAD_REQUEST)
+    }
+    exception as HttpMessageNotReadableException
     return ResponseEntity(
-        ErrorResponse(request.servletPath, exception.toErrors()), HttpStatus.BAD_REQUEST)
+        ErrorResponse(
+            request.requestURI,
+            listOf(
+                Error(
+                    ErrorCode.INVALID_REQUEST_BODY,
+                    exception.message ?: ErrorCode.INVALID_REQUEST_BODY.message))),
+        HttpStatus.BAD_REQUEST)
   }
 
   @ExceptionHandler(value = [ConstraintViolationException::class])
@@ -50,7 +63,7 @@ class ExceptionAdvice {
       request: HttpServletRequest
   ): ResponseEntity<ErrorResponse> {
     val errors = exception.constraintViolations.map { Error(it.message) }
-    return ResponseEntity(ErrorResponse(request.servletPath, errors), HttpStatus.BAD_REQUEST)
+    return ResponseEntity(ErrorResponse(request.requestURI, errors), HttpStatus.BAD_REQUEST)
   }
 
   @ExceptionHandler(value = [MethodArgumentNotValidException::class])
@@ -59,6 +72,6 @@ class ExceptionAdvice {
       request: HttpServletRequest
   ): ResponseEntity<ErrorResponse> {
     val errors = exception.allErrors.map { Error(ErrorCode.valueOf(it.defaultMessage.toString())) }
-    return ResponseEntity(ErrorResponse(request.servletPath, errors), HttpStatus.BAD_REQUEST)
+    return ResponseEntity(ErrorResponse(request.requestURI, errors), HttpStatus.BAD_REQUEST)
   }
 }

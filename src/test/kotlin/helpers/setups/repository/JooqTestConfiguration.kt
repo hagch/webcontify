@@ -1,4 +1,4 @@
-package helpers.setups
+package helpers.setups.repository
 
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.ComponentScan

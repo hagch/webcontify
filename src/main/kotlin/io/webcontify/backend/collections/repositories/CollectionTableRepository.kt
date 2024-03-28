@@ -24,7 +24,7 @@ class CollectionTableRepository(
             ?.filter { column -> column.isPrimaryKey }
             ?.map { column -> field(column.name) }
     if (primaryKeyColums.isNullOrEmpty()) {
-      throw UnprocessableContentException(ErrorCode.UNABLE_TO_CREATE_TABLE)
+      throw UnprocessableContentException(ErrorCode.UNABLE_TO_CREATE_COLLECTION)
     }
     val constraints: MutableList<ConstraintEnforcementStep> =
         mutableListOf(constraint("pk_" + collection.name).primaryKey(primaryKeyColums))
