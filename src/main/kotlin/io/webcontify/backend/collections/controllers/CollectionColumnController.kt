@@ -1,9 +1,11 @@
 package io.webcontify.backend.collections.controllers
 
+import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.mappers.CollectionColumnMapper
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionColumnApiCreateRequest
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionColumnApiUpdateRequest
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.services.CollectionColumnService
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import jakarta.validation.Valid
@@ -40,6 +42,9 @@ class CollectionColumnController(
       @PathVariable collectionId: Int,
       @RequestBody @Valid column: WebContifyCollectionColumnApiCreateRequest
   ): WebContifyCollectionColumnDto {
+    if (column.isPrimaryKey) {
+      throw UnprocessableContentException(ErrorCode.UNSUPPORTED_COLUMN_OPERATION)
+    }
     return service.create(mapper.mapApiToDto(column, collectionId))
   }
 

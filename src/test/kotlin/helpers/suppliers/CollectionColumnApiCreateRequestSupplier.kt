@@ -8,6 +8,20 @@ import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 class CollectionColumnApiCreateRequestSupplier {
 
   companion object {
+    val NEW_COLUMN =
+        WebContifyCollectionColumnApiCreateRequest(
+            "new_column",
+            "New Column",
+            WebcontifyCollectionColumnType.NUMBER,
+            false,
+            WebContifyCollectionColumnNumberConfigurationDto(null, null, false, true, null, null))
+    val NEW_PRIMARY_COLUMN =
+        WebContifyCollectionColumnApiCreateRequest(
+            "new_column",
+            "New Column",
+            WebcontifyCollectionColumnType.NUMBER,
+            true,
+            WebContifyCollectionColumnNumberConfigurationDto(null, null, false, true, null, null))
     val NUMBER_PRIMARY_COLUMN =
         WebContifyCollectionColumnApiCreateRequest(
             "number_column",

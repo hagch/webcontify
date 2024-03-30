@@ -24,7 +24,7 @@ enum class ErrorCode(var message: String) {
   COLLECTION_NOT_UPDATED("Collection with name %s could not be updated"),
   COLLECTION_WITH_NAME_ALREADY_EXISTS("Collection with name %s already exist"),
   UNABLE_TO_CREATE_COLUMN("Could not create column with name %s for collection with id"),
-  UNSUPPORTED_COLUMN_OPERATION("Currently changing type or is primary key is not supported"),
+  UNSUPPORTED_COLUMN_OPERATION("Changing type or isPrimaryKey is not supported"),
   UNABLE_TO_RENAME_COLUMN("Could not rename column with name %s to %s for collection with id %s"),
   UNABLE_TO_CREATE_COLLECTION("Could not create collection without primary columns"),
   UNABLE_TO_UPDATE_TABLE_NAME("Could not update table name from %s to %s"),

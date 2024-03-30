@@ -1,4 +1,4 @@
-package io.webcontify.backend.collections.apis
+package io.webcontify.backend.collections.apis.collection
 
 import helpers.asserts.equalsTo
 import helpers.asserts.errorSizeEquals

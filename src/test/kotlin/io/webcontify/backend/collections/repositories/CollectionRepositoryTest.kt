@@ -30,7 +30,7 @@ class CollectionRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql","collection-with-columns.sql")
+  @Sql("cleanup.sql", "collection-with-columns.sql")
   @DisplayName("getAll should return a collection with column definitions")
   fun getAllShouldReturnCollectionWithColumnDefinitions() {
     assertDoesNotThrow {
@@ -39,7 +39,7 @@ class CollectionRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql","collection-without-columns.sql")
+  @Sql("cleanup.sql", "collection-without-columns.sql")
   @DisplayName("getAll should return a collection without column definitions")
   fun getAllShouldReturnCollectionWithoutColumnDefinitions() {
     assertDoesNotThrow {
@@ -48,7 +48,7 @@ class CollectionRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql","collection-with-columns.sql")
+  @Sql("cleanup.sql", "collection-with-columns.sql")
   @DisplayName("getById should return a collection with column definitions")
   fun getByIdShouldReturnCollectionWithColumnDefinitions() {
     val collection = repository.getById(collectionId)
@@ -58,7 +58,7 @@ class CollectionRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql","collection-without-columns.sql")
+  @Sql("cleanup.sql", "collection-without-columns.sql")
   @DisplayName("getById should return a collection without column definitions")
   fun getByIdShouldReturnCollectionWithoutColumnDefinitions() {
     val collection = repository.getById(collectionId)
@@ -74,7 +74,7 @@ class CollectionRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql","collection-without-columns.sql")
+  @Sql("cleanup.sql", "collection-without-columns.sql")
   @DisplayName("update should update name and displayName")
   fun updateShouldUpdateNameAndDisplayName() {
     val newDisplayName = "New DisplayName"
@@ -98,14 +98,14 @@ class CollectionRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql","collection-without-columns.sql")
+  @Sql("cleanup.sql", "collection-without-columns.sql")
   @DisplayName("deleteById should be success full on resource exists")
   fun deleteByIdShouldDeleteExistingResource() {
     assertDoesNotThrow { repository.deleteById(collectionId) }
   }
 
   @Test
-  @Sql("cleanup.sql","collection-with-columns.sql")
+  @Sql("cleanup.sql", "collection-with-columns.sql")
   @DisplayName("deleteById should throw exception on collection with columns exist")
   fun deleteByIdShouldThrowException() {
     assertThrows<UnprocessableContentException> { repository.deleteById(collectionId) }
