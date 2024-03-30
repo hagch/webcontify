@@ -22,7 +22,7 @@ import org.springframework.test.context.jdbc.Sql
 class DeleteColumnApiTest : ApiTestSetup() {
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(DeleteColumn) should delete column for collection`() {
     Given { mockMvc(mockMvc) } When
         {
@@ -34,7 +34,7 @@ class DeleteColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(DeleteColumn) should return not found if column does not exist`() {
     val path = "$COLLECTIONS_PATH/1/columns/does_not_exist"
     val errorResponse =
@@ -57,7 +57,7 @@ class DeleteColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(DeleteColumn) should return not found if collection does not exist`() {
     val path = "$COLLECTIONS_PATH/5/columns/number_column"
     val errorResponse =
@@ -79,7 +79,7 @@ class DeleteColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(DeleteColumn) should return bad request if column is primary key`() {
     val path = "$COLLECTIONS_PATH/1/columns/${NUMBER_PRIMARY_COLUMN.name}"
     val errorResponse =
@@ -102,7 +102,7 @@ class DeleteColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collection-with-relation.sql")
+  @Sql("/cleanup.sql", "./../collection-with-relation.sql")
   fun `(DeleteColumn) should return error if column is used in relation`() {
     val path = "$COLLECTIONS_PATH/2/columns/related_column"
     val errorResponse =

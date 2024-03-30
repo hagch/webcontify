@@ -27,7 +27,7 @@ import org.springframework.test.context.jdbc.Sql
 class UpdateColumnApiTest : ApiTestSetup() {
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(UpdateColumn) should update column for collection`() {
     Given {
       mockMvc(mockMvc)
@@ -45,7 +45,7 @@ class UpdateColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collection-with-relation.sql")
+  @Sql("/cleanup.sql", "./../collection-with-relation.sql")
   fun `(UpdateColumn) should return error if name is used in relation`() {
     val path = "$COLLECTIONS_PATH/2/columns/${RELATED_COLUMN_CHANGED.first}"
     val errorResponse =
@@ -72,7 +72,7 @@ class UpdateColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(UpdateColumn) should return error if column with new name already exists`() {
     val path = "$COLLECTIONS_PATH/1/columns/${EXISTING_COLUMN_NAME.first}"
     val errorResponse =
@@ -100,7 +100,7 @@ class UpdateColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(UpdateColumn) should throw error on changing primary key`() {
     val path = "$COLLECTIONS_PATH/1/columns/${NUMBER_COLUMN_PRIMARY_CHANGED.first}"
     val errorResponse =
@@ -126,7 +126,7 @@ class UpdateColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(UpdateColumn) should throw error on changing primary key column name`() {
     val path = "$COLLECTIONS_PATH/1/columns/${NUMBER_PRIMARY_COLUMN_NAME_CHANGED.first}"
     val errorResponse =
@@ -152,7 +152,7 @@ class UpdateColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(UpdateColumn) should throw error on changing type`() {
     val path = "$COLLECTIONS_PATH/1/columns/${DECIMAL_COLUMN_TYPE_CHANGED.first}"
     val errorResponse =

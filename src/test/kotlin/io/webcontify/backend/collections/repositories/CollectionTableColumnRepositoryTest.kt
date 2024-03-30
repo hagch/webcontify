@@ -25,13 +25,13 @@ class CollectionTableColumnRepositoryTest(
           1, "id", "id", WebcontifyCollectionColumnType.NUMBER, true, null)
   private final val secondColumn =
       WebContifyCollectionColumnDto(
-          1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false, null)
+          1, "othercolumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false, null)
   private final val collection =
-      collectionWithColumns(listOf(Pair("id", true), Pair("otherColumn", false)))
+      collectionWithColumns(listOf(Pair("id", true), Pair("othercolumn", false)))
   private final val fields = listOf(DSL.field(firstColumn.name), DSL.field(secondColumn.name))
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("Create column should add column to table")
   fun createColumnShouldAddColumnToTable() {
     val newColumn =
@@ -48,17 +48,17 @@ class CollectionTableColumnRepositoryTest(
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("Create column should throw exception if column already exists")
   fun createColumnShouldThrowExceptionIfColumnAlreadyExists() {
     val newColumn =
         WebContifyCollectionColumnDto(
-            1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false, null)
+            1, "othercolumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false, null)
     assertThrows<AlreadyExistsException> { repository.create(collection, newColumn) }
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("Create column should throw exception if column name is empty")
   fun createColumnShouldThrowExceptionIfColumnNameIsMalformed() {
     val newColumn2 =
@@ -67,7 +67,7 @@ class CollectionTableColumnRepositoryTest(
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("Delete column should delete column from table")
   fun deleteColumnShouldDeleteColumn() {
     repository.delete(collection, secondColumn.name)
@@ -80,14 +80,14 @@ class CollectionTableColumnRepositoryTest(
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("Delete column should not throw exception if column is used in constraint")
   fun deleteColumnShouldNotThrowExceptionIfUsedInConstraint() {
     assertDoesNotThrow { repository.delete(collection, firstColumn.name) }
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("Delete column should not throw exception if column not exists")
   fun deleteColumnShouldNotThrowExceptionIfColumnNotExists() {
     assertDoesNotThrow { repository.delete(collection, "does_not_exist") }
@@ -110,7 +110,7 @@ class CollectionTableColumnRepositoryTest(
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("Update column should throw exception if old column not exists")
   fun updateColumnShouldThrowExceptionIfColumnNotExists() {
     assertThrows<NotFoundException> {
@@ -119,7 +119,7 @@ class CollectionTableColumnRepositoryTest(
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("Update column should throw exception if old column not exists on table")
   fun updateColumnShouldThrowExceptionIfColumnNotExistsOnTable() {
     val collection =
@@ -130,13 +130,16 @@ class CollectionTableColumnRepositoryTest(
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("Update column should update column")
   fun updateColumnShouldUpdateColumn() {
-    repository.update(collection, firstColumn.copy(name = "new"), "id")
+    repository.update(collection, secondColumn.copy(name = "new"), "othercolumn")
 
     assertDoesNotThrow {
-      context.insertInto(DSL.table(collection.name), DSL.field("new")).values(1).execute()
+      context
+          .insertInto(DSL.table(collection.name), DSL.field("new"), DSL.field("id"))
+          .values(1, 1)
+          .execute()
     }
   }
 
@@ -152,7 +155,7 @@ class CollectionTableColumnRepositoryTest(
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("Update column should throw exception if new name is empty")
   fun updateColumnShouldThrowExceptionIfColumnNameIsEmpty() {
     assertThrows<UnprocessableContentException> {

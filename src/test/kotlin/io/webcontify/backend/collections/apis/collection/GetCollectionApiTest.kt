@@ -20,7 +20,7 @@ import org.springframework.test.context.jdbc.Sql
 class GetCollectionApiTest : ApiTestSetup() {
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(GetCollectionById) should return collection`() {
     Given { mockMvc(mockMvc) } When
         {
@@ -33,7 +33,7 @@ class GetCollectionApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(GetCollectionById) should return error on id not found`() {
     val collectionId = -1
 
@@ -58,7 +58,7 @@ class GetCollectionApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(GetAllCollections) should return list of collections`() {
     Given { mockMvc(mockMvc) } When
         {
@@ -71,7 +71,7 @@ class GetCollectionApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql")
+  @Sql("/cleanup.sql")
   fun `(GetAllCollections) should return empty list of collections if no collection exists`() {
     Given { mockMvc(mockMvc) } When
         {

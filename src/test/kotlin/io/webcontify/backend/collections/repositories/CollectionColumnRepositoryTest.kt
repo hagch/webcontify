@@ -22,27 +22,28 @@ class CollectionColumnRepositoryTest(
   val firstSqlColumn = firstSqlInsertedColumn()
 
   @Test
-  @Sql("cleanup.sql", "collection-without-columns.sql")
+  @Sql("/cleanup.sql", "collection-without-columns.sql")
   @DisplayName("getAll should return empty list if no columns for collection exists")
   fun getAllForCollectionShouldReturnEmptyListOnCollectionExist() {
     assertTrue(repository.getAllForCollection(firstSqlColumn.collectionId).isEmpty())
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-columns.sql")
   @DisplayName("getAllForCollection should return list if columns for collection exists")
   fun getAllForCollectionShouldList() {
     assertTrue(repository.getAllForCollection(firstSqlColumn.collectionId).isNotEmpty())
   }
 
   @Test
+  @Sql("/cleanup.sql")
   @DisplayName("getAllForCollection should return empty list for non existent collection")
   fun getAllForCollectionShouldReturnEmptyListOnCollectionDoesNotExist() {
     assertTrue(repository.getAllForCollection(firstSqlColumn.collectionId).isEmpty())
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-columns.sql")
   @DisplayName("getById should return column")
   fun getByIdShouldReturnColumn() {
     val column = repository.getById(firstSqlColumn.collectionId, firstSqlColumn.name)
@@ -52,7 +53,7 @@ class CollectionColumnRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-columns.sql")
   @DisplayName("getById should throw exception if column does not exist")
   fun getByIdShouldThrowException() {
     assertThrows<NotFoundException> {
@@ -61,7 +62,7 @@ class CollectionColumnRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-columns.sql")
   @DisplayName("update should update column")
   fun updateShouldUpdateColumn() {
     val newDisplayName = "New DisplayName"
@@ -79,7 +80,7 @@ class CollectionColumnRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-columns.sql")
   @DisplayName("update should throw Exception on column does not exist")
   fun updateShouldThrowExceptionOnColumnDoesNotExist() {
     assertThrows<NotFoundException> {
@@ -89,7 +90,7 @@ class CollectionColumnRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-with-multiple-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-multiple-columns.sql")
   @DisplayName("update should throw Exception on another column with name exists")
   fun updateShouldThrowExceptionOnAnotherColumnForCollectionAlreadyExists() {
     assertThrows<AlreadyExistsException> {
@@ -98,7 +99,7 @@ class CollectionColumnRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-columns.sql")
   @DisplayName("deleteById should be success full on resource exists")
   fun deleteByIdShouldDeleteExistingResource() {
     assertDoesNotThrow {
@@ -113,7 +114,7 @@ class CollectionColumnRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-without-columns.sql")
+  @Sql("/cleanup.sql", "collection-without-columns.sql")
   @DisplayName("create should create collection")
   fun createShouldCreateCollection() {
     assertNotNull(repository.create(firstSqlInsertedColumn()))
@@ -121,7 +122,7 @@ class CollectionColumnRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-without-columns.sql")
+  @Sql("/cleanup.sql", "collection-without-columns.sql")
   @DisplayName("create shouldThrow exception if name already exists")
   fun createShouldThrowExceptionIfNameAlreadyExists() {
     repository.create(firstSqlInsertedColumn())
@@ -129,6 +130,7 @@ class CollectionColumnRepositoryTest(
   }
 
   @Test
+  @Sql("/cleanup.sql")
   @DisplayName("create should throw exception if collection does not exist")
   fun createShouldThrowExceptionIfCollectionDoesNotExist() {
     assertThrows<NotFoundException> { repository.create(firstSqlInsertedColumn()) }

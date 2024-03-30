@@ -22,7 +22,7 @@ import org.springframework.test.context.jdbc.Sql
 class GetColumnApiTest : ApiTestSetup() {
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(GetColumnByName) should return column`() {
     Given { mockMvc(mockMvc) } When
         {
@@ -36,7 +36,7 @@ class GetColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(GetColumnByName) should return not found if column does not exist`() {
     val path = "$COLLECTIONS_PATH/1/columns/does_not_exist"
     val error =
@@ -59,7 +59,7 @@ class GetColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(GetColumnByName) should return column not found if collection does not exist`() {
     val path = "$COLLECTIONS_PATH/5/columns/does_not_exist"
     val error =
@@ -82,7 +82,7 @@ class GetColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(GetColumnsForCollection) should return all columns for collection`() {
     val path = "$COLLECTIONS_PATH/1/columns"
     val columns =
@@ -101,7 +101,7 @@ class GetColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(GetColumnsForCollection) should return empty list if collection does not exist`() {
     val path = "$COLLECTIONS_PATH/5/columns"
     Given { mockMvc(mockMvc) } When

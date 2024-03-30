@@ -25,7 +25,7 @@ import org.springframework.test.context.jdbc.Sql
 class CreateColumnApiTest : ApiTestSetup() {
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(CreateColumn) should create column`() {
     Given {
       mockMvc(mockMvc)
@@ -43,7 +43,7 @@ class CreateColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(CreateColumn) should return not found if collection does not exist`() {
     val errorResponse =
         Given {
@@ -68,7 +68,7 @@ class CreateColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(CreateColumn) should return bad request if column name is invalid`() {
     val errorResponse =
         Given {
@@ -92,7 +92,7 @@ class CreateColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(CreateColumn) should return column already exists if column with name for collection already exists`() {
     val errorResponse =
         Given {
@@ -118,7 +118,7 @@ class CreateColumnApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("./../cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
   fun `(CreateColumn) should return error on creating a primary key column`() {
     val errorResponse =
         Given {

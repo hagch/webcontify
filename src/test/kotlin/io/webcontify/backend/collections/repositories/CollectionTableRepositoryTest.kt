@@ -43,6 +43,7 @@ class CollectionTableRepositoryTest(
       listOf(field(firstColumnPrimary.name), field(secondColumnPrimary.name))
 
   @Test
+  @Sql("/cleanup.sql")
   @DisplayName("create should create table")
   fun createShouldCreateTableWithPrimaryKey() {
     repository.create(onePrimaryKeyCollection)
@@ -63,6 +64,7 @@ class CollectionTableRepositoryTest(
   }
 
   @Test
+  @Sql("/cleanup.sql")
   @DisplayName("create should create table with composite primary key")
   fun createShouldCreateTableWithCompositePrimaryKey() {
     repository.create(compositePrimaryKeyCollection)
@@ -83,6 +85,7 @@ class CollectionTableRepositoryTest(
   }
 
   @Test
+  @Sql("/cleanup.sql")
   @DisplayName("create should throw exception if no column is primary key")
   fun createShouldThrowExceptionIfNoColumnIsPrimaryKey() {
     val collection =
@@ -98,6 +101,7 @@ class CollectionTableRepositoryTest(
   }
 
   @Test
+  @Sql("/cleanup.sql")
   @DisplayName("create should throw exception if columns are empty")
   fun createShouldThrowExceptionIfColumnsAreEmpty() {
     val collection = WebContifyCollectionDto(1, "test", "Test", listOf())
@@ -106,7 +110,7 @@ class CollectionTableRepositoryTest(
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("delete should delete table")
   fun deleteShouldDeleteTable() {
     repository.delete("test")
@@ -115,13 +119,14 @@ class CollectionTableRepositoryTest(
   }
 
   @Test
+  @Sql("/cleanup.sql")
   @DisplayName("delete should not throw exception if table does not exist")
   fun deleteShouldNotThrowExceptionIfTableDoesNotExist() {
     assertDoesNotThrow { repository.delete("doesnotexist") }
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("updateName should update name of table")
   fun updateNameShouldUpdateNameOfTable() {
     repository.updateName("tester", "test")
@@ -130,13 +135,14 @@ class CollectionTableRepositoryTest(
   }
 
   @Test
+  @Sql("/cleanup.sql")
   @DisplayName("updateName should not throw exception if table does not exist")
   fun updateNameShouldNotThrowExceptionIfTableDoesNotExist() {
     assertDoesNotThrow { repository.updateName("tester", "test") }
   }
 
   @Test
-  @Sql("create-test-table.sql")
+  @Sql("/cleanup.sql", "create-test-table.sql")
   @DisplayName("updateName should throw exception if new name is malformed or empty")
   fun updateNameShouldThrowExceptionIfNewNameIsMalformed() {
     assertThrows<UnprocessableContentException> { repository.updateName("", "test") }

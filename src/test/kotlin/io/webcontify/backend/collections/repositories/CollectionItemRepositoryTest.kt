@@ -21,7 +21,7 @@ class CollectionItemRepositoryTest(
 ) : JooqTestSetup() {
 
   @Test
-  @Sql("cleanup.sql", "create-item-test-entities.sql")
+  @Sql("/cleanup.sql", "create-item-test-entities.sql")
   fun createItemShouldCreateItem() {
     val collection = collectionRepository.getAll().first()
 
@@ -31,7 +31,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "create-item-test-entities.sql")
+  @Sql("/cleanup.sql", "create-item-test-entities.sql")
   fun createItemShouldThrowExceptionOnKeyInObjectDoesNotExist() {
     val collection = collectionRepository.getAll().first()
 
@@ -41,7 +41,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "create-item-test-entities.sql")
+  @Sql("/cleanup.sql", "create-item-test-entities.sql")
   fun createItemShouldThrowExceptionOnValueIsNotSupportedOnColumn() {
     val collection = collectionRepository.getAll().first()
 
@@ -51,7 +51,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "create-item-test-entities.sql")
+  @Sql("/cleanup.sql", "create-item-test-entities.sql")
   fun createItemShouldThrowAlreadyExistsIfPrimaryKeyIsAlreadyCreated() {
     val collection = collectionRepository.getAll().first()
     repository.create(collection, mapOf(Pair("id", 1), Pair("otherColumn", 1)))
@@ -62,7 +62,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-columns.sql")
   fun createItemShouldThrowErrorIfTableDoesNotExist() {
     val collection = collectionRepository.getAll().first()
 
@@ -72,7 +72,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "get-items-test-entities.sql")
+  @Sql("/cleanup.sql", "get-items-test-entities.sql")
   fun getAllForShouldReturnEntities() {
     val collection = collectionRepository.getAll().first()
 
@@ -80,7 +80,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-columns.sql")
   fun getAllForShouldThrowErrorIfTableDoesNotExist() {
     val collection = collectionRepository.getAll().first()
 
@@ -88,7 +88,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "create-item-test-entities.sql")
+  @Sql("/cleanup.sql", "create-item-test-entities.sql")
   fun getAllForShouldReturnEmptyList() {
     val collection = collectionRepository.getAll().first()
 
@@ -96,7 +96,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "get-items-test-entities.sql")
+  @Sql("/cleanup.sql", "get-items-test-entities.sql")
   fun getByIdForShouldReturnItem() {
     val collection = collectionRepository.getAll().first()
 
@@ -107,7 +107,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-columns.sql")
   fun getByIdForShouldThrowExceptionIfTableDoesNotExist() {
     val collection = collectionRepository.getAll().first()
 
@@ -117,7 +117,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "create-item-test-entities.sql")
+  @Sql("/cleanup.sql", "create-item-test-entities.sql")
   fun getByIdForShouldThrowExceptionIfItemDoesNotExist() {
     val collection = collectionRepository.getAll().first()
 
@@ -125,7 +125,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "create-item-test-entities.sql")
+  @Sql("/cleanup.sql", "create-item-test-entities.sql")
   fun deleteByIdShouldDeleteItem() {
     val collection = collectionRepository.getAll().first()
 
@@ -135,7 +135,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("cleanup.sql", "create-item-test-entities.sql")
+  @Sql("/cleanup.sql", "create-item-test-entities.sql")
   fun deleteByIdShouldNotThrowExceptionIfItemDoesNotExist() {
     val collection = collectionRepository.getAll().first()
     repository.deleteById(collection, mapOf(Pair("id", 1)))
