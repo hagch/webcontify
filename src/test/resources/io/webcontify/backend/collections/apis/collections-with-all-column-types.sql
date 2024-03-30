@@ -8,13 +8,13 @@ INSERT INTO WEBCONTIFY_COLLECTION_COLUMN VALUES(1,'boolean_column','Boolean Colu
 INSERT INTO WEBCONTIFY_COLLECTION_COLUMN VALUES(1,'uuid_column','Uuid Column','UUID',false);
 
 CREATE TABLE IF NOT EXISTS ALL_COLUMN_TYPES_PRIMARY_NUMBER (
-    primary_number_column bigint GENERATED ALWAYS AS IDENTITY,
+    number_column bigint GENERATED ALWAYS AS IDENTITY,
     decimal_column decimal,
     text_column text,
     timestamp_column timestamp,
     boolean_column boolean,
     uuid_column uuid,
-    constraint PK_ALL_COLUMN_TYPES_PRIMARY_NUMBER primary key (primary_number_column)
+    constraint PK_ALL_COLUMN_TYPES_PRIMARY_NUMBER primary key (number_column)
 );
 
 INSERT INTO WEBCONTIFY_COLLECTION VALUES(2,'all_column_types_primary_uuid','All Column Types Primary Uuid');
@@ -26,7 +26,7 @@ INSERT INTO WEBCONTIFY_COLLECTION_COLUMN VALUES(2,'boolean_column','Boolean Colu
 INSERT INTO WEBCONTIFY_COLLECTION_COLUMN VALUES(2,'uuid_column','Uuid Column','UUID',true);
 
 CREATE TABLE IF NOT EXISTS ALL_COLUMN_TYPES_PRIMARY_UUID (
-                                                               primary_number_column bigint,
+                                                               number_column bigint,
                                                                decimal_column decimal,
                                                                text_column text,
                                                                timestamp_column timestamp,

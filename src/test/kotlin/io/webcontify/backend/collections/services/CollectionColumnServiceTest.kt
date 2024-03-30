@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.services
 
-import helpers.suppliers.collectionWithEmptyColumns
+import helpers.suppliers.collectionWithColumns
 import helpers.suppliers.firstSqlInsertedColumn
 import helpers.suppliers.secondSqlInsertedColumn
 import io.mockk.every
@@ -43,13 +43,14 @@ class CollectionColumnServiceTest {
 
   @Test
   fun deleteByIdShouldDeleteColumnAndOnTable() {
-    every { collectionRepository.getById(0) } returns collectionWithEmptyColumns()
+    val collection = collectionWithColumns(listOf(Pair("test", false)))
+    every { collectionRepository.getById(0) } returns collection
 
     service.deleteById(0, "test")
 
     verify(exactly = 1) {
       collectionColumnRepository.deleteById(0, "test")
-      collectionTableColumnRepository.delete(collectionWithEmptyColumns(), "test")
+      collectionTableColumnRepository.delete(collection, "test")
     }
   }
 

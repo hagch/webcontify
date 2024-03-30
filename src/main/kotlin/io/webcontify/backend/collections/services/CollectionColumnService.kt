@@ -1,6 +1,9 @@
 package io.webcontify.backend.collections.services
 
+import io.webcontify.backend.collections.exceptions.NotFoundException
+import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.repositories.CollectionColumnRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
 import io.webcontify.backend.collections.repositories.CollectionTableColumnRepository
@@ -26,10 +29,16 @@ class CollectionColumnService(
 
   @Transactional
   fun deleteById(collectionId: Int, name: String) {
-    return repository.deleteById(collectionId, name).also {
-      val collection = collectionRepository.getById(collectionId)
-      tableColumnRepository.delete(collection, name)
+    val collection = collectionRepository.getById(collectionId)
+    val column =
+        collection.getColumnWithName(name)
+            ?: throw NotFoundException(ErrorCode.COLUMN_NOT_FOUND, collectionId.toString(), name)
+    if (column.isPrimaryKey) {
+      throw UnprocessableContentException(
+          ErrorCode.COLUMN_IS_PRIMARY_COLUMN, name, collectionId.toString())
     }
+    repository.deleteById(collectionId, name)
+    tableColumnRepository.delete(collection, name)
   }
 
   @Transactional

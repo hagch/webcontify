@@ -2,6 +2,7 @@ package io.webcontify.backend.collections.repositories
 
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
+import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.mappers.CollectionColumnMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
@@ -45,12 +46,17 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
 
   @Transactional
   fun deleteById(collectionId: Int?, name: String?) {
-    dslContext
-        .deleteFrom(WEBCONTIFY_COLLECTION_COLUMN)
-        .where(
-            WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(collectionId)
-                .and(WEBCONTIFY_COLLECTION_COLUMN.NAME.eq(name)))
-        .execute()
+    try {
+      dslContext
+          .deleteFrom(WEBCONTIFY_COLLECTION_COLUMN)
+          .where(
+              WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(collectionId)
+                  .and(WEBCONTIFY_COLLECTION_COLUMN.NAME.eq(name)))
+          .execute()
+    } catch (e: DataIntegrityViolationException) {
+      throw UnprocessableContentException(
+          ErrorCode.COLUMN_USED_IN_RELATION, name.toString(), collectionId.toString())
+    }
   }
 
   @Transactional

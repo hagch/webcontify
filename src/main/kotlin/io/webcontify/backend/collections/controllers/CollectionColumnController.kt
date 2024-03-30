@@ -9,6 +9,7 @@ import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.services.CollectionColumnService
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import jakarta.validation.Valid
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -18,8 +19,12 @@ class CollectionColumnController(
 ) {
 
   @DeleteMapping("$COLLECTIONS_PATH/{collectionId}/columns/{name}")
-  fun delete(@PathVariable("collectionId") collectionId: Int, @PathVariable("name") name: String) {
-    return service.deleteById(collectionId, name.lowercase())
+  fun delete(
+      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable("name") name: String
+  ): ResponseEntity<Void> {
+    service.deleteById(collectionId, name.lowercase())
+    return ResponseEntity.noContent().build()
   }
 
   @GetMapping("$COLLECTIONS_PATH/{collectionId}/columns/{name}")
