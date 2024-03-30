@@ -22,27 +22,6 @@ class CollectionRelationRepository(val dslContext: DSLContext) {
   }
 
   @Transactional
-  fun update(relation: WebContifyCollectionRelationDto): WebContifyCollectionRelationDto {
-    val relationUpdate =
-        dslContext
-            .update(WEBCONTIFY_COLLECTION_RELATION)
-            .set(WEBCONTIFY_COLLECTION_RELATION.DISPLAY_NAME, relation.displayName)
-            .where(
-                WEBCONTIFY_COLLECTION_RELATION.SOURCE_COLLECTION_ID.eq(relation.sourceCollection.id)
-                    .and(WEBCONTIFY_COLLECTION_RELATION.NAME.eq(relation.name))
-                    .and(
-                        WEBCONTIFY_COLLECTION_RELATION.REFERENCED_COLLECTION_ID.eq(
-                            relation.referencedCollection.id))
-                    .and(WEBCONTIFY_COLLECTION_RELATION.TYPE.eq(relation.type)))
-    try {
-      relationUpdate.execute()
-      return relation
-    } catch (e: DuplicateKeyException) {
-      throw RuntimeException("TODO")
-    }
-  }
-
-  @Transactional
   fun create(relation: WebContifyCollectionRelationDto): WebContifyCollectionRelationDto {
     val relationInsert =
         dslContext.newRecord(WEBCONTIFY_COLLECTION_RELATION).apply {

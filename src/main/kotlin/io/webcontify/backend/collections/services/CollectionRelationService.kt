@@ -22,10 +22,4 @@ class CollectionRelationService(
   fun create(relation: WebContifyCollectionRelationDto): WebContifyCollectionRelationDto {
     return relationHandlerStrategy.createRelation(relation)
   }
-
-  @Transactional
-  fun update(relation: WebContifyCollectionRelationDto): WebContifyCollectionRelationDto {
-    // TODO add relationService
-    return relationRepository.update(relation)
-  }
 }
