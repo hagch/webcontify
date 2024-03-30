@@ -12,6 +12,9 @@ data class WebContifyCollectionColumnDto(
 ) {
 
   fun isUpdateAble(newColumn: WebContifyCollectionColumnDto): Boolean {
-    return this.type == newColumn.type && this.isPrimaryKey == newColumn.isPrimaryKey
+    if (this.isPrimaryKey) {
+      return this.type == newColumn.type && newColumn.isPrimaryKey && this.name == newColumn.name
+    }
+    return this.type == newColumn.type && !newColumn.isPrimaryKey
   }
 }

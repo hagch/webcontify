@@ -90,6 +90,9 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
     } catch (e: DuplicateKeyException) {
       throw AlreadyExistsException(
           ErrorCode.COLUMN_WITH_NAME_ALREADY_EXISTS, oldName, record.collectionId.toString())
+    } catch (e: DataIntegrityViolationException) {
+      throw UnprocessableContentException(
+          ErrorCode.COLUMN_USED_IN_RELATION, oldName, record.collectionId.toString())
     }
     return record
   }

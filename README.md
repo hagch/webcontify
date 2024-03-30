@@ -26,12 +26,11 @@ A headless cms with an ui builder
 - [ ] constrains across columns
 - [ ] configurable auditing per collection
 - [ ] Get jooq implementation properly abstracted, so it does not spread over the whole project
-- [ ] Think about having kind of a hexagonal architecture for it here to be able to support nosql databases too
 - [ ] Performance testing
 - [ ] Spring Security integration
 - [ ] UI Implementation
 - [ ] TBD has to be merged with other project which has to be migrated too kotlin first
-
+- [ ] column migration endpoint changing type of column
 # Startup
 ```
 docker-compose up -d
