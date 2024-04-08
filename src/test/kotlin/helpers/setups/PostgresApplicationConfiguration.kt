@@ -11,6 +11,6 @@ class PostgresApplicationConfiguration {
   @Bean
   @ServiceConnection
   fun postgresContainer(): PostgreSQLContainer<*> {
-    return PostgreSQLContainer("postgres:latest").withReuse(true)
+    return PostgreSQLContainer("postgres:latest").withReuse(false)
   }
 }

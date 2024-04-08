@@ -22,7 +22,7 @@ import org.springframework.test.context.jdbc.Sql
 class UpdateCollectionApiTest : ApiTestSetup() {
 
   @Test
-  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(UpdateCollectionById) should update collection name and display name`() {
     Given {
       mockMvc(mockMvc)
@@ -41,7 +41,7 @@ class UpdateCollectionApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(UpdateCollectionById) should return error on name is invalid`() {
     val errorResponse =
         Given {
@@ -66,9 +66,9 @@ class UpdateCollectionApiTest : ApiTestSetup() {
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(UpdateCollectionById) should return error on name already exists`() {
-    val newCollectionName = "all_column_types_primary_uuid"
+    val newCollectionName = "all_field_types_primary_uuid"
     val errorResponse =
         Given {
           mockMvc(mockMvc)

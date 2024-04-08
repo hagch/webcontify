@@ -9,13 +9,13 @@ class StringExtensionMethodsTest {
 
   @ParameterizedTest
   @MethodSource("provideMapForConversions")
-  fun camelToSnakeCaseShouldConvert(toConvert: String, expected: String) {
+  fun `(camelToSnakeCase) should convert`(toConvert: String, expected: String) {
     assertEquals(expected, toConvert.camelToSnakeCase())
   }
 
   @ParameterizedTest
   @MethodSource("provideMapForConversions")
-  fun snakeToCamelCaseShouldConvert(expected: String, toConvert: String) {
+  fun `(snakeToCamelCase) should convert`(expected: String, toConvert: String) {
     assertEquals(expected, toConvert.snakeToCamelCase())
   }
 

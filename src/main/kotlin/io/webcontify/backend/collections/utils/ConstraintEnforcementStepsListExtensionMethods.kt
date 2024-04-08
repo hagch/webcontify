@@ -5,26 +5,25 @@ import org.jooq.impl.DSL
 
 fun MutableList<ConstraintEnforcementStep>.addLessThanIfPresent(
     tableName: String,
-    columnName: String,
+    fieldName: String,
     lessThan: Any?,
     value: Any?
 ) {
   lessThan?.let {
     this.add(
-        DSL.constraint("lt_${tableName}_${columnName}")
-            .check(DSL.field(columnName).lessThan(value)))
+        DSL.constraint("lt_${tableName}_${fieldName}").check(DSL.field(fieldName).lessThan(value)))
   }
 }
 
 fun MutableList<ConstraintEnforcementStep>.addGreaterThanIfPresent(
     tableName: String,
-    columnName: String,
+    fieldName: String,
     greaterThan: Any?,
     value: Any?
 ) {
   greaterThan?.let {
     this.add(
-        DSL.constraint("gt_${tableName}_${columnName}")
-            .check(DSL.field(columnName).greaterThan(value)))
+        DSL.constraint("gt_${tableName}_${fieldName}")
+            .check(DSL.field(fieldName).greaterThan(value)))
   }
 }

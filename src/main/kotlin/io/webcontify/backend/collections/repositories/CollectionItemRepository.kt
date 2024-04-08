@@ -7,14 +7,15 @@ import io.webcontify.backend.collections.models.IdentifierMap
 import io.webcontify.backend.collections.models.Item
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
-import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
+import io.webcontify.backend.collections.services.field.handler.FieldHandlerStrategy
 import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.collections.utils.toKeyValueString
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
+import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.*
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.jdbc.BadSqlGrammarException
 import org.springframework.stereotype.Repository
@@ -23,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional
 @Repository
 class CollectionItemRepository(
     val dslContext: DSLContext,
-    val columnHandlerStrategy: ColumnHandlerStrategy
+    val fieldHandlerStrategy: FieldHandlerStrategy
 ) {
 
   @Transactional(readOnly = true)
@@ -60,7 +61,7 @@ class CollectionItemRepository(
   fun create(collection: WebContifyCollectionDto, item: Item): Item {
     val createAbleItem = getCreateAbleItem(collection, item)
     val fields = createAbleItem.keys.map { field(it) }
-    val allFields = collection.columns?.map { field(it.name) } ?: emptyList()
+    val allFields = collection.queryAbleFields().map { field(it.name) }
     try {
       dslContext
           .insertInto(table(collection.name), fields)
@@ -73,8 +74,11 @@ class CollectionItemRepository(
     } catch (e: DuplicateKeyException) {
       throw AlreadyExistsException(
           ErrorCode.ITEM_ALREADY_EXISTS,
-          collection.primaryColumnItemValueString(item),
+          collection.primaryFieldItemValueString(item),
           collection.id.toString())
+    } catch (e: DataIntegrityViolationException) {
+      throw UnprocessableContentException(
+          ErrorCode.CONSTRAINT_EXCEPTION, item.toKeyValueString(), collection.id.toString())
     }
     throw UnprocessableContentException(
         ErrorCode.UNABLE_TO_CREATE_ITEM, item.toKeyValueString(), collection.id.toString())
@@ -82,19 +86,26 @@ class CollectionItemRepository(
 
   private fun getCreateAbleItem(collection: WebContifyCollectionDto, item: Item): Item {
     val removeAblePrimaryKeys =
-        collection.columns
+        collection.fields
             ?.filter {
               it.isPrimaryKey &&
-                  (it.type == WebcontifyCollectionColumnType.NUMBER ||
-                      it.type == WebcontifyCollectionColumnType.UUID)
+                  (it.type == WebcontifyCollectionFieldType.NUMBER ||
+                      it.type == WebcontifyCollectionFieldType.UUID)
             }
-            ?.map { it.name }
-            ?.toList()
-            ?: emptyList()
+            ?.map {
+              val isRemovable =
+                  if (it.type == WebcontifyCollectionFieldType.UUID) false
+                  else if (it.type == WebcontifyCollectionFieldType.NUMBER) true else false
+              return@map it.name to isRemovable
+            }
+            ?.toMap()
+            ?: emptyMap()
     val itemWithoutRemovablePrimaryKeys =
         item
             .mapKeys { it.key.camelToSnakeCase() }
-            .filter { !(removeAblePrimaryKeys.contains(it.key) && it.value == null) }
+            .filter {
+              !(removeAblePrimaryKeys.contains(it.key) && removeAblePrimaryKeys[it.key] == true)
+            }
     val mappedItem = mapItemToStore(itemWithoutRemovablePrimaryKeys, collection)
     return mappedItem
   }
@@ -107,13 +118,20 @@ class CollectionItemRepository(
           field(it.key) to it.value
         }
     val conditions = getConditions(identifierMap, collection)
-    query.set(fieldMap).where(conditions).returning(fieldMap.keys).fetchOne()?.let {
-      val updatedItemValues = it.intoMap().toMutableMap()
-      updatedItemValues.putAll(identifierMap.mapKeys { entry -> entry.key.camelToSnakeCase() })
-      return mapItemToResult(updatedItemValues, collection).toMutableMap()
+    try {
+      query.set(fieldMap).where(conditions).returning(fieldMap.keys).fetchOne()?.let {
+        val updatedItemValues = it.intoMap().toMutableMap()
+        updatedItemValues.putAll(identifierMap.mapKeys { entry -> entry.key.camelToSnakeCase() })
+        return mapItemToResult(updatedItemValues, collection).toMutableMap()
+      }
+    } catch (e: DataIntegrityViolationException) {
+      throw UnprocessableContentException(
+          ErrorCode.CONSTRAINT_EXCEPTION, item.toKeyValueString(), collection.id.toString())
     }
     throw UnprocessableContentException(
-        ErrorCode.ITEM_NOT_UPDATED, item.toKeyValueString(), collection.id.toString())
+        ErrorCode.ITEM_NOT_UPDATED,
+        "( ${identifierMap.toKeyValueString()}): " + item.toKeyValueString(),
+        collection.id.toString())
   }
 
   @Transactional
@@ -142,16 +160,22 @@ class CollectionItemRepository(
   }
 
   private fun mapItemToStore(item: Item, collection: WebContifyCollectionDto): Item {
-    return collection.columns?.let { columns ->
-      return columnHandlerStrategy.castItemToJavaTypes(columns, item).toMap()
+    if (collection.fields
+        ?.filter { it.type == WebcontifyCollectionFieldType.RELATION_MIRROR }
+        ?.map { it.name }
+        ?.any { item.containsKey(it) } == true) {
+      throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
+    }
+    return collection.fields?.let { fields ->
+      return fieldHandlerStrategy.castItemToJavaTypes(fields, item).toMap()
     }
         ?: emptyMap()
   }
 
   private fun mapItemToResult(item: Item, collection: WebContifyCollectionDto): Item {
-    return collection.columns?.let { columns ->
-      return columnHandlerStrategy
-          .castItemToJavaTypes(columns, item)
+    return collection.fields?.let { fields ->
+      return fieldHandlerStrategy
+          .castItemToJavaTypes(fields, item)
           .map { it.key.snakeToCamelCase() to it.value }
           .toMap()
     }

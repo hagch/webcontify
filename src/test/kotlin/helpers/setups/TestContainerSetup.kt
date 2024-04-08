@@ -8,6 +8,6 @@ abstract class TestContainerSetup {
   companion object {
     @ServiceConnection
     val container: PostgreSQLContainer<*> =
-        PostgreSQLContainer("postgres:latest").withReuse(true).apply { this.start() }
+        PostgreSQLContainer("postgres:latest").apply { this.start() }
   }
 }

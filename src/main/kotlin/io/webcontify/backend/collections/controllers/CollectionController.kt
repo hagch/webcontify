@@ -10,18 +10,13 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.util.CollectionUtils
 import org.springframework.web.bind.annotation.*
 
 @RestController
-class CollectionController(
-    val service: CollectionService,
-    val mapper: CollectionMapper,
-    val relationController: CollectionRelationController
-) {
+class CollectionController(val service: CollectionService, val mapper: CollectionMapper) {
 
   @DeleteMapping("$COLLECTIONS_PATH/{id}")
-  fun delete(@PathVariable("id") id: Int): ResponseEntity<Void> {
+  fun delete(@PathVariable("id") id: Long): ResponseEntity<Void> {
     service.deleteById(id)
     return ResponseEntity.noContent().build()
   }
@@ -32,7 +27,7 @@ class CollectionController(
   }
 
   @GetMapping("$COLLECTIONS_PATH/{id}")
-  fun getById(@PathVariable("id") id: Int): ResponseEntity<WebContifyCollectionApiResponse> {
+  fun getById(@PathVariable("id") id: Long): ResponseEntity<WebContifyCollectionApiResponse> {
     return ResponseEntity.ok(mapper.mapDtoToResponse(service.getById(id)))
   }
 
@@ -41,15 +36,9 @@ class CollectionController(
   fun create(
       @RequestBody @Valid collection: WebContifyCollectionApiCreateRequest
   ): ResponseEntity<WebContifyCollectionApiResponse> {
-    var createdCollection = service.create(mapper.mapApiToDto(collection))
-    if (!CollectionUtils.isEmpty(collection.relations)) {
-      val relations =
-          collection.relations!!.map { relationController.create(createdCollection.id!!, it) }
-      return ResponseEntity.status(HttpStatus.CREATED)
-          .body(mapper.mapDtoToResponse(createdCollection, relations))
-    }
+    val createdCollection = service.create(mapper.mapApiToDto(collection))
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(mapper.mapDtoToResponse(createdCollection.copy(relations = emptyList())))
+        .body(mapper.mapDtoToResponse(createdCollection))
   }
 
   @PutMapping("$COLLECTIONS_PATH/{id}")
