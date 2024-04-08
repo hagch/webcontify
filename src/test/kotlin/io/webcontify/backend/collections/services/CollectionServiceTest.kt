@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.services
 
-import helpers.suppliers.collectionWithColumns
+import helpers.suppliers.collectionWithFields
 import helpers.suppliers.collectionWithNameCollection
 import helpers.suppliers.collectionWithNameTest
 import io.mockk.every
@@ -9,7 +9,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import io.webcontify.backend.collections.mappers.CollectionMapper
-import io.webcontify.backend.collections.repositories.CollectionColumnRepository
+import io.webcontify.backend.collections.repositories.CollectionFieldRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
 import io.webcontify.backend.collections.repositories.CollectionTableRepository
 import org.junit.jupiter.api.Test
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 @MockKExtension.CheckUnnecessaryStub
 class CollectionServiceTest {
 
-  @RelaxedMockK lateinit var collectionColumnRepository: CollectionColumnRepository
+  @RelaxedMockK lateinit var collectionFieldRepository: CollectionFieldRepository
 
   @RelaxedMockK lateinit var collectionTableRepository: CollectionTableRepository
 
@@ -29,24 +29,24 @@ class CollectionServiceTest {
 
   @InjectMockKs lateinit var service: CollectionService
 
-  private val collection = collectionWithColumns(listOf(Pair("id", true)))
+  private val collection = collectionWithFields(listOf(Pair("id", true)))
 
   @Test
-  fun getAllShouldCallCollectionRepository() {
+  fun `(getAll) should call collection repository`() {
     service.getAll()
 
     verify(exactly = 1) { collectionRepository.getAll() }
   }
 
   @Test
-  fun getByIdShouldCallCollectionRepository() {
+  fun `(getById) should call collection repository`() {
     service.getById(1)
 
     verify(exactly = 1) { collectionRepository.getById(1) }
   }
 
   @Test
-  fun getByIdShouldDeleteCollectionAndTable() {
+  fun `(getById) should delete collection and table`() {
     every { collectionRepository.getById(0) } returns collection
 
     service.deleteById(0)
@@ -58,7 +58,7 @@ class CollectionServiceTest {
   }
 
   @Test
-  fun createShouldCreateCollection() {
+  fun `(create) should create collection`() {
     every { collectionRepository.create(collection) } returns collection
 
     service.create(collection)
@@ -66,12 +66,12 @@ class CollectionServiceTest {
     verify(exactly = 1) {
       collectionRepository.create(collection)
       collectionTableRepository.create(any())
-      collectionColumnRepository.create(any())
+      collectionFieldRepository.create(any())
     }
   }
 
   @Test
-  fun createShouldCreateCollectionAndColumnsAndTable() {
+  fun `(create) should create collection and fields and table`() {
     every { collectionRepository.create(collection) } returns collection
 
     service.create(collection)
@@ -79,12 +79,12 @@ class CollectionServiceTest {
     verify(exactly = 1) {
       collectionRepository.create(collection)
       collectionTableRepository.create(any())
-      collectionColumnRepository.create(collection.columns!![0])
+      collectionFieldRepository.create(collection.fields!![0])
     }
   }
 
   @Test
-  fun updateShouldUpdateCollectionAndTableName() {
+  fun `(update) should update collection and table name`() {
     val oldCollection = collectionWithNameTest()
     val collection = collectionWithNameCollection()
     every { collectionRepository.getById(any()) } returns oldCollection

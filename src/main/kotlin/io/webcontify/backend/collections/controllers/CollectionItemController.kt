@@ -5,6 +5,8 @@ import io.webcontify.backend.collections.services.CollectionItemService
 import io.webcontify.backend.collections.utils.isSlug
 import io.webcontify.backend.collections.utils.toIdentifierMap
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -12,7 +14,7 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
 
   @DeleteMapping("$COLLECTIONS_PATH/{collectionId}/items/{*slugOrId}")
   fun deleteById(
-      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable("collectionId") collectionId: Long,
       @PathVariable("slugOrId") slugOrId: String
   ) {
     slugOrId.substring(1).let {
@@ -25,7 +27,7 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
 
   @GetMapping("$COLLECTIONS_PATH/{collectionId}/items/{*slugOrId}")
   fun getById(
-      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable("collectionId") collectionId: Long,
       @PathVariable("slugOrId") slugOrId: String
   ): Item {
     slugOrId.substring(1).let {
@@ -37,26 +39,31 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
   }
 
   @GetMapping("$COLLECTIONS_PATH/{collectionId}/items")
-  fun getAllForCollection(@PathVariable("collectionId") collectionId: Int): List<Item> {
+  fun getAllForCollection(@PathVariable("collectionId") collectionId: Long): List<Item> {
     return collectionItemService.getAllFor(collectionId)
   }
 
   @PostMapping("$COLLECTIONS_PATH/{collectionId}/items")
-  fun create(@PathVariable("collectionId") collectionId: Int, @RequestBody item: Item): Item {
-    return collectionItemService.create(collectionId, item)
+  fun create(
+      @PathVariable("collectionId") collectionId: Long,
+      @RequestBody item: Item
+  ): ResponseEntity<Item> {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(collectionItemService.create(collectionId, item))
   }
 
-  @PutMapping("$COLLECTIONS_PATH/{collectionId}/items/{*slugOrId}")
+  @PatchMapping("$COLLECTIONS_PATH/{collectionId}/items/{*slugOrId}")
   fun updateById(
-      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable("collectionId") collectionId: Long,
       @PathVariable slugOrId: String,
       @RequestBody item: Item
-  ): Item {
+  ): ResponseEntity<Item> {
     slugOrId.substring(1).let {
       if (it.isSlug()) {
-        return collectionItemService.updateById(collectionId, it.toIdentifierMap(), item)
+        return ResponseEntity.ok(
+            collectionItemService.updateById(collectionId, it.toIdentifierMap(), item))
       }
-      return collectionItemService.updateById(collectionId, it, item)
+      return ResponseEntity.ok(collectionItemService.updateById(collectionId, it, item))
     }
   }
 }

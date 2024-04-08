@@ -1,8 +1,8 @@
 package helpers.suppliers
 
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
+import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 
 fun collectionWithNameCollection(): WebContifyCollectionDto {
   return WebContifyCollectionDto(null, "collection")
@@ -12,17 +12,17 @@ fun collectionWithNameTest(): WebContifyCollectionDto {
   return WebContifyCollectionDto(null, "test")
 }
 
-fun collectionWithEmptyColumns(): WebContifyCollectionDto {
+fun collectionWithEmptyFields(): WebContifyCollectionDto {
   return WebContifyCollectionDto(0, "", "", listOf())
 }
 
-fun collectionWithColumns(fieldIsPrimaryMap: List<Pair<String, Boolean>>): WebContifyCollectionDto {
+fun collectionWithFields(fieldIsPrimaryMap: List<Pair<String, Boolean>>): WebContifyCollectionDto {
   return WebContifyCollectionDto(
       1,
       "test",
       "Test",
       fieldIsPrimaryMap.map {
-        WebContifyCollectionColumnDto(
-            1, it.first, it.first, WebcontifyCollectionColumnType.NUMBER, it.second, null)
+        WebContifyCollectionFieldDto(
+            null, 1, it.first, it.first, WebcontifyCollectionFieldType.NUMBER, it.second, null)
       })
 }

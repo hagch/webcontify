@@ -3,7 +3,7 @@ package io.webcontify.backend.collections.repositories
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
-import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
+import io.webcontify.backend.collections.services.field.handler.FieldHandlerStrategy
 import org.jooq.ConstraintEnforcementStep
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.constraint
@@ -14,25 +14,26 @@ import org.springframework.transaction.annotation.Transactional
 @Repository
 class CollectionTableRepository(
     val dslContext: DSLContext,
-    val columStrategy: ColumnHandlerStrategy
+    val columStrategy: FieldHandlerStrategy
 ) {
 
   @Transactional
   fun create(collection: WebContifyCollectionDto, enableFieldAutoGeneration: Boolean = true) {
     val primaryKeyColums =
-        collection.columns
-            ?.filter { column -> column.isPrimaryKey }
-            ?.map { column -> field(column.name) }
+        collection.fields
+            ?.filter { field -> field.isPrimaryKey }
+            ?.map { field -> field(field.name) }
     if (primaryKeyColums.isNullOrEmpty()) {
       throw UnprocessableContentException(ErrorCode.UNABLE_TO_CREATE_COLLECTION)
     }
     val constraints: MutableList<ConstraintEnforcementStep> =
         mutableListOf(constraint("pk_" + collection.name).primaryKey(primaryKeyColums))
     val tableBuilder = dslContext.createTable(collection.name)
-    collection.columns.forEach { column ->
-      columStrategy.getHandlerFor(column).let {
-        tableBuilder.column(field(column.name, it.getColumnType(column, enableFieldAutoGeneration)))
-        constraints.addAll(it.getColumnConstraints(column, collection.name))
+    collection.fields.forEach { field ->
+      val handler = columStrategy.getHandlerFor(field)
+      handler.getFieldType(field, enableFieldAutoGeneration)?.let {
+        tableBuilder.column(field(field.name, it))
+        constraints.addAll(handler.getFieldConstraints(field, collection.name))
       }
     }
     tableBuilder.constraints(constraints)

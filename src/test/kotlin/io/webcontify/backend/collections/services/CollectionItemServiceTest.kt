@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.services
 
-import helpers.suppliers.collectionWithColumns
+import helpers.suppliers.collectionWithFields
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -19,12 +19,12 @@ class CollectionItemServiceTest {
   @MockK lateinit var collectionItemRepository: CollectionItemRepository
   @InjectMockKs lateinit var collectionItemService: CollectionItemService
 
-  private val collection = collectionWithColumns(listOf(Pair("test", true)))
-  private val id = 1
+  private val collection = collectionWithFields(listOf(Pair("test", true)))
+  private val id = 1L
   private val identifierMap = mapOf(Pair("test", id))
 
   @Test
-  fun getByIdWithMapShouldCallGetByIdForWithCollectionAndIdentifierMap() {
+  fun `(getById) with map should call get by id for with collection and identifier map`() {
     every { collectionService.getById(any()) } returns collection
     every { collectionItemRepository.getByIdFor(any(), any()) } returns mapOf()
 
@@ -34,7 +34,7 @@ class CollectionItemServiceTest {
   }
 
   @Test
-  fun getByIdShouldCallGetByIdForWithCollectionAndIdentifierMap() {
+  fun `(getById) should call get by id for with collection and identifier map`() {
     every { collectionService.getById(any()) } returns collection
     every { collectionItemRepository.getByIdFor(any(), any()) } returns mapOf()
 
@@ -44,7 +44,7 @@ class CollectionItemServiceTest {
   }
 
   @Test
-  fun deleteByIdWithMapShouldCallDeleteByIdWithCollectionAndIdentifierMap() {
+  fun `(deleteById) with map should call delete by id with collection and identifier map`() {
     every { collectionService.getById(any()) } returns collection
     every { collectionItemRepository.deleteById(any(), any()) } returns Unit
 
@@ -54,14 +54,14 @@ class CollectionItemServiceTest {
   }
 
   @Test
-  fun deleteByIdWithMapShouldThrowExceptionIfMapSizeIsUnequalToPrimaryKeysOfCollection() {
+  fun `(deleteById) with map should throw exception if map size is unequal to primary keys of collection`() {
     every { collectionService.getById(any()) } returns collection
 
     assertThrows<UnprocessableContentException> { collectionItemService.deleteById(id, mapOf()) }
   }
 
   @Test
-  fun deleteByIdWithMapShouldThrowExceptionIfPrimaryKeyIsNotContainedInIdentifierMap() {
+  fun `(deleteById) with map should throw exception if primary key is not contained in identifier map`() {
     every { collectionService.getById(any()) } returns collection
 
     assertThrows<UnprocessableContentException> {
@@ -70,7 +70,7 @@ class CollectionItemServiceTest {
   }
 
   @Test
-  fun deleteByIdShouldCallDeleteByIdWithCollectionAndIdentifierMap() {
+  fun `(deleteById) should call delete by id with collection and identifier map`() {
     every { collectionService.getById(any()) } returns collection
     every { collectionItemRepository.deleteById(any(), any()) } returns Unit
 
@@ -80,7 +80,7 @@ class CollectionItemServiceTest {
   }
 
   @Test
-  fun getAllForShouldCallGetAllForOnRepository() {
+  fun `(getAll) for should call get all for on repository`() {
     every { collectionService.getById(any()) } returns collection
     every { collectionItemRepository.getAllFor(any()) } returns listOf()
 
@@ -90,7 +90,7 @@ class CollectionItemServiceTest {
   }
 
   @Test
-  fun createShouldCallCreateOnRepository() {
+  fun `(create) should call create on repository`() {
     every { collectionService.getById(any()) } returns collection
     every { collectionItemRepository.create(any(), any()) } returns mapOf()
 

@@ -6,14 +6,11 @@ import helpers.asserts.instanceEquals
 import helpers.asserts.timestampNotNull
 import helpers.setups.api.ApiTestSetup
 import helpers.suppliers.CollectionApiCreateRequestSupplier
-import helpers.suppliers.CollectionColumnApiCreateRequestSupplier.Companion.NUMBER_PRIMARY_COLUMN
-import helpers.suppliers.CollectionRelationApiCreateRequestSupplier
 import io.restassured.module.mockmvc.kotlin.extensions.Extract
 import io.restassured.module.mockmvc.kotlin.extensions.Given
 import io.restassured.module.mockmvc.kotlin.extensions.Then
 import io.restassured.module.mockmvc.kotlin.extensions.When
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiCreateRequest
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionRelationFieldDto
 import io.webcontify.backend.collections.models.errors.Error
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.models.errors.ErrorResponse
@@ -25,18 +22,18 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 
-// TODO max size of column and table names cause constraint names cannot be endless long,
+// TODO max size of field and table names cause constraint names cannot be endless long,
 // transaction testing
 class CreateCollectionApiTest : ApiTestSetup() {
 
   @Test
-  fun `(CreateCollection) endpoint should throw error column required on collection creation without columns`() {
+  fun `(CreateCollection) endpoint should throw error field required on collection creation without fields`() {
     val errorResponse =
-        sendInvalidCollectionCreation(CollectionApiCreateRequestSupplier.COLLECTION_WITHOUT_COLUMNS)
+        sendInvalidCollectionCreation(CollectionApiCreateRequestSupplier.COLLECTION_WITHOUT_FIELDS)
 
     generalErrorChecks(errorResponse)
     errorResponse.errorSizeEquals(1)
-    errorResponse.errors[0].equalsTo(ErrorCode.COLUMN_REQUIRED, ErrorCode.COLUMN_REQUIRED.message)
+    errorResponse.errors[0].equalsTo(ErrorCode.FIELD_REQUIRED, ErrorCode.FIELD_REQUIRED.message)
   }
 
   @Test
@@ -61,10 +58,10 @@ class CreateCollectionApiTest : ApiTestSetup() {
   }
 
   @Test
-  fun `(CreateCollection) endpoint should throw error primary column required on collection creation with no column which has primary key true`() {
+  fun `(CreateCollection) endpoint should throw error primary field required on collection creation with no field which has primary key true`() {
     val errorResponse =
         sendInvalidCollectionCreation(
-            CollectionApiCreateRequestSupplier.COLLECTION_WITHOUT_PRIMARY_COLUMN)
+            CollectionApiCreateRequestSupplier.COLLECTION_WITHOUT_PRIMARY_FIELD)
 
     generalErrorChecks(errorResponse)
     errorResponse.errorSizeEquals(1)
@@ -73,10 +70,10 @@ class CreateCollectionApiTest : ApiTestSetup() {
   }
 
   @Test
-  fun `(CreateCollection) endpoint should throw multiple errors on collection creation with multiple columns which have invalid names`() {
+  fun `(CreateCollection) endpoint should throw multiple errors on collection creation with multiple fields which have invalid names`() {
     val errorResponse =
         sendInvalidCollectionCreation(
-            CollectionApiCreateRequestSupplier.COLLECTION_WITH_INVALID_COLUMN_NAMES)
+            CollectionApiCreateRequestSupplier.COLLECTION_WITH_INVALID_FIELD_NAMES)
 
     generalErrorChecks(errorResponse)
     errorResponse.errorSizeEquals(3)
@@ -87,10 +84,10 @@ class CreateCollectionApiTest : ApiTestSetup() {
   }
 
   @Test
-  fun `(CreateCollection) endpoint should throw error if wrong configuration for column is passed`() {
+  fun `(CreateCollection) endpoint should throw error if wrong configuration for field is passed`() {
     val errorResponse =
         sendInvalidCollectionCreation(
-            CollectionApiCreateRequestSupplier.COLLECTION_WITH_COLUMN_WRONG_CONFIGURATION)
+            CollectionApiCreateRequestSupplier.COLLECTION_WITH_FIELD_WRONG_CONFIGURATION)
 
     generalErrorChecks(errorResponse)
     errorResponse.errorSizeEquals(1)
@@ -98,23 +95,23 @@ class CreateCollectionApiTest : ApiTestSetup() {
   }
 
   @Test
-  fun `(CreateCollection) endpoint should create collection with all column types`() {
-    val collection = CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryColumn()
+  fun `(CreateCollection) endpoint should create collection with all field types`() {
+    val collection = CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField()
 
     sendValidCollectionCreation(collection)
   }
 
   @Test
-  fun `(CreateCollection) endpoint should create collection with multiple primary key columns`() {
+  fun `(CreateCollection) endpoint should create collection with multiple primary key fields`() {
     val collection =
-        CollectionApiCreateRequestSupplier.getCollectionWithValidNameMultiplePrimaryColumns()
+        CollectionApiCreateRequestSupplier.getCollectionWithValidNameMultiplePrimaryFields()
 
     sendValidCollectionCreation(collection)
   }
 
   @Test
   fun `(CreateCollection) endpoint should throw already exists on collection with name already exists`() {
-    val collection = CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryColumn()
+    val collection = CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField()
     sendValidCollectionCreation(collection)
 
     val errorResponse = sendInvalidCollectionCreation(collection, HttpStatus.CONFLICT)
@@ -124,134 +121,6 @@ class CreateCollectionApiTest : ApiTestSetup() {
     errorResponse.errors[0].equalsTo(
         ErrorCode.COLLECTION_WITH_NAME_ALREADY_EXISTS,
         String.format(ErrorCode.COLLECTION_WITH_NAME_ALREADY_EXISTS.message, collection.name))
-  }
-
-  @Test
-  fun `(CreateCollection) endpoint should create one to one relation`() {
-    val collectionForRelation =
-        CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryColumn()
-    val relatedCollectionId = getCollectionIdOfCreation(collectionForRelation)
-
-    val collectionWithRelation =
-        CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryColumn()
-            .copy(
-                relations =
-                    setOf(
-                        CollectionRelationApiCreateRequestSupplier.getOneToOneRelation(
-                            setOf(
-                                WebContifyCollectionRelationFieldDto(
-                                    NUMBER_PRIMARY_COLUMN.name, NUMBER_PRIMARY_COLUMN.name)),
-                            relatedCollectionId)))
-    Given {
-      mockMvc(mockMvc)
-      contentType(MediaType.APPLICATION_JSON_VALUE)
-      body(collectionWithRelation)
-    } When
-        {
-          post(COLLECTIONS_PATH)
-        } Then
-        {
-          status(HttpStatus.CREATED)
-          body("relations", hasSize<MutableCollection<Any>>(equalTo(1)))
-          body("relations[0].referencedCollectionId", equalTo(relatedCollectionId))
-          body("relations[0].fields", hasSize<MutableCollection<Any>>(1))
-        }
-  }
-
-  @Test
-  fun `(CreateCollection) endpoint should create one to many relation`() {
-    val collectionForRelation =
-        CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryColumn()
-    val relatedCollectionId = getCollectionIdOfCreation(collectionForRelation)
-
-    val collectionWithRelation =
-        CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryColumn()
-            .copy(
-                relations =
-                    setOf(
-                        CollectionRelationApiCreateRequestSupplier.getOneToManyRelation(
-                            setOf(
-                                WebContifyCollectionRelationFieldDto(
-                                    NUMBER_PRIMARY_COLUMN.name, NUMBER_PRIMARY_COLUMN.name)),
-                            relatedCollectionId)))
-    Given {
-      mockMvc(mockMvc)
-      contentType(MediaType.APPLICATION_JSON_VALUE)
-      body(collectionWithRelation)
-    } When
-        {
-          post(COLLECTIONS_PATH)
-        } Then
-        {
-          status(HttpStatus.CREATED)
-          body("relations", hasSize<MutableCollection<Any>>(equalTo(1)))
-          body("relations[0].referencedCollectionId", equalTo(relatedCollectionId))
-          body("relations[0].fields", hasSize<MutableCollection<Any>>(1))
-        }
-  }
-
-  @Test
-  fun `(CreateCollection) endpoint should create many to one relation`() {
-    val collectionForRelation =
-        CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryColumn()
-    val relatedCollectionId = getCollectionIdOfCreation(collectionForRelation)
-
-    val collectionWithRelation =
-        CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryColumn()
-            .copy(
-                relations =
-                    setOf(
-                        CollectionRelationApiCreateRequestSupplier.getManyToOneRelation(
-                            setOf(
-                                WebContifyCollectionRelationFieldDto(
-                                    NUMBER_PRIMARY_COLUMN.name, NUMBER_PRIMARY_COLUMN.name)),
-                            relatedCollectionId)))
-    Given {
-      mockMvc(mockMvc)
-      contentType(MediaType.APPLICATION_JSON_VALUE)
-      body(collectionWithRelation)
-    } When
-        {
-          post(COLLECTIONS_PATH)
-        } Then
-        {
-          status(HttpStatus.CREATED)
-          body("relations", hasSize<MutableCollection<Any>>(equalTo(1)))
-          body("relations[0].referencedCollectionId", equalTo(relatedCollectionId))
-          body("relations[0].fields", hasSize<MutableCollection<Any>>(1))
-        }
-  }
-
-  @Test
-  fun `(CreateCollection) endpoint should create many to many relation`() {
-    val collectionForRelation =
-        CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryColumn()
-    val relatedCollectionId = getCollectionIdOfCreation(collectionForRelation)
-
-    val collectionWithRelation =
-        CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryColumn()
-            .copy(
-                relations =
-                    setOf(
-                        CollectionRelationApiCreateRequestSupplier.getManyToManyRelation(
-                            setOf(
-                                WebContifyCollectionRelationFieldDto(
-                                    NUMBER_PRIMARY_COLUMN.name, NUMBER_PRIMARY_COLUMN.name)),
-                            relatedCollectionId)))
-    Given {
-      mockMvc(mockMvc)
-      contentType(MediaType.APPLICATION_JSON_VALUE)
-      body(collectionWithRelation)
-    } When
-        {
-          post(COLLECTIONS_PATH)
-        } Then
-        {
-          status(HttpStatus.CREATED)
-          body("relations", hasSize<MutableCollection<Any>>(equalTo(1)))
-          body("relations[0].referencedCollectionId", `is`(not(equalTo(relatedCollectionId))))
-          body("relations[0].fields", hasSize<MutableCollection<Any>>(1))
-        }
   }
 
   private fun sendInvalidCollectionCreation(
@@ -287,33 +156,10 @@ class CreateCollectionApiTest : ApiTestSetup() {
           status(HttpStatus.CREATED)
           body("id", notNullValue())
           body(
-              "columns",
-              hasSize<MutableCollection<Map<String, Any>>>(equalTo(collection.columns.size)))
+              "fields",
+              hasSize<MutableCollection<Map<String, Any>>>(equalTo(collection.fields.size)))
           body("name", equalTo(collection.name))
           body("displayName", equalTo(collection.displayName))
-        }
-  }
-
-  private fun getCollectionIdOfCreation(collection: WebContifyCollectionApiCreateRequest): Int {
-    return Given {
-      mockMvc(mockMvc)
-      contentType(MediaType.APPLICATION_JSON_VALUE)
-      body(collection)
-    } When
-        {
-          post(COLLECTIONS_PATH)
-        } Then
-        {
-          status(HttpStatus.CREATED)
-          body("id", notNullValue())
-          body(
-              "columns",
-              hasSize<MutableCollection<Map<String, Any>>>(equalTo(collection.columns.size)))
-          body("name", equalTo(collection.name))
-          body("displayName", equalTo(collection.displayName))
-        } Extract
-        {
-          body().jsonPath().getInt("id")
         }
   }
 

@@ -1,15 +1,14 @@
 package io.webcontify.backend.collections.repositories
 
 import helpers.setups.repository.JooqTestSetup
-import helpers.suppliers.collectionWithColumns
+import helpers.suppliers.collectionWithFields
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
+import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -20,32 +19,31 @@ class CollectionTableRepositoryTest(
     @Autowired val context: DSLContext,
     @Autowired val repository: CollectionTableRepository
 ) : JooqTestSetup() {
-  private final val firstColumn =
-      WebContifyCollectionColumnDto(
-          1, "id", "id", WebcontifyCollectionColumnType.NUMBER, true, null)
-  private final val secondColumn =
-      WebContifyCollectionColumnDto(
-          1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false, null)
-  private final val firstColumnPrimary =
-      WebContifyCollectionColumnDto(
-          1, "primary1", "primary1", WebcontifyCollectionColumnType.NUMBER, true, null)
-  private final val secondColumnPrimary =
-      WebContifyCollectionColumnDto(
-          1, "primary2", "primary2", WebcontifyCollectionColumnType.NUMBER, false, null)
+  private final val firstField =
+      WebContifyCollectionFieldDto(
+          null, 1, "id", "id", WebcontifyCollectionFieldType.NUMBER, true, null)
+  private final val secondField =
+      WebContifyCollectionFieldDto(
+          null, 1, "otherField", "otherField", WebcontifyCollectionFieldType.NUMBER, false, null)
+  private final val firstFieldPrimary =
+      WebContifyCollectionFieldDto(
+          null, 1, "primary1", "primary1", WebcontifyCollectionFieldType.NUMBER, true, null)
+  private final val secondFieldPrimary =
+      WebContifyCollectionFieldDto(
+          null, 1, "primary2", "primary2", WebcontifyCollectionFieldType.NUMBER, false, null)
 
   private final val onePrimaryKeyCollection =
-      collectionWithColumns(listOf(Pair("id", true), Pair("otherColumn", false)))
-  private final val onePrimaryKeyFields = listOf(field(firstColumn.name), field(secondColumn.name))
+      collectionWithFields(listOf(Pair("id", true), Pair("otherField", false)))
+  private final val onePrimaryKeyFields = listOf(field(firstField.name), field(secondField.name))
 
   private final val compositePrimaryKeyCollection =
-      collectionWithColumns(listOf(Pair("primary1", true), Pair("primary2", true)))
+      collectionWithFields(listOf(Pair("primary1", true), Pair("primary2", true)))
   private final val compositePrimaryKeyFields =
-      listOf(field(firstColumnPrimary.name), field(secondColumnPrimary.name))
+      listOf(field(firstFieldPrimary.name), field(secondFieldPrimary.name))
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("create should create table")
-  fun createShouldCreateTableWithPrimaryKey() {
+  fun `(create) should create table with primary key`() {
     repository.create(onePrimaryKeyCollection)
 
     assertDoesNotThrow { context.select().from(onePrimaryKeyCollection.name).execute() }
@@ -65,8 +63,7 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("create should create table with composite primary key")
-  fun createShouldCreateTableWithCompositePrimaryKey() {
+  fun `(create) should create table with composite primary key`() {
     repository.create(compositePrimaryKeyCollection)
 
     assertDoesNotThrow { context.select().from(compositePrimaryKeyCollection.name).execute() }
@@ -86,24 +83,22 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("create should throw exception if no column is primary key")
-  fun createShouldThrowExceptionIfNoColumnIsPrimaryKey() {
+  fun `(create) should throw exception if no field is primary key`() {
     val collection =
         WebContifyCollectionDto(
             1,
             "test",
             "Test",
             listOf(
-                WebContifyCollectionColumnDto(
-                    1, "primary1", "id", WebcontifyCollectionColumnType.NUMBER, false, null)))
+                WebContifyCollectionFieldDto(
+                    null, 1, "primary1", "id", WebcontifyCollectionFieldType.NUMBER, false, null)))
 
     assertThrows<UnprocessableContentException> { repository.create(collection) }
   }
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("create should throw exception if columns are empty")
-  fun createShouldThrowExceptionIfColumnsAreEmpty() {
+  fun `(create) should throw exception if fields are empty`() {
     val collection = WebContifyCollectionDto(1, "test", "Test", listOf())
 
     assertThrows<UnprocessableContentException> { repository.create(collection) }
@@ -111,8 +106,7 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("delete should delete table")
-  fun deleteShouldDeleteTable() {
+  fun `(delete) should delete table`() {
     repository.delete("test")
 
     assertThrows<RuntimeException> { context.select().from("test").execute() }
@@ -120,15 +114,13 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("delete should not throw exception if table does not exist")
-  fun deleteShouldNotThrowExceptionIfTableDoesNotExist() {
+  fun `(delete) should not throw exception if table does not exist`() {
     assertDoesNotThrow { repository.delete("doesnotexist") }
   }
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("updateName should update name of table")
-  fun updateNameShouldUpdateNameOfTable() {
+  fun `(updateName) should update name of table`() {
     repository.updateName("tester", "test")
     assertDoesNotThrow { context.select().from("tester").execute() }
     repository.updateName("test", "tester")
@@ -136,15 +128,13 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("updateName should not throw exception if table does not exist")
-  fun updateNameShouldNotThrowExceptionIfTableDoesNotExist() {
+  fun `(updateName) should not throw exception if table does not exist`() {
     assertDoesNotThrow { repository.updateName("tester", "test") }
   }
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("updateName should throw exception if new name is malformed or empty")
-  fun updateNameShouldThrowExceptionIfNewNameIsMalformed() {
+  fun `(updateName) should throw exception if new name is malformed or empty`() {
     assertThrows<UnprocessableContentException> { repository.updateName("", "test") }
     assertThrows<UnprocessableContentException> { repository.updateName("$", "test") }
   }
