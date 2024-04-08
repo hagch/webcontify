@@ -12,7 +12,7 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
 
   @DeleteMapping("$COLLECTIONS_PATH/{collectionId}/items/{*slugOrId}")
   fun deleteById(
-      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable("collectionId") collectionId: Long,
       @PathVariable("slugOrId") slugOrId: String
   ) {
     slugOrId.substring(1).let {
@@ -25,7 +25,7 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
 
   @GetMapping("$COLLECTIONS_PATH/{collectionId}/items/{*slugOrId}")
   fun getById(
-      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable("collectionId") collectionId: Long,
       @PathVariable("slugOrId") slugOrId: String
   ): Item {
     slugOrId.substring(1).let {
@@ -37,18 +37,18 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
   }
 
   @GetMapping("$COLLECTIONS_PATH/{collectionId}/items")
-  fun getAllForCollection(@PathVariable("collectionId") collectionId: Int): List<Item> {
+  fun getAllForCollection(@PathVariable("collectionId") collectionId: Long): List<Item> {
     return collectionItemService.getAllFor(collectionId)
   }
 
   @PostMapping("$COLLECTIONS_PATH/{collectionId}/items")
-  fun create(@PathVariable("collectionId") collectionId: Int, @RequestBody item: Item): Item {
+  fun create(@PathVariable("collectionId") collectionId: Long, @RequestBody item: Item): Item {
     return collectionItemService.create(collectionId, item)
   }
 
   @PutMapping("$COLLECTIONS_PATH/{collectionId}/items/{*slugOrId}")
   fun updateById(
-      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable("collectionId") collectionId: Long,
       @PathVariable slugOrId: String,
       @RequestBody item: Item
   ): Item {

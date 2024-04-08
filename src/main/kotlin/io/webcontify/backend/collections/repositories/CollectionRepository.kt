@@ -9,15 +9,16 @@ import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
-import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRelationFieldRecord
+import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRelationCollectionFieldRecord
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRelationRecord
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_RELATION
-import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_RELATION_FIELD
+import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_RELATION_COLLECTION_FIELD
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.SelectConnectByStep
+import org.jooq.SelectOnConditionStep
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Repository
@@ -30,27 +31,7 @@ class CollectionRepository(
     val relationMapper: CollectionRelationMapper
 ) {
 
-  @Transactional(readOnly = true)
-  fun getById(id: Int?): WebContifyCollectionDto {
-    val collection =
-        dslContext
-            .select()
-            .from(WEBCONTIFY_COLLECTION)
-            .leftJoin(WEBCONTIFY_COLLECTION_COLUMN)
-            .onKey()
-            .leftJoin(WEBCONTIFY_COLLECTION_RELATION)
-            .on(WEBCONTIFY_COLLECTION.ID.eq(WEBCONTIFY_COLLECTION_RELATION.SOURCE_COLLECTION_ID))
-            .leftJoin(WEBCONTIFY_COLLECTION_RELATION_FIELD)
-            .on(
-                WEBCONTIFY_COLLECTION.ID.eq(
-                    WEBCONTIFY_COLLECTION_RELATION_FIELD.SOURCE_COLLECTION_ID))
-            .where(WEBCONTIFY_COLLECTION.ID.eq(id))
-            .asWebcontifyCollectionDto(mapper)
-    return collection ?: throw NotFoundException(ErrorCode.COLLECTION_NOT_FOUND, id.toString())
-  }
-
-  @Transactional(readOnly = true)
-  fun getAll(): Set<WebContifyCollectionDto> {
+  private fun getCollectionQuery(): SelectOnConditionStep<Record> {
     return dslContext
         .select()
         .from(WEBCONTIFY_COLLECTION)
@@ -58,13 +39,28 @@ class CollectionRepository(
         .onKey()
         .leftJoin(WEBCONTIFY_COLLECTION_RELATION)
         .on(WEBCONTIFY_COLLECTION.ID.eq(WEBCONTIFY_COLLECTION_RELATION.SOURCE_COLLECTION_ID))
-        .leftJoin(WEBCONTIFY_COLLECTION_RELATION_FIELD)
-        .on(WEBCONTIFY_COLLECTION.ID.eq(WEBCONTIFY_COLLECTION_RELATION_FIELD.SOURCE_COLLECTION_ID))
-        .asWebcontifyCollectionDtoSet(mapper)
+        .leftJoin(WEBCONTIFY_COLLECTION_RELATION_COLLECTION_FIELD)
+        .on(
+            WEBCONTIFY_COLLECTION_RELATION.ID.eq(
+                WEBCONTIFY_COLLECTION_RELATION_COLLECTION_FIELD.RELATION_ID))
+  }
+
+  @Transactional(readOnly = true)
+  fun getById(id: Long?): WebContifyCollectionDto {
+    val collection =
+        getCollectionQuery()
+            .where(WEBCONTIFY_COLLECTION.ID.eq(id))
+            .asWebcontifyCollectionDto(mapper)
+    return collection ?: throw NotFoundException(ErrorCode.COLLECTION_NOT_FOUND, id.toString())
+  }
+
+  @Transactional(readOnly = true)
+  fun getAll(): Set<WebContifyCollectionDto> {
+    return getCollectionQuery().asWebcontifyCollectionDtoSet(mapper)
   }
 
   @Transactional
-  fun deleteById(id: Int?) {
+  fun deleteById(id: Long?) {
     try {
       dslContext.deleteFrom(WEBCONTIFY_COLLECTION).where(WEBCONTIFY_COLLECTION.ID.eq(id)).execute()
     } catch (exception: DataIntegrityViolationException) {
@@ -73,24 +69,22 @@ class CollectionRepository(
   }
 
   @Transactional
-  fun update(record: WebContifyCollectionDto): WebContifyCollectionDto {
-    return dslContext.newRecord(WEBCONTIFY_COLLECTION).let { updateAbleRecord ->
-      updateAbleRecord.displayName = record.displayName
-      updateAbleRecord.name = record.name
-      updateAbleRecord.id = record.id
-      try {
-        updateAbleRecord.update().let {
-          if (it == 0) {
-            throw NotFoundException(ErrorCode.COLLECTION_NOT_FOUND, updateAbleRecord.id.toString())
-          }
+  fun update(collection: WebContifyCollectionDto): WebContifyCollectionDto {
+    val updateAbleRecord = dslContext.newRecord(WEBCONTIFY_COLLECTION)
+    updateAbleRecord.displayName = collection.displayName
+    updateAbleRecord.name = collection.name
+    updateAbleRecord.id = collection.id
+    try {
+      updateAbleRecord.update().let {
+        if (it == 0) {
+          throw NotFoundException(ErrorCode.COLLECTION_NOT_FOUND, updateAbleRecord.id.toString())
         }
-      } catch (e: DuplicateKeyException) {
-        throw AlreadyExistsException(
-            ErrorCode.COLLECTION_WITH_NAME_ALREADY_EXISTS, updateAbleRecord.id.toString())
       }
-
-      return getById(record.id)
+    } catch (e: DuplicateKeyException) {
+      throw AlreadyExistsException(
+          ErrorCode.COLLECTION_WITH_NAME_ALREADY_EXISTS, updateAbleRecord.id.toString())
     }
+    return collection
   }
 
   @Transactional
@@ -116,7 +110,7 @@ class CollectionRepository(
               Set<WebcontifyCollectionColumnRecord>,
               Map<
                   WebcontifyCollectionRelationRecord,
-                  List<WebcontifyCollectionRelationFieldRecord>>>> {
+                  List<WebcontifyCollectionRelationCollectionFieldRecord>>>> {
     return this.groupBy { r -> r.into(WebcontifyCollectionRecord::class.java) }
         .mapValues {
           Pair(
@@ -130,7 +124,9 @@ class CollectionRepository(
                   }
                   .groupBy(
                       { r -> r.into(WebcontifyCollectionRelationRecord::class.java) },
-                      { r -> r.into(WebcontifyCollectionRelationFieldRecord::class.java) })
+                      { r ->
+                        r.into(WebcontifyCollectionRelationCollectionFieldRecord::class.java)
+                      })
                   .toMap())
         }
   }

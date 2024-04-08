@@ -37,14 +37,14 @@ abstract class CollectionColumnMapper {
   @Mapping(source = "collectionId", target = "collectionId")
   abstract fun mapApiToDto(
       columnApiCreateRequest: WebContifyCollectionColumnApiCreateRequest,
-      collectionId: Int
+      collectionId: Long
   ): WebContifyCollectionColumnDto
 
   @Mapping(source = "collectionId", target = "collectionId")
   @Mapping(source = "columnApiUpdateRequest.primaryKey", target = "isPrimaryKey")
   abstract fun mapApiToDto(
       columnApiUpdateRequest: WebContifyCollectionColumnApiUpdateRequest,
-      collectionId: Int
+      collectionId: Long
   ): WebContifyCollectionColumnDto
 
   @Named("mapConfiguration")
@@ -54,6 +54,7 @@ abstract class CollectionColumnMapper {
     return column.configuration?.let {
       return handler.mapJSONBToConfiguration(
           WebContifyCollectionColumnDto(
+              column.id,
               column.collectionId,
               column.name!!,
               column.displayName!!,

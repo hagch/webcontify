@@ -20,7 +20,7 @@ class CollectionItemServiceTest {
   @InjectMockKs lateinit var collectionItemService: CollectionItemService
 
   private val collection = collectionWithColumns(listOf(Pair("test", true)))
-  private val id = 1
+  private val id = 1L
   private val identifierMap = mapOf(Pair("test", id))
 
   @Test

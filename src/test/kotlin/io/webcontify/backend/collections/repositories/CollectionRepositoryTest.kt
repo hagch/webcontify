@@ -21,7 +21,7 @@ class CollectionRepositoryTest(
     @Autowired val repository: CollectionRepository
 ) : JooqTestSetup() {
 
-  val collectionId = 1
+  val collectionId = 1L
 
   @Test
   @Sql("/cleanup.sql")

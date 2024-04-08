@@ -23,6 +23,6 @@ fun collectionWithColumns(fieldIsPrimaryMap: List<Pair<String, Boolean>>): WebCo
       "Test",
       fieldIsPrimaryMap.map {
         WebContifyCollectionColumnDto(
-            1, it.first, it.first, WebcontifyCollectionColumnType.NUMBER, it.second, null)
+            null, 1, it.first, it.first, WebcontifyCollectionColumnType.NUMBER, it.second, null)
       })
 }

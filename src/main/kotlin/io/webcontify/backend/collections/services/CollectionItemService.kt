@@ -18,13 +18,13 @@ class CollectionItemService(
 ) {
 
   @Transactional(readOnly = true)
-  fun getById(collectionId: Int, identifierMap: IdentifierMap): Item {
+  fun getById(collectionId: Long, identifierMap: IdentifierMap): Item {
     val collection = collectionService.getById(collectionId)
     return collectionItemRepository.getByIdFor(collection, identifierMap)
   }
 
   @Transactional(readOnly = true)
-  fun getById(collectionId: Int, itemId: Any): Item {
+  fun getById(collectionId: Long, itemId: Any): Item {
     val collection = collectionService.getById(collectionId)
     if (collection.columns == null) {
       throw NotFoundException(ErrorCode.GET_ITEM_COLLECTION_WITHOUT_COLUMNS)
@@ -35,7 +35,7 @@ class CollectionItemService(
   }
 
   @Transactional
-  fun deleteById(collectionId: Int, identifierMap: IdentifierMap) {
+  fun deleteById(collectionId: Long, identifierMap: IdentifierMap) {
     val collection = collectionService.getById(collectionId)
     val primaryKeys = collection.columns?.filter { it.isPrimaryKey }
     if (primaryKeys?.size != identifierMap.size) {
@@ -51,7 +51,7 @@ class CollectionItemService(
   }
 
   @Transactional
-  fun deleteById(collectionId: Int, itemId: Any) {
+  fun deleteById(collectionId: Long, itemId: Any) {
     val collection = collectionService.getById(collectionId)
     if (collection.columns == null) {
       throw UnprocessableContentException(ErrorCode.DELETE_ITEM_FROM_COLLECTION_WITHOUT_COLUMNS)
@@ -62,19 +62,19 @@ class CollectionItemService(
   }
 
   @Transactional(readOnly = true)
-  fun getAllFor(collectionId: Int): List<Item> {
+  fun getAllFor(collectionId: Long): List<Item> {
     val collection = collectionService.getById(collectionId)
     return collectionItemRepository.getAllFor(collection)
   }
 
   @Transactional
-  fun create(collectionId: Int, item: Item): Item {
+  fun create(collectionId: Long, item: Item): Item {
     val collection = collectionService.getById(collectionId)
     return collectionItemRepository.create(collection, item)
   }
 
   @Transactional
-  fun updateById(collectionId: Int, identifierMap: IdentifierMap, item: Item): Item {
+  fun updateById(collectionId: Long, identifierMap: IdentifierMap, item: Item): Item {
     val collection = collectionService.getById(collectionId)
     if (collection.columns == null) {
       throw UnprocessableContentException(ErrorCode.UPDATE_ITEM_FROM_COLLECTION_WITHOUT_COLUMNS)
@@ -86,7 +86,7 @@ class CollectionItemService(
   }
 
   @Transactional
-  fun updateById(collectionId: Int, itemId: Any, item: Item): Item {
+  fun updateById(collectionId: Long, itemId: Any, item: Item): Item {
     val collection = collectionService.getById(collectionId)
     if (collection.columns == null) {
       throw UnprocessableContentException(ErrorCode.UPDATE_ITEM_FROM_COLLECTION_WITHOUT_COLUMNS)

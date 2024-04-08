@@ -7,6 +7,6 @@ data class WebContifyCollectionRelationApiCreateRequest(
     val name: String,
     val displayName: String = name,
     val type: WebcontifyCollectionRelationType,
-    val referencedCollectionId: Int,
+    val referencedCollectionId: Long,
     val fields: Set<WebContifyCollectionRelationFieldDto>
 )

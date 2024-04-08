@@ -4,7 +4,7 @@ import io.webcontify.backend.collections.models.Item
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 
 data class WebContifyCollectionDto(
-    val id: Int?,
+    val id: Long?,
     val name: String,
     val displayName: String = name,
     val columns: List<WebContifyCollectionColumnDto>? = listOf(),
@@ -26,7 +26,7 @@ data class WebContifyCollectionDto(
       fields: Set<WebContifyCollectionRelationFieldDto>
   ): Set<WebContifyCollectionColumnDto> {
     return columns
-        ?.filter { fields.find { field -> field.sourceCollectionColumnName == it.name } != null }
+        ?.filter { fields.find { field -> field.sourceCollectionColumnId == it.id } != null }
         ?.toSet()
         ?: setOf()
   }
@@ -35,9 +35,7 @@ data class WebContifyCollectionDto(
       fields: Set<WebContifyCollectionRelationFieldDto>
   ): Set<WebContifyCollectionColumnDto> {
     return columns
-        ?.filter {
-          fields.find { field -> field.referencedCollectionColumnName == it.name } != null
-        }
+        ?.filter { fields.find { field -> field.referencedCollectionColumnId == it.id } != null }
         ?.toSet()
         ?: setOf()
   }

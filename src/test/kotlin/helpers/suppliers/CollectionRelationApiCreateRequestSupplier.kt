@@ -9,7 +9,7 @@ class CollectionRelationApiCreateRequestSupplier {
   companion object {
     fun getOneToOneRelation(
         fields: Set<WebContifyCollectionRelationFieldDto>,
-        referencedCollectionId: Int
+        referencedCollectionId: Long
     ) =
         WebContifyCollectionRelationApiCreateRequest(
             "one_to_one",
@@ -20,7 +20,7 @@ class CollectionRelationApiCreateRequestSupplier {
 
     fun getOneToManyRelation(
         fields: Set<WebContifyCollectionRelationFieldDto>,
-        referencedCollectionId: Int
+        referencedCollectionId: Long
     ) =
         WebContifyCollectionRelationApiCreateRequest(
             "one_to_many",
@@ -31,7 +31,7 @@ class CollectionRelationApiCreateRequestSupplier {
 
     fun getManyToOneRelation(
         fields: Set<WebContifyCollectionRelationFieldDto>,
-        referencedCollectionId: Int
+        referencedCollectionId: Long
     ) =
         WebContifyCollectionRelationApiCreateRequest(
             "many_to_one",
@@ -42,7 +42,7 @@ class CollectionRelationApiCreateRequestSupplier {
 
     fun getManyToManyRelation(
         fields: Set<WebContifyCollectionRelationFieldDto>,
-        referencedCollectionId: Int
+        referencedCollectionId: Long
     ) =
         WebContifyCollectionRelationApiCreateRequest(
             "many_to_many",

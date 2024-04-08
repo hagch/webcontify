@@ -7,7 +7,9 @@ data class WebContifyCollectionRelationApiResponse(
     val name: String,
     val displayName: String = name,
     val type: WebcontifyCollectionRelationType,
-    val sourceCollectionId: Int,
-    val referencedCollectionId: Int,
+    val sourceCollectionId: Long,
+    val rightCollectionId: Long,
+    val mappingCollectionId: Long?,
+    val leftCollectionId: Long,
     val fields: Set<WebContifyCollectionRelationFieldDto>
 )

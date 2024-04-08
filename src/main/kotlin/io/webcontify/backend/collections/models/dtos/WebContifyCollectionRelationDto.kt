@@ -3,8 +3,11 @@ package io.webcontify.backend.collections.models.dtos
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionRelationType
 
 data class WebContifyCollectionRelationDto(
-    val sourceCollection: WebContifyCollectionDto,
-    val referencedCollection: WebContifyCollectionDto,
+    val id: Long?,
+    val sourceCollection: WebContifyCollectionDto?,
+    val leftCollection: WebContifyCollectionDto,
+    val mappingCollection: WebContifyCollectionDto?,
+    val rightCollection: WebContifyCollectionDto,
     val type: WebcontifyCollectionRelationType,
     val name: String,
     val displayName: String = name,
@@ -14,15 +17,19 @@ data class WebContifyCollectionRelationDto(
   fun switchReference(type: WebcontifyCollectionRelationType): WebContifyCollectionRelationDto {
     return this.copy(
         type = type,
-        sourceCollection = this.referencedCollection,
-        referencedCollection = this.sourceCollection,
+        rightCollection = this.leftCollection,
+        leftCollection = this.rightCollection,
         fields =
             this.fields
                 .map {
                   it.copy(
-                      sourceCollectionColumnName = it.referencedCollectionColumnName,
-                      referencedCollectionColumnName = it.sourceCollectionColumnName)
+                      sourceCollectionColumnId = it.referencedCollectionColumnId,
+                      referencedCollectionColumnId = it.sourceCollectionColumnId)
                 }
                 .toSet())
+  }
+
+  fun switchReference(): WebContifyCollectionRelationDto {
+    return this.switchReference(this.type)
   }
 }

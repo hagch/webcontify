@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 class CollectionColumnRepository(val dslContext: DSLContext, val mapper: CollectionColumnMapper) {
 
   @Transactional(readOnly = true)
-  fun getById(collectionId: Int?, name: String?): WebContifyCollectionColumnDto {
+  fun getById(collectionId: Long?, name: String?): WebContifyCollectionColumnDto {
     val column =
         dslContext
             .select()
@@ -33,7 +33,7 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
   }
 
   @Transactional(readOnly = true)
-  fun getAllForCollection(collectionId: Int?): Set<WebContifyCollectionColumnDto> {
+  fun getAllForCollection(collectionId: Long?): Set<WebContifyCollectionColumnDto> {
     return dslContext
         .select()
         .from(WEBCONTIFY_COLLECTION_COLUMN)
@@ -45,7 +45,7 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
   }
 
   @Transactional
-  fun deleteById(collectionId: Int?, name: String?) {
+  fun deleteById(collectionId: Long?, name: String?) {
     try {
       dslContext
           .deleteFrom(WEBCONTIFY_COLLECTION_COLUMN)
@@ -60,7 +60,7 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
   }
 
   @Transactional
-  fun deleteAllForCollection(collectionId: Int?) {
+  fun deleteAllForCollection(collectionId: Long?) {
     dslContext
         .deleteFrom(WEBCONTIFY_COLLECTION_COLUMN)
         .where(WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(collectionId))

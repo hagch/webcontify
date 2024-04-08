@@ -18,17 +18,17 @@ class CollectionColumnService(
 ) {
 
   @Transactional(readOnly = true)
-  fun getAllForCollection(collectionId: Int): Set<WebContifyCollectionColumnDto> {
+  fun getAllForCollection(collectionId: Long): Set<WebContifyCollectionColumnDto> {
     return repository.getAllForCollection(collectionId)
   }
 
   @Transactional(readOnly = true)
-  fun getById(collectionId: Int, name: String): WebContifyCollectionColumnDto {
+  fun getById(collectionId: Long, name: String): WebContifyCollectionColumnDto {
     return repository.getById(collectionId, name)
   }
 
   @Transactional
-  fun deleteById(collectionId: Int, name: String) {
+  fun deleteById(collectionId: Long, name: String) {
     val collection = collectionRepository.getById(collectionId)
     val column =
         collection.getColumnWithName(name)
@@ -50,7 +50,7 @@ class CollectionColumnService(
 
   @Transactional
   fun createForCollection(
-      collectionId: Int,
+      collectionId: Long,
       columns: Collection<WebContifyCollectionColumnDto>?
   ): List<WebContifyCollectionColumnDto> {
     return columns?.map { create(it.copy(collectionId = collectionId)) } ?: listOf()

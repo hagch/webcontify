@@ -18,9 +18,10 @@ class CollectionColumnController(
     val mapper: CollectionColumnMapper
 ) {
 
+  // TODO check if changing to id
   @DeleteMapping("$COLLECTIONS_PATH/{collectionId}/columns/{name}")
   fun delete(
-      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable("collectionId") collectionId: Long,
       @PathVariable("name") name: String
   ): ResponseEntity<Void> {
     service.deleteById(collectionId, name.lowercase())
@@ -29,7 +30,7 @@ class CollectionColumnController(
 
   @GetMapping("$COLLECTIONS_PATH/{collectionId}/columns/{name}")
   fun getById(
-      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable("collectionId") collectionId: Long,
       @PathVariable("name") name: String
   ): WebContifyCollectionColumnDto {
     return service.getById(collectionId, name.lowercase())
@@ -37,14 +38,14 @@ class CollectionColumnController(
 
   @GetMapping("$COLLECTIONS_PATH/{collectionId}/columns")
   fun getAllForCollection(
-      @PathVariable("collectionId") collectionId: Int
+      @PathVariable("collectionId") collectionId: Long
   ): Set<WebContifyCollectionColumnDto> {
     return service.getAllForCollection(collectionId)
   }
 
   @PostMapping("$COLLECTIONS_PATH/{collectionId}/columns")
   fun create(
-      @PathVariable collectionId: Int,
+      @PathVariable collectionId: Long,
       @RequestBody @Valid column: WebContifyCollectionColumnApiCreateRequest
   ): WebContifyCollectionColumnDto {
     if (column.isPrimaryKey) {
@@ -55,7 +56,7 @@ class CollectionColumnController(
 
   @PutMapping("$COLLECTIONS_PATH/{collectionId}/columns/{name}")
   fun update(
-      @PathVariable("collectionId") collectionId: Int,
+      @PathVariable("collectionId") collectionId: Long,
       @PathVariable("name") oldName: String,
       @RequestBody @Valid newColumn: WebContifyCollectionColumnApiUpdateRequest
   ): WebContifyCollectionColumnDto {

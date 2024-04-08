@@ -22,14 +22,13 @@ class CollectionService(
   }
 
   @Transactional(readOnly = true)
-  fun getById(id: Int): WebContifyCollectionDto {
+  fun getById(id: Long): WebContifyCollectionDto {
     return repository.getById(id)
   }
 
   @Transactional
-  fun deleteById(id: Int) {
+  fun deleteById(id: Long) {
     val collection = repository.getById(id)
-    columnRepository.deleteAllForCollection(id)
     repository.deleteById(id)
     tableRepository.delete(collection.name)
   }
@@ -52,7 +51,7 @@ class CollectionService(
     val oldCollection = repository.getById(collection.id)
     return repository.update(collection).let {
       tableRepository.updateName(collection.name, oldCollection.name)
-      collectionMapper.addColumnsToDto(it, columnRepository.getAllForCollection(it.id))
+      collectionMapper.addColumnsToDto(it, oldCollection.columns!!.toSet())
     }
   }
 }
