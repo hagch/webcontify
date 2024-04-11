@@ -21,15 +21,12 @@ interface CollectionMapper {
   @Mapping(source = "collection.name", target = "name")
   @Mapping(source = "collection.displayName", target = "displayName")
   @Mapping(source = "columns", target = "columns")
-  @Mapping(source = "relations", target = "relations")
+  @Mapping(source = "relations", target = "relations", defaultExpression = "java(new ArrayList())")
   fun mapToDto(
       collection: WebcontifyCollectionRecord,
       columns: Set<WebcontifyCollectionColumnRecord>,
       relations: List<WebContifyCollectionRelationIdDto>
   ): WebContifyCollectionDto
-
-  @Mapping(target = "columns", ignore = true)
-  fun mapToDto(collection: WebcontifyCollectionRecord): WebContifyCollectionDto
 
   @Mapping(source = "collection.id", target = "id")
   @Mapping(source = "collection.name", target = "name")
@@ -57,6 +54,7 @@ interface CollectionMapper {
 
   @Mapping(source = "id", target = "id")
   @Mapping(target = "columns", ignore = true)
+  @Mapping(target = "relations", expression = "java(new ArrayList())")
   fun mapApiToDto(
       collectionCreateRequest: WebContifyCollectionApiUpdateRequest,
       id: Int

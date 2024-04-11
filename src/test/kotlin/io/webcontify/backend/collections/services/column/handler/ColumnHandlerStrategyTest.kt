@@ -24,14 +24,14 @@ class ColumnHandlerStrategyTest {
   }
 
   @Test
-  fun generateHandlerMapShouldRegisterHandlers() {
+  fun `(generateHandlerMap) should register handlers`() {
     strategy.generateHandlerMap()
 
     assertEquals(handler, strategy.getHandlerFor(firstSqlInsertedColumn()))
   }
 
   @Test
-  fun getHandlerForShouldThrowUnprocessableContentExceptionOnNoHandlerFound() {
+  fun `(getHandlerFor) should throw unprocessable content exception on no handler found`() {
     assertThrows<UnprocessableContentException> { strategy.getHandlerFor(firstSqlInsertedColumn()) }
   }
 }

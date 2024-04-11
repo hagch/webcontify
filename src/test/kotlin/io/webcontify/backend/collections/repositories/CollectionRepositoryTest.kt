@@ -6,10 +6,8 @@ import helpers.suppliers.collectionWithNameCollection
 import helpers.suppliers.collectionWithNameTest
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
-import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -25,15 +23,13 @@ class CollectionRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("getAll should return empty list if no collections are available")
-  fun getAllShouldReturnEmptyList() {
+  fun `(getAll) should return empty list if no collections are available`() {
     assertTrue(repository.getAll().isEmpty())
   }
 
   @Test
   @Sql("/cleanup.sql", "collection-with-columns.sql")
-  @DisplayName("getAll should return a collection with column definitions")
-  fun getAllShouldReturnCollectionWithColumnDefinitions() {
+  fun `(getAll) should return a collection with column definitions`() {
     assertDoesNotThrow {
       repository.getAll().first { collection -> !collection.columns.isNullOrEmpty() }
     }
@@ -41,8 +37,7 @@ class CollectionRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "collection-without-columns.sql")
-  @DisplayName("getAll should return a collection without column definitions")
-  fun getAllShouldReturnCollectionWithoutColumnDefinitions() {
+  fun `(getAll) should return a collection without column definitions`() {
     assertDoesNotThrow {
       repository.getAll().first { collection -> collection.columns.isNullOrEmpty() }
     }
@@ -50,8 +45,7 @@ class CollectionRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "collection-with-columns.sql")
-  @DisplayName("getById should return a collection with column definitions")
-  fun getByIdShouldReturnCollectionWithColumnDefinitions() {
+  fun `(getById) should return a collection with column definitions`() {
     val collection = repository.getById(collectionId)
 
     assertEquals(collectionId, collection.id)
@@ -60,8 +54,7 @@ class CollectionRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "collection-without-columns.sql")
-  @DisplayName("getById should return a collection without column definitions")
-  fun getByIdShouldReturnCollectionWithoutColumnDefinitions() {
+  fun `(getById) should return a collection without column definitions`() {
     val collection = repository.getById(collectionId)
 
     assertEquals(collectionId, collection.id)
@@ -70,15 +63,13 @@ class CollectionRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("getById should throw exception on collection does not exist")
-  fun getByIdShouldThrowExceptionOnCollectionDoesNotExist() {
+  fun `(getById) should throw exception on collection does not exist`() {
     assertThrows<NotFoundException> { repository.getById(2) }
   }
 
   @Test
   @Sql("/cleanup.sql", "collection-without-columns.sql")
-  @DisplayName("update should update name and displayName")
-  fun updateShouldUpdateNameAndDisplayName() {
+  fun `(update) should update name and displayName`() {
     val newDisplayName = "New DisplayName"
     val newName = "NEW_NAME"
     val collection = repository.getById(collectionId)
@@ -95,52 +86,45 @@ class CollectionRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("update should throw Exception on collection does not exist")
-  fun updateShouldThrowExceptionOnCollectionDoesNotExist() {
+  fun `(update) should throw Exception on collection does not exist`() {
     assertThrows<NotFoundException> { repository.update(collectionWithEmptyColumns()) }
   }
 
   @Test
   @Sql("/cleanup.sql", "collection-without-columns.sql")
-  @DisplayName("deleteById should be success full on resource exists")
-  fun deleteByIdShouldDeleteExistingResource() {
+  fun `(deleteById) should be success full on resource exists`() {
     assertDoesNotThrow { repository.deleteById(collectionId) }
   }
 
   @Test
   @Sql("/cleanup.sql", "collection-with-columns.sql")
-  @DisplayName("deleteById should throw exception on collection with columns exist")
-  fun deleteByIdShouldThrowException() {
-    assertThrows<UnprocessableContentException> { repository.deleteById(collectionId) }
+  fun `(deleteById) should not throw exception on collection with columns exist`() {
+    assertDoesNotThrow { repository.deleteById(collectionId) }
   }
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("deleteById should not throw an exception on an resource that does not exist")
-  fun deleteByIdShouldNotThrowAnExceptionOnResourceNotExist() {
+  fun `(deleteById) should not throw an exception on an resource that does not exist`() {
     assertDoesNotThrow { repository.deleteById(2) }
   }
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("create should create collection")
-  fun createShouldCreateCollection() {
+  fun `(create) should create collection`() {
     assertNotNull(repository.create(collectionWithNameTest()))
     assertNotNull(repository.create(collectionWithNameCollection()))
   }
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("create shouldThrow exception if name already exists")
-  fun createShouldThrowExceptionIfNameAlreadyExists() {
+  fun `(create) shouldThrow exception if name already exists`() {
     repository.create(collectionWithNameTest())
     assertThrows<AlreadyExistsException> { repository.create(collectionWithNameTest()) }
   }
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("create should ignore id and create a new entry")
-  fun createShouldThrowExceptionIfIdAlreadyExists() {
+  fun `(create) should ignore id and create a new entry`() {
     repository.create(collectionWithNameTest())
     repository.create(collectionWithNameCollection())
   }

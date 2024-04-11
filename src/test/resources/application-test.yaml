@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: webcontify
+  datasource:
+    driver-class-name: ${datasourceDriver}
+    url: ${datasourceJdbcUrl}
+    username: ${datasourceUsername}
+    password: ${datasourcePassword}
+  jooq:
+    sql-dialect: postgres
+  flyway:
+    locations:
+      - "classpath:db/test"
+server:
+  port: 8081

@@ -9,7 +9,6 @@ import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnD
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -32,8 +31,7 @@ class CollectionTableColumnRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("Create column should add column to table")
-  fun createColumnShouldAddColumnToTable() {
+  fun `(create) column should add column to table`() {
     val newColumn =
         WebContifyCollectionColumnDto(
             null,
@@ -55,8 +53,7 @@ class CollectionTableColumnRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("Create column should throw exception if column already exists")
-  fun createColumnShouldThrowExceptionIfColumnAlreadyExists() {
+  fun `(create) column should throw exception if column already exists`() {
     val newColumn =
         WebContifyCollectionColumnDto(
             null,
@@ -71,8 +68,7 @@ class CollectionTableColumnRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("Create column should throw exception if column name is empty")
-  fun createColumnShouldThrowExceptionIfColumnNameIsMalformed() {
+  fun `(create) column should throw exception if column name is empty`() {
     val newColumn2 =
         WebContifyCollectionColumnDto(
             null, 1, "", "", WebcontifyCollectionColumnType.NUMBER, false, null)
@@ -81,8 +77,7 @@ class CollectionTableColumnRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("Delete column should delete column from table")
-  fun deleteColumnShouldDeleteColumn() {
+  fun `(delete) column should delete column from table`() {
     repository.delete(collection, secondColumn.name)
     assertDoesNotThrow {
       context
@@ -94,29 +89,25 @@ class CollectionTableColumnRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("Delete column should not throw exception if column is used in constraint")
-  fun deleteColumnShouldNotThrowExceptionIfUsedInConstraint() {
+  fun `(delete) column should not throw exception if column is used in constraint`() {
     assertDoesNotThrow { repository.delete(collection, firstColumn.name) }
   }
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("Delete column should not throw exception if column not exists")
-  fun deleteColumnShouldNotThrowExceptionIfColumnNotExists() {
+  fun `(delete) column should not throw exception if column not exists`() {
     assertDoesNotThrow { repository.delete(collection, "does_not_exist") }
   }
 
   @Test
-  @DisplayName("Delete column should not throw exception if table not exists")
-  fun deleteColumnShouldNotThrowExceptionIfTableNotExists() {
+  fun `(delete) column should not throw exception if table not exists`() {
     assertDoesNotThrow {
       repository.delete(collection.copy(name = "DOES_NOT_EXIST"), secondColumn.name)
     }
   }
 
   @Test
-  @DisplayName("Update column should throw exception if table not exists")
-  fun updateColumnShouldThrowExceptionIfTableNotExists() {
+  fun `(update) column should throw exception if table not exists`() {
     assertThrows<UnprocessableContentException> {
       repository.update(collection, firstColumn.copy(name = "new"), "id")
     }
@@ -124,8 +115,7 @@ class CollectionTableColumnRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("Update column should throw exception if old column not exists")
-  fun updateColumnShouldThrowExceptionIfColumnNotExists() {
+  fun `(update) column should throw exception if old column not exists`() {
     assertThrows<NotFoundException> {
       repository.update(collection, firstColumn.copy(name = "new"), "notExists")
     }
@@ -133,8 +123,7 @@ class CollectionTableColumnRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("Update column should throw exception if old column not exists on table")
-  fun updateColumnShouldThrowExceptionIfColumnNotExistsOnTable() {
+  fun `(update) column should throw exception if old column not exists on table`() {
     val collection =
         collection.copy(columns = listOf(firstColumn, secondColumn, firstColumn.copy(name = "new")))
     assertThrows<UnprocessableContentException> {
@@ -144,8 +133,7 @@ class CollectionTableColumnRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("Update column should update column")
-  fun updateColumnShouldUpdateColumn() {
+  fun `(update) column should update column`() {
     repository.update(collection, secondColumn.copy(name = "new"), "othercolumn")
 
     assertDoesNotThrow {
@@ -157,8 +145,7 @@ class CollectionTableColumnRepositoryTest(
   }
 
   @Test
-  @DisplayName("Update column should throw exception if column type has changed")
-  fun updateColumnShouldThrowExceptionIfColumnTypeHasChanged() {
+  fun `(update) column should throw exception if column type has changed`() {
     assertThrows<UnprocessableContentException> {
       repository.update(
           collection,
@@ -169,8 +156,7 @@ class CollectionTableColumnRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("Update column should throw exception if new name is empty")
-  fun updateColumnShouldThrowExceptionIfColumnNameIsEmpty() {
+  fun `(update) column should throw exception if new name is empty`() {
     assertThrows<UnprocessableContentException> {
       repository.update(collection, firstColumn.copy(name = ""), "id")
     }

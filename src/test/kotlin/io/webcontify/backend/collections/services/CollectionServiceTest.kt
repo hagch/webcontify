@@ -32,21 +32,21 @@ class CollectionServiceTest {
   private val collection = collectionWithColumns(listOf(Pair("id", true)))
 
   @Test
-  fun getAllShouldCallCollectionRepository() {
+  fun `(getAll) should call collection repository`() {
     service.getAll()
 
     verify(exactly = 1) { collectionRepository.getAll() }
   }
 
   @Test
-  fun getByIdShouldCallCollectionRepository() {
+  fun `(getById) should call collection repository`() {
     service.getById(1)
 
     verify(exactly = 1) { collectionRepository.getById(1) }
   }
 
   @Test
-  fun getByIdShouldDeleteCollectionAndTable() {
+  fun `(getById) should delete collection and table`() {
     every { collectionRepository.getById(0) } returns collection
 
     service.deleteById(0)
@@ -58,7 +58,7 @@ class CollectionServiceTest {
   }
 
   @Test
-  fun createShouldCreateCollection() {
+  fun `(create) should create collection`() {
     every { collectionRepository.create(collection) } returns collection
 
     service.create(collection)
@@ -71,7 +71,7 @@ class CollectionServiceTest {
   }
 
   @Test
-  fun createShouldCreateCollectionAndColumnsAndTable() {
+  fun `(create) should create collection and columns and table`() {
     every { collectionRepository.create(collection) } returns collection
 
     service.create(collection)
@@ -84,7 +84,7 @@ class CollectionServiceTest {
   }
 
   @Test
-  fun updateShouldUpdateCollectionAndTableName() {
+  fun `(update) should update collection and table name`() {
     val oldCollection = collectionWithNameTest()
     val collection = collectionWithNameCollection()
     every { collectionRepository.getById(any()) } returns oldCollection

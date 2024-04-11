@@ -22,7 +22,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-item-test-entities.sql")
-  fun createItemShouldCreateItem() {
+  fun `(create) item should create item`() {
     val collection = collectionRepository.getAll().first()
 
     repository.create(collection, mapOf(Pair("id", 1), Pair("otherColumn", 1)))
@@ -32,7 +32,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-item-test-entities.sql")
-  fun createItemShouldThrowExceptionOnKeyInObjectDoesNotExist() {
+  fun `(create) item should throw exception on key in object does not exist`() {
     val collection = collectionRepository.getAll().first()
 
     assertThrows<UnprocessableContentException> {
@@ -42,7 +42,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-item-test-entities.sql")
-  fun createItemShouldThrowExceptionOnValueIsNotSupportedOnColumn() {
+  fun `(create) item should throw exception on value is not supported on column`() {
     val collection = collectionRepository.getAll().first()
 
     assertThrows<UnprocessableContentException> {
@@ -52,7 +52,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-item-test-entities.sql")
-  fun createItemShouldThrowAlreadyExistsIfPrimaryKeyIsAlreadyCreated() {
+  fun `(create) item should throw already exists if primary key is already created`() {
     val collection = collectionRepository.getAll().first()
     repository.create(collection, mapOf(Pair("id", 1), Pair("otherColumn", 1)))
 
@@ -63,7 +63,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "collection-with-columns.sql")
-  fun createItemShouldThrowErrorIfTableDoesNotExist() {
+  fun `(create) item should throw error if table does not exist`() {
     val collection = collectionRepository.getAll().first()
 
     assertThrows<UnprocessableContentException> {
@@ -73,7 +73,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "get-items-test-entities.sql")
-  fun getAllForShouldReturnEntities() {
+  fun `(getAll) for should return entities`() {
     val collection = collectionRepository.getAll().first()
 
     assertEquals(2, repository.getAllFor(collection).size)
@@ -81,7 +81,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "collection-with-columns.sql")
-  fun getAllForShouldThrowErrorIfTableDoesNotExist() {
+  fun `(getAll) for should throw error if table does not exist`() {
     val collection = collectionRepository.getAll().first()
 
     assertThrows<UnprocessableContentException> { repository.getAllFor(collection) }
@@ -89,7 +89,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-item-test-entities.sql")
-  fun getAllForShouldReturnEmptyList() {
+  fun `(getAll) for should return empty list`() {
     val collection = collectionRepository.getAll().first()
 
     assertEquals(0, repository.getAllFor(collection).size)
@@ -97,7 +97,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "get-items-test-entities.sql")
-  fun getByIdForShouldReturnItem() {
+  fun `(getByIdFor) should return item`() {
     val collection = collectionRepository.getAll().first()
 
     val item = repository.getByIdFor(collection, mapOf(Pair("id", 1)))
@@ -108,7 +108,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "collection-with-columns.sql")
-  fun getByIdForShouldThrowExceptionIfTableDoesNotExist() {
+  fun `(getByIdFor) should throw exception if table does not exist`() {
     val collection = collectionRepository.getAll().first()
 
     assertThrows<UnprocessableContentException> {
@@ -118,7 +118,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-item-test-entities.sql")
-  fun getByIdForShouldThrowExceptionIfItemDoesNotExist() {
+  fun `(getByIdFor) should throw exception if item does not exist`() {
     val collection = collectionRepository.getAll().first()
 
     assertThrows<NotFoundException> { repository.getByIdFor(collection, mapOf(Pair("id", 1))) }
@@ -126,7 +126,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-item-test-entities.sql")
-  fun deleteByIdShouldDeleteItem() {
+  fun `(deleteById) should delete item`() {
     val collection = collectionRepository.getAll().first()
 
     repository.deleteById(collection, mapOf(Pair("id", 1)))
@@ -136,7 +136,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-item-test-entities.sql")
-  fun deleteByIdShouldNotThrowExceptionIfItemDoesNotExist() {
+  fun `(deleteById) should not throw exception if item does not exist`() {
     val collection = collectionRepository.getAll().first()
     repository.deleteById(collection, mapOf(Pair("id", 1)))
 
@@ -145,7 +145,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  fun deleteByIdShouldThrowExceptionIfTableDoesNotExist() {
+  fun `(deleteById) should throw exception if table does not exist`() {
     val collection = collectionWithColumns(listOf(Pair("id", true)))
 
     assertThrows<UnprocessableContentException> {

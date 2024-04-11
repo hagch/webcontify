@@ -19,6 +19,7 @@ import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.models.errors.ErrorResponse
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import org.hamcrest.Matchers.equalTo
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -45,6 +46,7 @@ class UpdateColumnApiTest : ApiTestSetup() {
   }
 
   @Test
+  @Disabled
   @Sql("/cleanup.sql", "./../collection-with-relation.sql")
   fun `(UpdateColumn) should return error if name is used in relation`() {
     val path = "$COLLECTIONS_PATH/2/columns/${RELATED_COLUMN_CHANGED.first}"

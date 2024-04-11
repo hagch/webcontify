@@ -10,12 +10,12 @@ class TimestampColumnHandlerTest {
   private val handler = TimestampColumnHandler()
 
   @Test
-  fun getColumnTypeShouldReturnType() {
+  fun `(getColumnType) should return type`() {
     assertEquals(SQLDataType.LOCALDATETIME, handler.getColumnType())
   }
 
   @Test
-  fun getColumnHandlerTypeShouldReturnType() {
+  fun `(getColumnHandlerType) should return type`() {
     assertEquals(WebcontifyCollectionColumnType.TIMESTAMP, handler.getColumnHandlerType())
   }
 }

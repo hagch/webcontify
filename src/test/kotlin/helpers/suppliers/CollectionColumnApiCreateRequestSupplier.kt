@@ -17,8 +17,8 @@ class CollectionColumnApiCreateRequestSupplier {
             WebContifyCollectionColumnNumberConfigurationDto(null, null, false, true, null, null))
     val NEW_PRIMARY_COLUMN =
         WebContifyCollectionColumnApiCreateRequest(
-            "new_column",
-            "New Column",
+            "new_primary_column",
+            "New Primary Column",
             WebcontifyCollectionColumnType.NUMBER,
             true,
             WebContifyCollectionColumnNumberConfigurationDto(null, null, false, true, null, null))
@@ -31,27 +31,31 @@ class CollectionColumnApiCreateRequestSupplier {
             WebContifyCollectionColumnNumberConfigurationDto(null, null, false, true, null, null))
     val DECIMAL_COLUMN =
         WebContifyCollectionColumnApiCreateRequest(
-            "decimal_column", "Number Column", WebcontifyCollectionColumnType.DECIMAL, false, null)
+            "decimal_column", "Decimal Column", WebcontifyCollectionColumnType.DECIMAL, false, null)
     val UUID_COLUMN =
         WebContifyCollectionColumnApiCreateRequest(
-            "uuid_column", "Number Column", WebcontifyCollectionColumnType.UUID, false, null)
+            "uuid_column", "Uuid Column", WebcontifyCollectionColumnType.UUID, false, null)
     val TIMESTAMP_COLUMN =
         WebContifyCollectionColumnApiCreateRequest(
             "timestamp_column",
-            "Number Column",
+            "Timestamp Column",
             WebcontifyCollectionColumnType.TIMESTAMP,
             false,
             null)
     val BOOLEAN_COLUMN =
         WebContifyCollectionColumnApiCreateRequest(
-            "boolean_column", "Number Column", WebcontifyCollectionColumnType.BOOLEAN, false, null)
+            "boolean_column", "Boolean Column", WebcontifyCollectionColumnType.BOOLEAN, false, null)
     val TEXT_COLUMN =
         WebContifyCollectionColumnApiCreateRequest(
-            "text_column", "Number Column", WebcontifyCollectionColumnType.TEXT, false, null)
+            "text_column", "Text Column", WebcontifyCollectionColumnType.TEXT, false, null)
 
     val COLUMN_WITH_INVALID_NAME =
         WebContifyCollectionColumnApiCreateRequest(
-            "invalidColumnName", "Number Column", WebcontifyCollectionColumnType.NUMBER, true, null)
+            "invalidColumnName",
+            "Invalid Column",
+            WebcontifyCollectionColumnType.NUMBER,
+            true,
+            null)
     val COLUMN_WITH_INVALID_NAME_TEXT =
         WebContifyCollectionColumnApiCreateRequest(
             "_?qwd", "Text Column", WebcontifyCollectionColumnType.TEXT, false, null)

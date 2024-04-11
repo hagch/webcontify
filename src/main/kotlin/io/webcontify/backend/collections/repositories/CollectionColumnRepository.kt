@@ -60,14 +60,6 @@ class CollectionColumnRepository(val dslContext: DSLContext, val mapper: Collect
   }
 
   @Transactional
-  fun deleteAllForCollection(collectionId: Long?) {
-    dslContext
-        .deleteFrom(WEBCONTIFY_COLLECTION_COLUMN)
-        .where(WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID.eq(collectionId))
-        .execute()
-  }
-
-  @Transactional
   fun update(
       record: WebContifyCollectionColumnDto,
       oldName: String

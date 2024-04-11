@@ -10,12 +10,13 @@ class TextColumnHandlerTest {
   private val handler = TextColumnHandler()
 
   @Test
-  fun getColumnTypeShouldReturnType() {
+  fun `(getColumnType) should return type`() {
     assertEquals(SQLDataType.VARCHAR, handler.getColumnType())
   }
 
   @Test
-  fun getColumnHandlerTypeShouldReturnType() {
+  fun `(getColumnHandlerType) should return type`() {
     assertEquals(WebcontifyCollectionColumnType.TEXT, handler.getColumnHandlerType())
   }
+
 }

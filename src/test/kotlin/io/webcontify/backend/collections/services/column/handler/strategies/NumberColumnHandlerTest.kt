@@ -10,12 +10,12 @@ class NumberColumnHandlerTest {
   private val handler = NumberColumnHandler()
 
   @Test
-  fun getColumnTypeShouldReturnType() {
+  fun `(getColumnType) should return type`() {
     assertEquals(SQLDataType.BIGINT, handler.getColumnType())
   }
 
   @Test
-  fun getColumnHandlerTypeShouldReturnType() {
+  fun `(getColumnHandlerType) should return type`() {
     assertEquals(WebcontifyCollectionColumnType.NUMBER, handler.getColumnHandlerType())
   }
 }

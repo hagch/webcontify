@@ -10,12 +10,12 @@ class BooleanColumnHandlerTest {
   private val handler = BooleanColumnHandler()
 
   @Test
-  fun getColumnTypeShouldReturnType() {
+  fun `(getColumnType) should return type`() {
     assertEquals(SQLDataType.BOOLEAN, handler.getColumnType())
   }
 
   @Test
-  fun getColumnHandlerTypeShouldReturnType() {
+  fun `(getColumnHandlerType) should return type`() {
     assertEquals(WebcontifyCollectionColumnType.BOOLEAN, handler.getColumnHandlerType())
   }
 }

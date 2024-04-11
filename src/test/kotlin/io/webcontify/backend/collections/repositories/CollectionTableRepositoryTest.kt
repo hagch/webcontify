@@ -9,7 +9,6 @@ import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -44,8 +43,7 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("create should create table")
-  fun createShouldCreateTableWithPrimaryKey() {
+  fun `(create) should create table with primary key`() {
     repository.create(onePrimaryKeyCollection)
 
     assertDoesNotThrow { context.select().from(onePrimaryKeyCollection.name).execute() }
@@ -65,8 +63,7 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("create should create table with composite primary key")
-  fun createShouldCreateTableWithCompositePrimaryKey() {
+  fun `(create) should create table with composite primary key`() {
     repository.create(compositePrimaryKeyCollection)
 
     assertDoesNotThrow { context.select().from(compositePrimaryKeyCollection.name).execute() }
@@ -86,8 +83,7 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("create should throw exception if no column is primary key")
-  fun createShouldThrowExceptionIfNoColumnIsPrimaryKey() {
+  fun `(create) should throw exception if no column is primary key`() {
     val collection =
         WebContifyCollectionDto(
             1,
@@ -102,8 +98,7 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("create should throw exception if columns are empty")
-  fun createShouldThrowExceptionIfColumnsAreEmpty() {
+  fun `(create) should throw exception if columns are empty`() {
     val collection = WebContifyCollectionDto(1, "test", "Test", listOf())
 
     assertThrows<UnprocessableContentException> { repository.create(collection) }
@@ -111,8 +106,7 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("delete should delete table")
-  fun deleteShouldDeleteTable() {
+  fun `(delete) should delete table`() {
     repository.delete("test")
 
     assertThrows<RuntimeException> { context.select().from("test").execute() }
@@ -120,15 +114,13 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("delete should not throw exception if table does not exist")
-  fun deleteShouldNotThrowExceptionIfTableDoesNotExist() {
+  fun `(delete) should not throw exception if table does not exist`() {
     assertDoesNotThrow { repository.delete("doesnotexist") }
   }
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("updateName should update name of table")
-  fun updateNameShouldUpdateNameOfTable() {
+  fun `(updateName) should update name of table`() {
     repository.updateName("tester", "test")
     assertDoesNotThrow { context.select().from("tester").execute() }
     repository.updateName("test", "tester")
@@ -136,15 +128,13 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  @DisplayName("updateName should not throw exception if table does not exist")
-  fun updateNameShouldNotThrowExceptionIfTableDoesNotExist() {
+  fun `(updateName) should not throw exception if table does not exist`() {
     assertDoesNotThrow { repository.updateName("tester", "test") }
   }
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  @DisplayName("updateName should throw exception if new name is malformed or empty")
-  fun updateNameShouldThrowExceptionIfNewNameIsMalformed() {
+  fun `(updateName) should throw exception if new name is malformed or empty`() {
     assertThrows<UnprocessableContentException> { repository.updateName("", "test") }
     assertThrows<UnprocessableContentException> { repository.updateName("$", "test") }
   }

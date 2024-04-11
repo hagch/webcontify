@@ -28,21 +28,21 @@ class CollectionColumnServiceTest {
   @InjectMockKs @SpyK lateinit var service: CollectionColumnService
 
   @Test
-  fun getAllShouldCallCollectionColumnRepository() {
+  fun `(getAll) should call collection column repository`() {
     service.getAllForCollection(0)
 
     verify(exactly = 1) { collectionColumnRepository.getAllForCollection(0) }
   }
 
   @Test
-  fun getByIdShouldCallCollectionColumnRepository() {
+  fun `(getById) should call collection column repository`() {
     service.getById(0, "test")
 
     verify(exactly = 1) { collectionColumnRepository.getById(0, "test") }
   }
 
   @Test
-  fun deleteByIdShouldDeleteColumnAndOnTable() {
+  fun `(deleteById) should delete column and on table`() {
     val collection = collectionWithColumns(listOf(Pair("test", false)))
     every { collectionRepository.getById(0) } returns collection
 
@@ -55,7 +55,7 @@ class CollectionColumnServiceTest {
   }
 
   @Test
-  fun createShouldCreateColumnAndAddOnTable() {
+  fun `(create) should create column and add on table`() {
     every { collectionColumnRepository.create(firstSqlInsertedColumn()) } returns
         firstSqlInsertedColumn()
 
@@ -68,7 +68,7 @@ class CollectionColumnServiceTest {
   }
 
   @Test
-  fun createForCollectionShouldCallCreateForEachColumn() {
+  fun `(create) collection should call create for each column`() {
     every { service.create(any()) } returns firstSqlInsertedColumn()
 
     service.createForCollection(0, listOf(firstSqlInsertedColumn(), secondSqlInsertedColumn()))
@@ -77,21 +77,21 @@ class CollectionColumnServiceTest {
   }
 
   @Test
-  fun createForCollectionShouldNotCallCreateOnColumnListIsNull() {
+  fun `(create) for collection should not call create on column list is null`() {
     service.createForCollection(0, null)
 
     verify(exactly = 0) { service.create(any()) }
   }
 
   @Test
-  fun createForCollectionShouldNotCallCreateOnColumnListIsEmpty() {
+  fun `(create) for collection should not call create on column list is empty`() {
     service.createForCollection(0, listOf())
 
     verify(exactly = 0) { service.create(any()) }
   }
 
   @Test
-  fun updateShouldUpdateColumnAndOnTable() {
+  fun `(update) should update column and on table`() {
     every { collectionColumnRepository.update(firstSqlInsertedColumn(), "") } returns
         firstSqlInsertedColumn()
 

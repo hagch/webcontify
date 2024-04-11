@@ -10,12 +10,13 @@ class DecimalColumnHandlerTest {
   private val handler = DecimalColumnHandler()
 
   @Test
-  fun getColumnTypeShouldReturnType() {
+  fun `(getColumnType) should return type`() {
     assertEquals(SQLDataType.DECIMAL, handler.getColumnType())
   }
 
   @Test
-  fun getColumnHandlerTypeShouldReturnType() {
+  fun `(getColumnHandlerType) should return type`() {
     assertEquals(WebcontifyCollectionColumnType.DECIMAL, handler.getColumnHandlerType())
   }
+
 }
