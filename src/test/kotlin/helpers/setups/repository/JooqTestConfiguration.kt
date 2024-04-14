@@ -9,5 +9,5 @@ import org.springframework.context.annotation.ComponentScan
         [
             "io.webcontify.backend.collections.mappers",
             "io.webcontify.backend.collections.repositories",
-            "io.webcontify.backend.collections.services.column.handler"])
+            "io.webcontify.backend.collections.services.field.handler"])
 class JooqTestConfiguration

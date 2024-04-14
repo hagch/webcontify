@@ -5,13 +5,13 @@ import io.webcontify.backend.jooq.enums.WebcontifyCollectionRelationType
 data class WebContifyCollectionRelationDto(
     val id: Long?,
     val sourceCollection: WebContifyCollectionDto?,
-    val leftCollection: WebContifyCollectionDto,
+    val leftCollection: WebContifyCollectionDto?,
     val mappingCollection: WebContifyCollectionDto?,
-    val rightCollection: WebContifyCollectionDto,
+    val rightCollection: WebContifyCollectionDto?,
     val type: WebcontifyCollectionRelationType,
     val name: String,
     val displayName: String = name,
-    val fields: Set<WebContifyCollectionRelationFieldDto>
+    val fields: Set<WebContifyCollectionRelationFieldDto>?
 ) {
 
   fun switchReference(type: WebcontifyCollectionRelationType): WebContifyCollectionRelationDto {
@@ -21,12 +21,13 @@ data class WebContifyCollectionRelationDto(
         leftCollection = this.rightCollection,
         fields =
             this.fields
-                .map {
+                ?.map {
                   it.copy(
-                      sourceCollectionColumnId = it.referencedCollectionColumnId,
-                      referencedCollectionColumnId = it.sourceCollectionColumnId)
+                      sourceCollectionFieldId = it.referencedCollectionFieldId,
+                      referencedCollectionFieldId = it.sourceCollectionFieldId)
                 }
-                .toSet())
+                ?.toSet()
+                ?: emptySet())
   }
 
   fun switchReference(): WebContifyCollectionRelationDto {

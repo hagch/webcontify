@@ -19,7 +19,7 @@ import org.springframework.test.context.jdbc.Sql
 class DeleteCollectionApiTest : ApiTestSetup() {
 
   @Test
-  @Sql("/cleanup.sql", "./../collections-with-all-column-types.sql")
+  @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(DeleteCollectionById) should delete collection`() {
     Given { mockMvc(mockMvc) } When
         {

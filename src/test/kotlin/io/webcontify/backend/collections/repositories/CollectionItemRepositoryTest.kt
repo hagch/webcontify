@@ -1,7 +1,7 @@
 package io.webcontify.backend.collections.repositories
 
 import helpers.setups.repository.JooqTestSetup
-import helpers.suppliers.collectionWithColumns
+import helpers.suppliers.collectionWithFields
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
@@ -25,7 +25,7 @@ class CollectionItemRepositoryTest(
   fun `(create) item should create item`() {
     val collection = collectionRepository.getAll().first()
 
-    repository.create(collection, mapOf(Pair("id", 1), Pair("otherColumn", 1)))
+    repository.create(collection, mapOf(Pair("id", 1), Pair("otherField", 1)))
 
     assertEquals(1, context.select().from(collection.name).where(field("id").eq(1)).execute())
   }
@@ -42,7 +42,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-item-test-entities.sql")
-  fun `(create) item should throw exception on value is not supported on column`() {
+  fun `(create) item should throw exception on value is not supported on field`() {
     val collection = collectionRepository.getAll().first()
 
     assertThrows<UnprocessableContentException> {
@@ -54,20 +54,20 @@ class CollectionItemRepositoryTest(
   @Sql("/cleanup.sql", "create-item-test-entities.sql")
   fun `(create) item should throw already exists if primary key is already created`() {
     val collection = collectionRepository.getAll().first()
-    repository.create(collection, mapOf(Pair("id", 1), Pair("otherColumn", 1)))
+    repository.create(collection, mapOf(Pair("id", 1), Pair("otherField", 1)))
 
     assertThrows<AlreadyExistsException> {
-      repository.create(collection, mapOf(Pair("id", 1), Pair("otherColumn", 1)))
+      repository.create(collection, mapOf(Pair("id", 1), Pair("otherField", 1)))
     }
   }
 
   @Test
-  @Sql("/cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-fields.sql")
   fun `(create) item should throw error if table does not exist`() {
     val collection = collectionRepository.getAll().first()
 
     assertThrows<UnprocessableContentException> {
-      repository.create(collection, mapOf(Pair("id", 1), Pair("otherColumn", 1)))
+      repository.create(collection, mapOf(Pair("id", 1), Pair("otherField", 1)))
     }
   }
 
@@ -80,7 +80,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("/cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-fields.sql")
   fun `(getAll) for should throw error if table does not exist`() {
     val collection = collectionRepository.getAll().first()
 
@@ -107,7 +107,7 @@ class CollectionItemRepositoryTest(
   }
 
   @Test
-  @Sql("/cleanup.sql", "collection-with-columns.sql")
+  @Sql("/cleanup.sql", "collection-with-fields.sql")
   fun `(getByIdFor) should throw exception if table does not exist`() {
     val collection = collectionRepository.getAll().first()
 
@@ -146,7 +146,7 @@ class CollectionItemRepositoryTest(
 
   @Test
   fun `(deleteById) should throw exception if table does not exist`() {
-    val collection = collectionWithColumns(listOf(Pair("id", true)))
+    val collection = collectionWithFields(listOf(Pair("id", true)))
 
     assertThrows<UnprocessableContentException> {
       repository.deleteById(collection, mapOf(Pair("id", 1)))

@@ -1,1 +1,1 @@
-create table test (id bigint, othercolumn bigint, constraint PK_TEST primary key (id));
+create table test (id bigint, otherfield bigint, constraint PK_TEST primary key (id));

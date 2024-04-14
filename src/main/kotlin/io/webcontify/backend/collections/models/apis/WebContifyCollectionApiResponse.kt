@@ -1,11 +1,11 @@
 package io.webcontify.backend.collections.models.apis
 
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
 
 data class WebContifyCollectionApiResponse(
     val id: Long,
     val name: String,
     val displayName: String = name,
-    val columns: List<WebContifyCollectionColumnDto>,
+    val fields: List<WebContifyCollectionFieldDto>,
     val relations: List<WebContifyCollectionRelationApiResponse> = listOf()
 )

@@ -7,14 +7,8 @@ import io.webcontify.backend.collections.mappers.CollectionMapper
 import io.webcontify.backend.collections.mappers.CollectionRelationMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
-import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
-import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
-import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRelationCollectionFieldRecord
-import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRelationRecord
-import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION
-import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_COLUMN
-import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_RELATION
-import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_RELATION_COLLECTION_FIELD
+import io.webcontify.backend.jooq.tables.records.*
+import io.webcontify.backend.jooq.tables.references.*
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.SelectConnectByStep
@@ -35,14 +29,12 @@ class CollectionRepository(
     return dslContext
         .select()
         .from(WEBCONTIFY_COLLECTION)
-        .leftJoin(WEBCONTIFY_COLLECTION_COLUMN)
+        .leftJoin(WEBCONTIFY_COLLECTION_FIELD)
         .onKey()
         .leftJoin(WEBCONTIFY_COLLECTION_RELATION)
         .on(WEBCONTIFY_COLLECTION.ID.eq(WEBCONTIFY_COLLECTION_RELATION.SOURCE_COLLECTION_ID))
-        .leftJoin(WEBCONTIFY_COLLECTION_RELATION_COLLECTION_FIELD)
-        .on(
-            WEBCONTIFY_COLLECTION_RELATION.ID.eq(
-                WEBCONTIFY_COLLECTION_RELATION_COLLECTION_FIELD.RELATION_ID))
+        .leftJoin(WEBCONTIFY_COLLECTION_RELATION_FIELD)
+        .on(WEBCONTIFY_COLLECTION_RELATION.ID.eq(WEBCONTIFY_COLLECTION_RELATION_FIELD.RELATION_ID))
   }
 
   @Transactional(readOnly = true)
@@ -107,16 +99,16 @@ class CollectionRepository(
       Map<
           WebcontifyCollectionRecord,
           Pair<
-              Set<WebcontifyCollectionColumnRecord>,
+              Set<WebcontifyCollectionFieldRecord>,
               Map<
                   WebcontifyCollectionRelationRecord,
-                  List<WebcontifyCollectionRelationCollectionFieldRecord>>>> {
+                  List<WebcontifyCollectionRelationFieldRecord>>>> {
     return this.groupBy { r -> r.into(WebcontifyCollectionRecord::class.java) }
         .mapValues {
           Pair(
               it.value
-                  .filter { r -> r.get(WEBCONTIFY_COLLECTION_COLUMN.COLLECTION_ID) != null }
-                  .map { r -> r.into(WebcontifyCollectionColumnRecord::class.java) }
+                  .filter { r -> r.get(WEBCONTIFY_COLLECTION_FIELD.COLLECTION_ID) != null }
+                  .map { r -> r.into(WebcontifyCollectionFieldRecord::class.java) }
                   .toSet(),
               it.value
                   .filter { r ->
@@ -124,9 +116,7 @@ class CollectionRepository(
                   }
                   .groupBy(
                       { r -> r.into(WebcontifyCollectionRelationRecord::class.java) },
-                      { r ->
-                        r.into(WebcontifyCollectionRelationCollectionFieldRecord::class.java)
-                      })
+                      { r -> r.into(WebcontifyCollectionRelationFieldRecord::class.java) })
                   .toMap())
         }
   }

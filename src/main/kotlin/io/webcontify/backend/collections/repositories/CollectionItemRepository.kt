@@ -7,11 +7,11 @@ import io.webcontify.backend.collections.models.IdentifierMap
 import io.webcontify.backend.collections.models.Item
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
-import io.webcontify.backend.collections.services.column.handler.ColumnHandlerStrategy
+import io.webcontify.backend.collections.services.field.handler.FieldHandlerStrategy
 import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.collections.utils.toKeyValueString
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
+import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.*
@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional
 @Repository
 class CollectionItemRepository(
     val dslContext: DSLContext,
-    val columnHandlerStrategy: ColumnHandlerStrategy
+    val fieldHandlerStrategy: FieldHandlerStrategy
 ) {
 
   @Transactional(readOnly = true)
@@ -60,7 +60,7 @@ class CollectionItemRepository(
   fun create(collection: WebContifyCollectionDto, item: Item): Item {
     val createAbleItem = getCreateAbleItem(collection, item)
     val fields = createAbleItem.keys.map { field(it) }
-    val allFields = collection.columns?.map { field(it.name) } ?: emptyList()
+    val allFields = collection.fields?.map { field(it.name) } ?: emptyList()
     try {
       dslContext
           .insertInto(table(collection.name), fields)
@@ -73,7 +73,7 @@ class CollectionItemRepository(
     } catch (e: DuplicateKeyException) {
       throw AlreadyExistsException(
           ErrorCode.ITEM_ALREADY_EXISTS,
-          collection.primaryColumnItemValueString(item),
+          collection.primaryFieldItemValueString(item),
           collection.id.toString())
     }
     throw UnprocessableContentException(
@@ -82,11 +82,11 @@ class CollectionItemRepository(
 
   private fun getCreateAbleItem(collection: WebContifyCollectionDto, item: Item): Item {
     val removeAblePrimaryKeys =
-        collection.columns
+        collection.fields
             ?.filter {
               it.isPrimaryKey &&
-                  (it.type == WebcontifyCollectionColumnType.NUMBER ||
-                      it.type == WebcontifyCollectionColumnType.UUID)
+                  (it.type == WebcontifyCollectionFieldType.NUMBER ||
+                      it.type == WebcontifyCollectionFieldType.UUID)
             }
             ?.map { it.name }
             ?.toList()
@@ -142,16 +142,16 @@ class CollectionItemRepository(
   }
 
   private fun mapItemToStore(item: Item, collection: WebContifyCollectionDto): Item {
-    return collection.columns?.let { columns ->
-      return columnHandlerStrategy.castItemToJavaTypes(columns, item).toMap()
+    return collection.fields?.let { fields ->
+      return fieldHandlerStrategy.castItemToJavaTypes(fields, item).toMap()
     }
         ?: emptyMap()
   }
 
   private fun mapItemToResult(item: Item, collection: WebContifyCollectionDto): Item {
-    return collection.columns?.let { columns ->
-      return columnHandlerStrategy
-          .castItemToJavaTypes(columns, item)
+    return collection.fields?.let { fields ->
+      return fieldHandlerStrategy
+          .castItemToJavaTypes(fields, item)
           .map { it.key.snakeToCamelCase() to it.value }
           .toMap()
     }

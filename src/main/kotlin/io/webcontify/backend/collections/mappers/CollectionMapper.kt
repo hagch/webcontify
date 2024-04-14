@@ -4,46 +4,46 @@ import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiCrea
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiResponse
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiUpdateRequest
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionRelationApiResponse
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionRelationIdDto
-import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionColumnRecord
+import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionFieldRecord
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 
 @Mapper(
     componentModel = "spring",
-    uses = [CollectionColumnMapper::class, CollectionRelationMapper::class])
+    uses = [CollectionFieldMapper::class, CollectionRelationMapper::class])
 interface CollectionMapper {
 
   @Mapping(source = "collection.id", target = "id")
   @Mapping(source = "collection.name", target = "name")
   @Mapping(source = "collection.displayName", target = "displayName")
-  @Mapping(source = "columns", target = "columns")
+  @Mapping(source = "fields", target = "fields")
   @Mapping(source = "relations", target = "relations", defaultExpression = "java(new ArrayList())")
   fun mapToDto(
       collection: WebcontifyCollectionRecord,
-      columns: Set<WebcontifyCollectionColumnRecord>,
+      fields: Set<WebcontifyCollectionFieldRecord>,
       relations: List<WebContifyCollectionRelationIdDto>
   ): WebContifyCollectionDto
 
   @Mapping(source = "collection.id", target = "id")
   @Mapping(source = "collection.name", target = "name")
   @Mapping(source = "collection.displayName", target = "displayName")
-  @Mapping(source = "columns", target = "columns")
-  fun addColumnsToDto(
+  @Mapping(source = "fields", target = "fields")
+  fun addFieldsToDto(
       collection: WebContifyCollectionDto,
-      columns: Set<WebContifyCollectionColumnDto>
+      fields: Set<WebContifyCollectionFieldDto>
   ): WebContifyCollectionDto
 
   @Mapping(source = "collection.id", target = "id")
   @Mapping(source = "collection.name", target = "name")
   @Mapping(source = "collection.displayName", target = "displayName")
-  @Mapping(source = "columns", target = "columns")
+  @Mapping(source = "fields", target = "fields")
   fun mapCollectionToDto(
       collection: WebcontifyCollectionRecord,
-      columns: Set<WebContifyCollectionColumnDto>
+      fields: Set<WebContifyCollectionFieldDto>
   ): WebContifyCollectionDto
 
   @Mapping(target = "id", ignore = true)
@@ -53,7 +53,7 @@ interface CollectionMapper {
   ): WebContifyCollectionDto
 
   @Mapping(source = "id", target = "id")
-  @Mapping(target = "columns", ignore = true)
+  @Mapping(target = "fields", ignore = true)
   @Mapping(target = "relations", expression = "java(new ArrayList())")
   fun mapApiToDto(
       collectionCreateRequest: WebContifyCollectionApiUpdateRequest,

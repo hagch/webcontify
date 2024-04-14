@@ -15,8 +15,8 @@ class CollectionTableRelationRepository(val dslContext: DSLContext) {
   fun create(relation: WebContifyCollectionRelationDto) {
     /**
      * TODO NOT WORKING val sourceFields = relation.fields.map {
-     * field(name(it.sourceCollectionColumnName)) } val referencedFields = relation.fields.map {
-     * name(it.referencedCollectionColumnName) } dslContext
+     * field(name(it.sourceCollectionFieldName)) } val referencedFields = relation.fields.map {
+     * name(it.referencedCollectionFieldName) } dslContext
      * .alterTableIfExists(name(relation.sourceCollection.name)) .add(
      * constraint("$CONSTRAINT_PREFIX${relation.referencedCollection.name}_${relation.name}")
      * .foreignKey(sourceFields) .references(name(relation.referencedCollection.name),

@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.services
 
-import helpers.suppliers.collectionWithColumns
+import helpers.suppliers.collectionWithFields
 import helpers.suppliers.collectionWithNameCollection
 import helpers.suppliers.collectionWithNameTest
 import io.mockk.every
@@ -9,7 +9,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import io.webcontify.backend.collections.mappers.CollectionMapper
-import io.webcontify.backend.collections.repositories.CollectionColumnRepository
+import io.webcontify.backend.collections.repositories.CollectionFieldRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
 import io.webcontify.backend.collections.repositories.CollectionTableRepository
 import org.junit.jupiter.api.Test
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 @MockKExtension.CheckUnnecessaryStub
 class CollectionServiceTest {
 
-  @RelaxedMockK lateinit var collectionColumnRepository: CollectionColumnRepository
+  @RelaxedMockK lateinit var collectionFieldRepository: CollectionFieldRepository
 
   @RelaxedMockK lateinit var collectionTableRepository: CollectionTableRepository
 
@@ -29,7 +29,7 @@ class CollectionServiceTest {
 
   @InjectMockKs lateinit var service: CollectionService
 
-  private val collection = collectionWithColumns(listOf(Pair("id", true)))
+  private val collection = collectionWithFields(listOf(Pair("id", true)))
 
   @Test
   fun `(getAll) should call collection repository`() {
@@ -66,12 +66,12 @@ class CollectionServiceTest {
     verify(exactly = 1) {
       collectionRepository.create(collection)
       collectionTableRepository.create(any())
-      collectionColumnRepository.create(any())
+      collectionFieldRepository.create(any())
     }
   }
 
   @Test
-  fun `(create) should create collection and columns and table`() {
+  fun `(create) should create collection and fields and table`() {
     every { collectionRepository.create(collection) } returns collection
 
     service.create(collection)
@@ -79,7 +79,7 @@ class CollectionServiceTest {
     verify(exactly = 1) {
       collectionRepository.create(collection)
       collectionTableRepository.create(any())
-      collectionColumnRepository.create(collection.columns!![0])
+      collectionFieldRepository.create(collection.fields!![0])
     }
   }
 

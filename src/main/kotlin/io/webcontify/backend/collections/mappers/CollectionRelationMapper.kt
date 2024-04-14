@@ -2,12 +2,8 @@ package io.webcontify.backend.collections.mappers
 
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionRelationApiCreateRequest
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionRelationApiResponse
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionRelationDto
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionRelationFieldDto
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionRelationIdDto
-import io.webcontify.backend.jooq.tables.WebcontifyCollectionRelationCollectionField
-import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRelationCollectionFieldRecord
+import io.webcontify.backend.collections.models.dtos.*
+import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRelationFieldRecord
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRelationRecord
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -35,7 +31,7 @@ interface CollectionRelationMapper {
   fun mapToResponse(dto: WebContifyCollectionRelationDto): WebContifyCollectionRelationApiResponse
 
   fun fieldEntityToDto(
-      field: WebcontifyCollectionRelationCollectionField
+      field: WebcontifyCollectionRelationFieldRecord
   ): WebContifyCollectionRelationFieldDto
 
   @Mapping(source = "fields", target = "fields")
@@ -43,7 +39,7 @@ interface CollectionRelationMapper {
   @Mapping(source = "dto.id", target = "id")
   fun entityToDto(
       dto: WebcontifyCollectionRelationRecord,
-      fields: List<WebcontifyCollectionRelationCollectionFieldRecord>
+      fields: List<WebcontifyCollectionRelationFieldRecord>
   ): WebContifyCollectionRelationDto
 
   @Mapping(source = "fields", target = "fields")
@@ -51,6 +47,6 @@ interface CollectionRelationMapper {
   @Mapping(source = "dto.id", target = "id")
   fun entityToIdDto(
       dto: WebcontifyCollectionRelationRecord,
-      fields: List<WebcontifyCollectionRelationCollectionFieldRecord>
+      fields: List<WebcontifyCollectionRelationFieldRecord>
   ): WebContifyCollectionRelationIdDto
 }

@@ -1,7 +1,7 @@
 package io.webcontify.backend.collections.repositories
 
 import helpers.setups.repository.JooqTestSetup
-import helpers.suppliers.collectionWithEmptyColumns
+import helpers.suppliers.collectionWithEmptyFields
 import helpers.suppliers.collectionWithNameCollection
 import helpers.suppliers.collectionWithNameTest
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
@@ -28,37 +28,37 @@ class CollectionRepositoryTest(
   }
 
   @Test
-  @Sql("/cleanup.sql", "collection-with-columns.sql")
-  fun `(getAll) should return a collection with column definitions`() {
+  @Sql("/cleanup.sql", "collection-with-fields.sql")
+  fun `(getAll) should return a collection with field definitions`() {
     assertDoesNotThrow {
-      repository.getAll().first { collection -> !collection.columns.isNullOrEmpty() }
+      repository.getAll().first { collection -> !collection.fields.isNullOrEmpty() }
     }
   }
 
   @Test
-  @Sql("/cleanup.sql", "collection-without-columns.sql")
-  fun `(getAll) should return a collection without column definitions`() {
+  @Sql("/cleanup.sql", "collection-without-fields.sql")
+  fun `(getAll) should return a collection without field definitions`() {
     assertDoesNotThrow {
-      repository.getAll().first { collection -> collection.columns.isNullOrEmpty() }
+      repository.getAll().first { collection -> collection.fields.isNullOrEmpty() }
     }
   }
 
   @Test
-  @Sql("/cleanup.sql", "collection-with-columns.sql")
-  fun `(getById) should return a collection with column definitions`() {
+  @Sql("/cleanup.sql", "collection-with-fields.sql")
+  fun `(getById) should return a collection with field definitions`() {
     val collection = repository.getById(collectionId)
 
     assertEquals(collectionId, collection.id)
-    assertTrue(!collection.columns.isNullOrEmpty())
+    assertTrue(!collection.fields.isNullOrEmpty())
   }
 
   @Test
-  @Sql("/cleanup.sql", "collection-without-columns.sql")
-  fun `(getById) should return a collection without column definitions`() {
+  @Sql("/cleanup.sql", "collection-without-fields.sql")
+  fun `(getById) should return a collection without field definitions`() {
     val collection = repository.getById(collectionId)
 
     assertEquals(collectionId, collection.id)
-    assertTrue(collection.columns.isNullOrEmpty())
+    assertTrue(collection.fields.isNullOrEmpty())
   }
 
   @Test
@@ -68,7 +68,7 @@ class CollectionRepositoryTest(
   }
 
   @Test
-  @Sql("/cleanup.sql", "collection-without-columns.sql")
+  @Sql("/cleanup.sql", "collection-without-fields.sql")
   fun `(update) should update name and displayName`() {
     val newDisplayName = "New DisplayName"
     val newName = "NEW_NAME"
@@ -87,18 +87,18 @@ class CollectionRepositoryTest(
   @Test
   @Sql("/cleanup.sql")
   fun `(update) should throw Exception on collection does not exist`() {
-    assertThrows<NotFoundException> { repository.update(collectionWithEmptyColumns()) }
+    assertThrows<NotFoundException> { repository.update(collectionWithEmptyFields()) }
   }
 
   @Test
-  @Sql("/cleanup.sql", "collection-without-columns.sql")
+  @Sql("/cleanup.sql", "collection-without-fields.sql")
   fun `(deleteById) should be success full on resource exists`() {
     assertDoesNotThrow { repository.deleteById(collectionId) }
   }
 
   @Test
-  @Sql("/cleanup.sql", "collection-with-columns.sql")
-  fun `(deleteById) should not throw exception on collection with columns exist`() {
+  @Sql("/cleanup.sql", "collection-with-fields.sql")
+  fun `(deleteById) should not throw exception on collection with fields exist`() {
     assertDoesNotThrow { repository.deleteById(collectionId) }
   }
 

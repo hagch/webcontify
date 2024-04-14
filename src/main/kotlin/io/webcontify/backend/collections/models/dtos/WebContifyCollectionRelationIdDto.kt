@@ -7,9 +7,7 @@ data class WebContifyCollectionRelationIdDto(
     val sourceCollectionId: Long?,
     val leftCollectionId: Long?,
     val mappingCollectionId: Long?,
-    val rightCollectionId: Long,
+    val rightCollectionId: Long?,
     val type: WebcontifyCollectionRelationType,
-    val name: String,
-    val displayName: String = name,
     val fields: Set<WebContifyCollectionRelationFieldDto>
 )

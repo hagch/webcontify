@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.services
 
-import helpers.suppliers.collectionWithColumns
+import helpers.suppliers.collectionWithFields
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -19,7 +19,7 @@ class CollectionItemServiceTest {
   @MockK lateinit var collectionItemRepository: CollectionItemRepository
   @InjectMockKs lateinit var collectionItemService: CollectionItemService
 
-  private val collection = collectionWithColumns(listOf(Pair("test", true)))
+  private val collection = collectionWithFields(listOf(Pair("test", true)))
   private val id = 1L
   private val identifierMap = mapOf(Pair("test", id))
 

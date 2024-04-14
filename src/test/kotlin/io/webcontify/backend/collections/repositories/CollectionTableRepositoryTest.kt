@@ -1,11 +1,11 @@
 package io.webcontify.backend.collections.repositories
 
 import helpers.setups.repository.JooqTestSetup
-import helpers.suppliers.collectionWithColumns
+import helpers.suppliers.collectionWithFields
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionColumnType
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
+import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
@@ -19,27 +19,27 @@ class CollectionTableRepositoryTest(
     @Autowired val context: DSLContext,
     @Autowired val repository: CollectionTableRepository
 ) : JooqTestSetup() {
-  private final val firstColumn =
-      WebContifyCollectionColumnDto(
-          null, 1, "id", "id", WebcontifyCollectionColumnType.NUMBER, true, null)
-  private final val secondColumn =
-      WebContifyCollectionColumnDto(
-          null, 1, "otherColumn", "otherColumn", WebcontifyCollectionColumnType.NUMBER, false, null)
-  private final val firstColumnPrimary =
-      WebContifyCollectionColumnDto(
-          null, 1, "primary1", "primary1", WebcontifyCollectionColumnType.NUMBER, true, null)
-  private final val secondColumnPrimary =
-      WebContifyCollectionColumnDto(
-          null, 1, "primary2", "primary2", WebcontifyCollectionColumnType.NUMBER, false, null)
+  private final val firstField =
+      WebContifyCollectionFieldDto(
+          null, 1, "id", "id", WebcontifyCollectionFieldType.NUMBER, true, null)
+  private final val secondField =
+      WebContifyCollectionFieldDto(
+          null, 1, "otherField", "otherField", WebcontifyCollectionFieldType.NUMBER, false, null)
+  private final val firstFieldPrimary =
+      WebContifyCollectionFieldDto(
+          null, 1, "primary1", "primary1", WebcontifyCollectionFieldType.NUMBER, true, null)
+  private final val secondFieldPrimary =
+      WebContifyCollectionFieldDto(
+          null, 1, "primary2", "primary2", WebcontifyCollectionFieldType.NUMBER, false, null)
 
   private final val onePrimaryKeyCollection =
-      collectionWithColumns(listOf(Pair("id", true), Pair("otherColumn", false)))
-  private final val onePrimaryKeyFields = listOf(field(firstColumn.name), field(secondColumn.name))
+      collectionWithFields(listOf(Pair("id", true), Pair("otherField", false)))
+  private final val onePrimaryKeyFields = listOf(field(firstField.name), field(secondField.name))
 
   private final val compositePrimaryKeyCollection =
-      collectionWithColumns(listOf(Pair("primary1", true), Pair("primary2", true)))
+      collectionWithFields(listOf(Pair("primary1", true), Pair("primary2", true)))
   private final val compositePrimaryKeyFields =
-      listOf(field(firstColumnPrimary.name), field(secondColumnPrimary.name))
+      listOf(field(firstFieldPrimary.name), field(secondFieldPrimary.name))
 
   @Test
   @Sql("/cleanup.sql")
@@ -83,22 +83,22 @@ class CollectionTableRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql")
-  fun `(create) should throw exception if no column is primary key`() {
+  fun `(create) should throw exception if no field is primary key`() {
     val collection =
         WebContifyCollectionDto(
             1,
             "test",
             "Test",
             listOf(
-                WebContifyCollectionColumnDto(
-                    null, 1, "primary1", "id", WebcontifyCollectionColumnType.NUMBER, false, null)))
+                WebContifyCollectionFieldDto(
+                    null, 1, "primary1", "id", WebcontifyCollectionFieldType.NUMBER, false, null)))
 
     assertThrows<UnprocessableContentException> { repository.create(collection) }
   }
 
   @Test
   @Sql("/cleanup.sql")
-  fun `(create) should throw exception if columns are empty`() {
+  fun `(create) should throw exception if fields are empty`() {
     val collection = WebContifyCollectionDto(1, "test", "Test", listOf())
 
     assertThrows<UnprocessableContentException> { repository.create(collection) }

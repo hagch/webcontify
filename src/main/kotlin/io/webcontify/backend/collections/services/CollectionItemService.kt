@@ -4,7 +4,7 @@ import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.IdentifierMap
 import io.webcontify.backend.collections.models.Item
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionColumnDto
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.repositories.CollectionItemRepository
 import io.webcontify.backend.collections.utils.snakeToCamelCase
@@ -26,10 +26,10 @@ class CollectionItemService(
   @Transactional(readOnly = true)
   fun getById(collectionId: Long, itemId: Any): Item {
     val collection = collectionService.getById(collectionId)
-    if (collection.columns == null) {
-      throw NotFoundException(ErrorCode.GET_ITEM_COLLECTION_WITHOUT_COLUMNS)
+    if (collection.fields == null) {
+      throw NotFoundException(ErrorCode.GET_ITEM_COLLECTION_WITHOUT_FIELDS)
     }
-    val primaryKey = collection.columns.first { it.isPrimaryKey }
+    val primaryKey = collection.fields.first { it.isPrimaryKey }
     return collectionItemRepository.getByIdFor(
         collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)))
   }
@@ -37,7 +37,7 @@ class CollectionItemService(
   @Transactional
   fun deleteById(collectionId: Long, identifierMap: IdentifierMap) {
     val collection = collectionService.getById(collectionId)
-    val primaryKeys = collection.columns?.filter { it.isPrimaryKey }
+    val primaryKeys = collection.fields?.filter { it.isPrimaryKey }
     if (primaryKeys?.size != identifierMap.size) {
       throw UnprocessableContentException(ErrorCode.PRIMARY_KEYS_UNEQUAL)
     }
@@ -53,10 +53,10 @@ class CollectionItemService(
   @Transactional
   fun deleteById(collectionId: Long, itemId: Any) {
     val collection = collectionService.getById(collectionId)
-    if (collection.columns == null) {
-      throw UnprocessableContentException(ErrorCode.DELETE_ITEM_FROM_COLLECTION_WITHOUT_COLUMNS)
+    if (collection.fields == null) {
+      throw UnprocessableContentException(ErrorCode.DELETE_ITEM_FROM_COLLECTION_WITHOUT_FIELDS)
     }
-    val primaryKey = collection.columns.first { it.isPrimaryKey }
+    val primaryKey = collection.fields.first { it.isPrimaryKey }
     return collectionItemRepository.deleteById(
         collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)))
   }
@@ -76,10 +76,10 @@ class CollectionItemService(
   @Transactional
   fun updateById(collectionId: Long, identifierMap: IdentifierMap, item: Item): Item {
     val collection = collectionService.getById(collectionId)
-    if (collection.columns == null) {
-      throw UnprocessableContentException(ErrorCode.UPDATE_ITEM_FROM_COLLECTION_WITHOUT_COLUMNS)
+    if (collection.fields == null) {
+      throw UnprocessableContentException(ErrorCode.UPDATE_ITEM_FROM_COLLECTION_WITHOUT_FIELDS)
     }
-    val primaryKeys = collection.columns.filter { it.isPrimaryKey }
+    val primaryKeys = collection.fields.filter { it.isPrimaryKey }
     val updateAbleItem = item.toMutableMap()
     validatePrimaryKeys(primaryKeys, identifierMap, updateAbleItem)
     return collectionItemRepository.update(collection, identifierMap, updateAbleItem)
@@ -88,16 +88,16 @@ class CollectionItemService(
   @Transactional
   fun updateById(collectionId: Long, itemId: Any, item: Item): Item {
     val collection = collectionService.getById(collectionId)
-    if (collection.columns == null) {
-      throw UnprocessableContentException(ErrorCode.UPDATE_ITEM_FROM_COLLECTION_WITHOUT_COLUMNS)
+    if (collection.fields == null) {
+      throw UnprocessableContentException(ErrorCode.UPDATE_ITEM_FROM_COLLECTION_WITHOUT_FIELDS)
     }
-    val primaryKey = collection.columns.first { it.isPrimaryKey }
+    val primaryKey = collection.fields.first { it.isPrimaryKey }
     return collectionItemRepository.update(
         collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)), item)
   }
 
   private fun validatePrimaryKeys(
-      primaryKeys: List<WebContifyCollectionColumnDto>,
+      primaryKeys: List<WebContifyCollectionFieldDto>,
       identifierMap: IdentifierMap,
       updateAbleItem: MutableMap<String, Any?>
   ) {
