@@ -4,16 +4,16 @@ import io.webcontify.backend.collections.models.dtos.CastException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldUuidConfigurationDto
 import io.webcontify.backend.collections.services.field.handler.FieldHandler
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
+import io.webcontify.backend.collections.services.field.handler.UUID_FIELD_TYPE
 import java.util.*
 import org.jooq.DataType
 import org.jooq.JSONB
 import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
 import org.jooq.jackson.extensions.converters.JSONBtoJacksonConverter
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 
-@Service
+@Component(UUID_FIELD_TYPE)
 class UuidFieldHandler : FieldHandler<UUID> {
 
   private val converter =
@@ -32,10 +32,6 @@ class UuidFieldHandler : FieldHandler<UUID> {
       type = type.defaultValue(DSL.uuid())
     }
     return type
-  }
-
-  override fun getFieldHandlerType(): WebcontifyCollectionFieldType {
-    return WebcontifyCollectionFieldType.UUID
   }
 
   override fun castToJavaType(value: Any?): UUID? {

@@ -2,17 +2,17 @@ package io.webcontify.backend.collections.services.field.handler.strategies
 
 import io.webcontify.backend.collections.models.dtos.*
 import io.webcontify.backend.collections.services.field.handler.FieldHandler
+import io.webcontify.backend.collections.services.field.handler.NUMBER_FIELD_TYPE
 import io.webcontify.backend.collections.utils.addGreaterThanIfPresent
 import io.webcontify.backend.collections.utils.addLessThanIfPresent
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.jooq.ConstraintEnforcementStep
 import org.jooq.DataType
 import org.jooq.JSONB
 import org.jooq.impl.SQLDataType
 import org.jooq.jackson.extensions.converters.JSONBtoJacksonConverter
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 
-@Service
+@Component(NUMBER_FIELD_TYPE)
 class NumberFieldHandler : FieldHandler<Long> {
 
   private val converter =
@@ -52,10 +52,6 @@ class NumberFieldHandler : FieldHandler<Long> {
       }
     }
     return list.toList()
-  }
-
-  override fun getFieldHandlerType(): WebcontifyCollectionFieldType {
-    return WebcontifyCollectionFieldType.NUMBER
   }
 
   override fun castToJavaType(value: Any?): Long? {

@@ -6,20 +6,15 @@ import io.webcontify.backend.collections.models.dtos.ValidationException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldConfigurationDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
-import jakarta.annotation.PostConstruct
 import org.jooq.JSONB
 import org.springframework.stereotype.Service
 
 @Service
-class FieldHandlerStrategy(private val handlers: List<FieldHandler<*>>) {
-
-  private val handlerMap: MutableMap<WebcontifyCollectionFieldType, FieldHandler<*>> =
-      mutableMapOf()
+class FieldHandlerStrategy(private val handlers: Map<String, FieldHandler<*>>) {
 
   fun getHandlerFor(field: WebContifyCollectionFieldDto): FieldHandler<*> {
     try {
-      return handlerMap.getValue(field.type)
+      return handlers.getValue(field.type.name)
     } catch (e: NoSuchElementException) {
       throw UnprocessableContentException(
           ErrorCode.NO_HANDLER_FOR_FIELD_TYPE, field.name, field.type.name)
@@ -62,11 +57,6 @@ class FieldHandlerStrategy(private val handlers: List<FieldHandler<*>>) {
       } catch (e: NoSuchElementException) {
         throw UnprocessableContentException(ErrorCode.UNDEFINED_FIELD, key)
       } ?: throw UnprocessableContentException(ErrorCode.UNDEFINED_FIELD, key)
-
-  @PostConstruct
-  fun generateHandlerMap() {
-    handlers.forEach { handlerMap[it.getFieldHandlerType()] = it }
-  }
 
   fun mapConfigurationToJSONB(field: WebContifyCollectionFieldDto): JSONB? {
     return getHandlerFor(field).mapConfigurationToJSONB(field.configuration)

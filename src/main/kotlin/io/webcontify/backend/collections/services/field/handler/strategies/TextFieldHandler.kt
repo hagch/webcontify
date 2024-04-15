@@ -2,16 +2,16 @@ package io.webcontify.backend.collections.services.field.handler.strategies
 
 import io.webcontify.backend.collections.models.dtos.*
 import io.webcontify.backend.collections.services.field.handler.FieldHandler
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
+import io.webcontify.backend.collections.services.field.handler.TEXT_FIELD_TYPE
 import org.jooq.ConstraintEnforcementStep
 import org.jooq.DataType
 import org.jooq.JSONB
 import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
 import org.jooq.jackson.extensions.converters.JSONBtoJacksonConverter
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 
-@Service
+@Component(TEXT_FIELD_TYPE)
 class TextFieldHandler : FieldHandler<String> {
 
   private val converter =
@@ -25,10 +25,6 @@ class TextFieldHandler : FieldHandler<String> {
 
   override fun getFieldType(): DataType<String> {
     return SQLDataType.VARCHAR
-  }
-
-  override fun getFieldHandlerType(): WebcontifyCollectionFieldType {
-    return WebcontifyCollectionFieldType.TEXT
   }
 
   override fun getFieldConstraints(
