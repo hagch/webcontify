@@ -12,6 +12,5 @@ data class WebContifyCollectionApiCreateRequest(
     val displayName: String = name,
     @field:Size(min = 1, message = "FIELD_REQUIRED")
     @field:Valid
-    val fields: List<WebContifyCollectionFieldApiCreateRequest>,
-    val relations: Set<WebContifyCollectionRelationApiCreateRequest>?
+    val fields: List<WebContifyCollectionFieldApiCreateRequest>
 )

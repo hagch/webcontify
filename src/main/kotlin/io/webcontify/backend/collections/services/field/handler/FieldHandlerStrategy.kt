@@ -9,6 +9,7 @@ import io.webcontify.backend.collections.models.errors.ErrorCode
 import org.jooq.JSONB
 import org.springframework.stereotype.Service
 
+// TODO SPLIT INTO PARTS ONE FOR columns and one for items
 @Service
 class FieldHandlerStrategy(private val handlers: Map<String, FieldHandler<*>>) {
 

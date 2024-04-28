@@ -6,6 +6,5 @@ data class WebContifyCollectionApiResponse(
     val id: Long,
     val name: String,
     val displayName: String = name,
-    val fields: List<WebContifyCollectionFieldDto>,
-    val relations: List<WebContifyCollectionRelationApiResponse> = listOf()
+    val fields: List<WebContifyCollectionFieldDto>
 )

@@ -18,24 +18,22 @@ class CollectionApiCreateRequestSupplier {
     private var collectionId: Long = 0
 
     val COLLECTION_WITHOUT_FIELDS =
-        WebContifyCollectionApiCreateRequest("without_fields", "DisplayName", listOf(), null)
+        WebContifyCollectionApiCreateRequest("without_fields", "DisplayName", listOf())
     val COLLECTION_WITH_EMPTY_NAME =
-        WebContifyCollectionApiCreateRequest("", "DisplayName", listOf(NUMBER_PRIMARY_FIELD), null)
+        WebContifyCollectionApiCreateRequest("", "DisplayName", listOf(NUMBER_PRIMARY_FIELD))
     val COLLECTION_WITH_INVALID_NAME =
-        WebContifyCollectionApiCreateRequest(
-            "_testA?", "DisplayName", listOf(NUMBER_PRIMARY_FIELD), null)
+        WebContifyCollectionApiCreateRequest("_testA?", "DisplayName", listOf(NUMBER_PRIMARY_FIELD))
     val COLLECTION_WITHOUT_PRIMARY_FIELD =
         WebContifyCollectionApiCreateRequest(
-            "without_primary_key", "DisplayName", listOf(DECIMAL_FIELD), null)
+            "without_primary_key", "DisplayName", listOf(DECIMAL_FIELD))
     val COLLECTION_WITH_INVALID_FIELD_NAMES =
         WebContifyCollectionApiCreateRequest(
             "invalid_field_name",
             "DisplayName",
-            listOf(FIELD_WITH_INVALID_NAME, FIELD_WITH_INVALID_NAME_TEXT, FIELD_WITH_EMPTY_NAME),
-            null)
+            listOf(FIELD_WITH_INVALID_NAME, FIELD_WITH_INVALID_NAME_TEXT, FIELD_WITH_EMPTY_NAME))
     val COLLECTION_WITH_FIELD_WRONG_CONFIGURATION =
         WebContifyCollectionApiCreateRequest(
-            "empty_field_name", "DisplayName", listOf(FIELD_WITH_WRONG_CONFIGURATION), null)
+            "empty_field_name", "DisplayName", listOf(FIELD_WITH_WRONG_CONFIGURATION))
 
     fun getCollectionWithValidNameOnePrimaryField(): WebContifyCollectionApiCreateRequest {
       return WebContifyCollectionApiCreateRequest(
@@ -47,8 +45,7 @@ class CollectionApiCreateRequestSupplier {
               UUID_FIELD,
               TIMESTAMP_FIELD,
               BOOLEAN_FIELD,
-              TEXT_FIELD),
-          null)
+              TEXT_FIELD))
     }
 
     fun getCollectionWithValidNameMultiplePrimaryFields(): WebContifyCollectionApiCreateRequest {
@@ -61,8 +58,7 @@ class CollectionApiCreateRequestSupplier {
               UUID_FIELD.copy(name = "uuid_primary_field", isPrimaryKey = true),
               TIMESTAMP_FIELD,
               BOOLEAN_FIELD,
-              TEXT_FIELD),
-          null)
+              TEXT_FIELD))
     }
   }
 }

@@ -6,6 +6,7 @@ import helpers.suppliers.secondSqlInsertedField
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import org.jooq.DSLContext
+import org.jooq.impl.DSL.field
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -104,7 +105,7 @@ class CollectionFieldRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "collection-without-fields.sql")
-  fun `(create) should create collection`() {
+  fun `(create) should create field`() {
     assertNotNull(repository.create(firstSqlInsertedField()))
     assertNotNull(repository.create(secondSqlInsertedField()))
   }

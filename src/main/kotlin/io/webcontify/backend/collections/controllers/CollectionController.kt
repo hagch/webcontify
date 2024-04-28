@@ -36,9 +36,9 @@ class CollectionController(val service: CollectionService, val mapper: Collectio
   fun create(
       @RequestBody @Valid collection: WebContifyCollectionApiCreateRequest
   ): ResponseEntity<WebContifyCollectionApiResponse> {
-    var createdCollection = service.create(mapper.mapApiToDto(collection))
+    val createdCollection = service.create(mapper.mapApiToDto(collection))
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(mapper.mapDtoToResponse(createdCollection.copy(relations = emptyList())))
+        .body(mapper.mapDtoToResponse(createdCollection))
   }
 
   @PutMapping("$COLLECTIONS_PATH/{id}")

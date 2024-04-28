@@ -122,67 +122,7 @@ class CreateCollectionApiTest : ApiTestSetup() {
         ErrorCode.COLLECTION_WITH_NAME_ALREADY_EXISTS,
         String.format(ErrorCode.COLLECTION_WITH_NAME_ALREADY_EXISTS.message, collection.name))
   }
-  /**
-   * @Test fun `(CreateCollection) endpoint should create one to one relation`() { val
-   *   collectionForRelation =
-   *   CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField() val
-   *   relatedCollectionId = getCollectionIdOfCreation(collectionForRelation)
-   *
-   * val collectionWithRelation =
-   * CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField() .copy( relations
-   * = setOf( CollectionRelationApiCreateRequestSupplier.getOneToOneRelation( setOf(
-   * WebContifyCollectionRelationFieldDto( NUMBER_PRIMARY_FIELD.name, NUMBER_PRIMARY_FIELD.name)),
-   * relatedCollectionId))) Given { mockMvc(mockMvc) contentType(MediaType.APPLICATION_JSON_VALUE)
-   * body(collectionWithRelation) } When { post(COLLECTIONS_PATH) } Then {
-   * status(HttpStatus.CREATED) body("relations", hasSize<MutableCollection<Any>>(equalTo(1)))
-   * body("relations[0].referencedCollectionId", equalTo(relatedCollectionId))
-   * body("relations[0].fields", hasSize<MutableCollection<Any>>(1)) } }
-   *
-   * @Test fun `(CreateCollection) endpoint should create one to many relation`() { val
-   *   collectionForRelation =
-   *   CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField() val
-   *   relatedCollectionId = getCollectionIdOfCreation(collectionForRelation)
-   *
-   * val collectionWithRelation =
-   * CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField() .copy( relations
-   * = setOf( CollectionRelationApiCreateRequestSupplier.getOneToManyRelation( setOf(
-   * WebContifyCollectionRelationFieldDto( NUMBER_PRIMARY_FIELD.name, NUMBER_PRIMARY_FIELD.name)),
-   * relatedCollectionId))) Given { mockMvc(mockMvc) contentType(MediaType.APPLICATION_JSON_VALUE)
-   * body(collectionWithRelation) } When { post(COLLECTIONS_PATH) } Then {
-   * status(HttpStatus.CREATED) body("relations", hasSize<MutableCollection<Any>>(equalTo(1)))
-   * body("relations[0].referencedCollectionId", equalTo(relatedCollectionId))
-   * body("relations[0].fields", hasSize<MutableCollection<Any>>(1)) } }
-   *
-   * @Test fun `(CreateCollection) endpoint should create many to one relation`() { val
-   *   collectionForRelation =
-   *   CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField() val
-   *   relatedCollectionId = getCollectionIdOfCreation(collectionForRelation)
-   *
-   * val collectionWithRelation =
-   * CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField() .copy( relations
-   * = setOf( CollectionRelationApiCreateRequestSupplier.getManyToOneRelation( setOf(
-   * WebContifyCollectionRelationFieldDto( NUMBER_PRIMARY_FIELD.name, NUMBER_PRIMARY_FIELD.name)),
-   * relatedCollectionId))) Given { mockMvc(mockMvc) contentType(MediaType.APPLICATION_JSON_VALUE)
-   * body(collectionWithRelation) } When { post(COLLECTIONS_PATH) } Then {
-   * status(HttpStatus.CREATED) body("relations", hasSize<MutableCollection<Any>>(equalTo(1)))
-   * body("relations[0].referencedCollectionId", equalTo(relatedCollectionId))
-   * body("relations[0].fields", hasSize<MutableCollection<Any>>(1)) } }
-   *
-   * @Test fun `(CreateCollection) endpoint should create many to many relation`() { val
-   *   collectionForRelation =
-   *   CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField() val
-   *   relatedCollectionId = getCollectionIdOfCreation(collectionForRelation)
-   *
-   * val collectionWithRelation =
-   * CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField() .copy( relations
-   * = setOf( CollectionRelationApiCreateRequestSupplier.getManyToManyRelation( setOf(
-   * WebContifyCollectionRelationFieldDto( NUMBER_PRIMARY_FIELD.name, NUMBER_PRIMARY_FIELD.name)),
-   * relatedCollectionId))) Given { mockMvc(mockMvc) contentType(MediaType.APPLICATION_JSON_VALUE)
-   * body(collectionWithRelation) } When { post(COLLECTIONS_PATH) } Then {
-   * status(HttpStatus.CREATED) body("relations", hasSize<MutableCollection<Any>>(equalTo(1)))
-   * body("relations[0].referencedCollectionId", `is`(not(equalTo(relatedCollectionId))))
-   * body("relations[0].fields", hasSize<MutableCollection<Any>>(1)) } }
-   */
+
   private fun sendInvalidCollectionCreation(
       collection: WebContifyCollectionApiCreateRequest,
       status: HttpStatus = HttpStatus.BAD_REQUEST

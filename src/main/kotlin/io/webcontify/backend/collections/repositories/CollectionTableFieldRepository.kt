@@ -21,7 +21,7 @@ class CollectionTableFieldRepository(
 
   @Transactional
   fun create(collection: WebContifyCollectionDto, field: WebContifyCollectionFieldDto) {
-    val type = columStrategy.getHandlerFor(field).getFieldType()
+    val type = columStrategy.getHandlerFor(field).getFieldType() ?: return
     collection.getFieldWithName(field.name)?.let {
       throw AlreadyExistsException(
           ErrorCode.FIELD_WITH_NAME_ALREADY_EXISTS, field.name, field.collectionId.toString())

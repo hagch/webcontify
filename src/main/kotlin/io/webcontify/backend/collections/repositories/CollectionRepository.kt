@@ -4,11 +4,13 @@ import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.mappers.CollectionMapper
-import io.webcontify.backend.collections.mappers.CollectionRelationMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.jooq.tables.records.*
 import io.webcontify.backend.jooq.tables.references.*
+import java.util.stream.Collectors
+import java.util.stream.Collectors.filtering
+import java.util.stream.Collectors.mapping
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.SelectConnectByStep
@@ -19,11 +21,7 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 
 @Repository
-class CollectionRepository(
-    val dslContext: DSLContext,
-    val mapper: CollectionMapper,
-    val relationMapper: CollectionRelationMapper
-) {
+class CollectionRepository(val dslContext: DSLContext, val mapper: CollectionMapper) {
 
   private fun getCollectionQuery(): SelectOnConditionStep<Record> {
     return dslContext
@@ -31,10 +29,6 @@ class CollectionRepository(
         .from(WEBCONTIFY_COLLECTION)
         .leftJoin(WEBCONTIFY_COLLECTION_FIELD)
         .onKey()
-        .leftJoin(WEBCONTIFY_COLLECTION_RELATION)
-        .on(WEBCONTIFY_COLLECTION.ID.eq(WEBCONTIFY_COLLECTION_RELATION.SOURCE_COLLECTION_ID))
-        .leftJoin(WEBCONTIFY_COLLECTION_RELATION_FIELD)
-        .on(WEBCONTIFY_COLLECTION_RELATION.ID.eq(WEBCONTIFY_COLLECTION_RELATION_FIELD.RELATION_ID))
   }
 
   @Transactional(readOnly = true)
@@ -96,38 +90,22 @@ class CollectionRepository(
   }
 
   private fun SelectConnectByStep<Record>.collectToCollectionMap():
-      Map<
-          WebcontifyCollectionRecord,
-          Pair<
-              Set<WebcontifyCollectionFieldRecord>,
-              Map<
-                  WebcontifyCollectionRelationRecord,
-                  List<WebcontifyCollectionRelationFieldRecord>>>> {
-    return this.groupBy { r -> r.into(WebcontifyCollectionRecord::class.java) }
-        .mapValues {
-          Pair(
-              it.value
-                  .filter { r -> r.get(WEBCONTIFY_COLLECTION_FIELD.COLLECTION_ID) != null }
-                  .map { r -> r.into(WebcontifyCollectionFieldRecord::class.java) }
-                  .toSet(),
-              it.value
-                  .filter { r ->
-                    r.get(WEBCONTIFY_COLLECTION_RELATION.SOURCE_COLLECTION_ID) != null
-                  }
-                  .groupBy(
-                      { r -> r.into(WebcontifyCollectionRelationRecord::class.java) },
-                      { r -> r.into(WebcontifyCollectionRelationFieldRecord::class.java) })
-                  .toMap())
-        }
+      Map<WebcontifyCollectionRecord, Set<WebcontifyCollectionFieldRecord>> {
+    return this.collect(
+        Collectors.groupingBy(
+            { r -> r.into(WebcontifyCollectionRecord::class.java) },
+            filtering(
+                { r -> r.get(WEBCONTIFY_COLLECTION_FIELD.COLLECTION_ID) != null },
+                mapping(
+                    { r -> r.into(WebcontifyCollectionFieldRecord::class.java) },
+                    Collectors.toSet()))))
   }
 
   private fun SelectConnectByStep<Record>.asWebcontifyCollectionDto(
       converter: CollectionMapper
   ): WebContifyCollectionDto? {
-    return this.collectToCollectionMap().firstNotNullOfOrNull { (collection, references) ->
-      val relations =
-          references.second.entries.map { relationMapper.entityToIdDto(it.key, it.value) }.toList()
-      converter.mapToDto(collection, references.first, relations)
+    return this.collectToCollectionMap().firstNotNullOfOrNull { (collection, columns) ->
+      converter.mapToDto(collection, columns)
     }
   }
 
@@ -135,13 +113,7 @@ class CollectionRepository(
       converter: CollectionMapper
   ): Set<WebContifyCollectionDto> {
     return this.collectToCollectionMap()
-        .map { (collection, references) ->
-          val relations =
-              references.second.entries
-                  .map { relationMapper.entityToIdDto(it.key, it.value) }
-                  .toList()
-          converter.mapToDto(collection, references.first, relations)
-        }
+        .map { (collection, columns) -> converter.mapToDto(collection, columns) }
         .toHashSet()
   }
 }

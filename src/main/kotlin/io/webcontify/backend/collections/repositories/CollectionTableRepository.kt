@@ -30,9 +30,10 @@ class CollectionTableRepository(
         mutableListOf(constraint("pk_" + collection.name).primaryKey(primaryKeyColums))
     val tableBuilder = dslContext.createTable(collection.name)
     collection.fields.forEach { field ->
-      columStrategy.getHandlerFor(field).let {
-        tableBuilder.column(field(field.name, it.getFieldType(field, enableFieldAutoGeneration)))
-        constraints.addAll(it.getFieldConstraints(field, collection.name))
+      val handler = columStrategy.getHandlerFor(field)
+      handler.getFieldType(field, enableFieldAutoGeneration)?.let {
+        tableBuilder.column(field(field.name, it))
+        constraints.addAll(handler.getFieldConstraints(field, collection.name))
       }
     }
     tableBuilder.constraints(constraints)

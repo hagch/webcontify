@@ -2,6 +2,7 @@ package io.webcontify.backend.collections.repositories
 
 import helpers.setups.repository.JooqTestSetup
 import helpers.suppliers.collectionWithFields
+import helpers.suppliers.relationMirrorField
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
@@ -9,10 +10,14 @@ import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDt
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
+import org.jooq.impl.DSL.field
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.jdbc.BadSqlGrammarException
 import org.springframework.test.context.jdbc.Sql
 
 class CollectionTableFieldRepositoryTest(
@@ -49,6 +54,22 @@ class CollectionTableFieldRepositoryTest(
           .values(1, 1, 1)
           .execute()
     }
+  }
+
+  @Test
+  @Sql("/cleanup.sql", "create-test-table.sql")
+  fun `(create) should not add relation mirror field on table`() {
+    assertNotNull(repository.create(collection, relationMirrorField()))
+
+    val exception =
+        assertThrows<BadSqlGrammarException> {
+          context
+              .selectFrom(collection.name)
+              .where(field(relationMirrorField().name).eq(0))
+              .execute()
+        }
+    assertEquals(
+        "jOOQ; bad SQL grammar [select * from test where relation_mirror = ?]", exception.message)
   }
 
   @Test

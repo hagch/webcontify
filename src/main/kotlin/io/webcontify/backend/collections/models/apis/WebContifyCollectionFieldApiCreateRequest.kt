@@ -3,6 +3,7 @@ package io.webcontify.backend.collections.models.apis
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.webcontify.backend.collections.models.dtos.*
+import io.webcontify.backend.collections.services.field.handler.*
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -19,17 +20,24 @@ data class WebContifyCollectionFieldApiCreateRequest(
         use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
     @JsonSubTypes(
         JsonSubTypes.Type(
-            value = WebContifyCollectionFieldTextConfigurationDto::class, name = "TEXT"),
+            value = WebContifyCollectionFieldTextConfigurationDto::class, name = TEXT_FIELD_TYPE),
         JsonSubTypes.Type(
-            value = WebContifyCollectionFieldNumberConfigurationDto::class, name = "NUMBER"),
+            value = WebContifyCollectionFieldNumberConfigurationDto::class,
+            name = NUMBER_FIELD_TYPE),
         JsonSubTypes.Type(
-            value = WebContifyCollectionFieldDecimalConfigurationDto::class, name = "DECIMAL"),
+            value = WebContifyCollectionFieldDecimalConfigurationDto::class,
+            name = DECIMAL_FIELD_TYPE),
         JsonSubTypes.Type(
-            value = WebContifyCollectionFieldTimestampConfigurationDto::class, name = "TIMESTAMP"),
+            value = WebContifyCollectionFieldTimestampConfigurationDto::class,
+            name = TIMESTAMP_FIELD_TYPE),
         JsonSubTypes.Type(
-            value = WebContifyCollectionFieldUuidConfigurationDto::class, name = "UUID"),
+            value = WebContifyCollectionFieldUuidConfigurationDto::class, name = UUID_FIELD_TYPE),
         JsonSubTypes.Type(
-            value = WebContifyCollectionFieldBooleanConfigurationDto::class, name = "BOOLEAN"),
+            value = WebContifyCollectionFieldBooleanConfigurationDto::class,
+            name = BOOLEAN_FIELD_TYPE),
+        JsonSubTypes.Type(
+            value = WebContifyCollectionFieldRelationMirrorConfigurationDto::class,
+            name = RELATION_MIRROR_FIELD_TYPE),
     )
     val configuration: WebContifyCollectionFieldConfigurationDto<Any>?
 )

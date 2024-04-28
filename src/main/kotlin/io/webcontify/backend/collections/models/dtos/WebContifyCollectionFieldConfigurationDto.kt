@@ -1,5 +1,6 @@
 package io.webcontify.backend.collections.models.dtos
 
+import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
@@ -66,3 +67,12 @@ class WebContifyCollectionFieldBooleanConfigurationDto(
     override val inValues: List<Boolean?>?,
     override val defaultValue: Boolean?
 ) : WebContifyCollectionFieldConfigurationDto<Boolean>(nullable, unique, inValues, defaultValue)
+
+class WebContifyCollectionFieldRelationMirrorConfigurationDto(
+    val relationId: Long,
+    val fieldType: WebcontifyCollectionFieldType,
+    override val nullable: Boolean?,
+    override val unique: Boolean?,
+    override val inValues: List<Any?>?,
+    override val defaultValue: Any?
+) : WebContifyCollectionFieldConfigurationDto<Any>(nullable, unique, inValues, defaultValue)
