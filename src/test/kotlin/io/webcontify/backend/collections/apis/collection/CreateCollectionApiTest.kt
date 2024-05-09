@@ -163,29 +163,6 @@ class CreateCollectionApiTest : ApiTestSetup() {
         }
   }
 
-  private fun getCollectionIdOfCreation(collection: WebContifyCollectionApiCreateRequest): Int {
-    return Given {
-      mockMvc(mockMvc)
-      contentType(MediaType.APPLICATION_JSON_VALUE)
-      body(collection)
-    } When
-        {
-          post(COLLECTIONS_PATH)
-        } Then
-        {
-          status(HttpStatus.CREATED)
-          body("id", notNullValue())
-          body(
-              "fields",
-              hasSize<MutableCollection<Map<String, Any>>>(equalTo(collection.fields.size)))
-          body("name", equalTo(collection.name))
-          body("displayName", equalTo(collection.displayName))
-        } Extract
-        {
-          body().jsonPath().getInt("id")
-        }
-  }
-
   private fun generalErrorChecks(error: ErrorResponse) {
     error.instanceEquals("/api/v1/collections")
     error.timestampNotNull()

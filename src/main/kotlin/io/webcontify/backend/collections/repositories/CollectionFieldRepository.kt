@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 class CollectionFieldRepository(val dslContext: DSLContext, val mapper: CollectionFieldMapper) {
 
   @Transactional(readOnly = true)
-  fun getById(collectionId: Long?, name: String?): WebContifyCollectionFieldDto {
+  fun getByCollectionIdAndName(collectionId: Long?, name: String?): WebContifyCollectionFieldDto {
     val field =
         dslContext
             .select()
@@ -30,6 +30,18 @@ class CollectionFieldRepository(val dslContext: DSLContext, val mapper: Collecti
     return field?.let { mapper.mapToDto(field) }
         ?: throw NotFoundException(
             ErrorCode.FIELD_NOT_FOUND, name.toString(), collectionId?.toString().toString())
+  }
+
+  @Transactional(readOnly = true)
+  fun getById(fieldId: Long): WebContifyCollectionFieldDto {
+    val field =
+        dslContext
+            .select()
+            .from(WEBCONTIFY_COLLECTION_FIELD)
+            .where(WEBCONTIFY_COLLECTION_FIELD.ID.eq(fieldId))
+            .fetchOneInto(WebcontifyCollectionFieldRecord::class.java)
+    return field?.let { mapper.mapToDto(field) }
+        ?: throw NotFoundException(ErrorCode.FIELD_WITH_ID_NOT_FOUND, fieldId.toString())
   }
 
   @Transactional(readOnly = true)

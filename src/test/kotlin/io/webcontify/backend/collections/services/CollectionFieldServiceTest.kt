@@ -35,10 +35,10 @@ class CollectionFieldServiceTest {
   }
 
   @Test
-  fun `(getById) should call collection field repository`() {
+  fun `(getByCollectionIdAndName) should call collection field repository`() {
     service.getById(0, "test")
 
-    verify(exactly = 1) { collectionFieldRepository.getById(0, "test") }
+    verify(exactly = 1) { collectionFieldRepository.getByCollectionIdAndName(0, "test") }
   }
 
   @Test

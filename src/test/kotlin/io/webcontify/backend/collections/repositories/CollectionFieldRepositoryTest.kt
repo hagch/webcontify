@@ -6,7 +6,6 @@ import helpers.suppliers.secondSqlInsertedField
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.field
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -41,8 +40,8 @@ class CollectionFieldRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "collection-with-fields.sql")
-  fun `(getById) should return field`() {
-    val field = repository.getById(firstSqlField.collectionId, firstSqlField.name)
+  fun `(getByCollectionIdAndName) should return field`() {
+    val field = repository.getByCollectionIdAndName(firstSqlField.collectionId, firstSqlField.name)
 
     assertEquals(firstSqlField.collectionId, field.collectionId)
     assertEquals(firstSqlField.name, field.name)
@@ -50,9 +49,9 @@ class CollectionFieldRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "collection-with-fields.sql")
-  fun `(getById) should throw exception if field does not exist`() {
+  fun `(getByCollectionIdAndName) should throw exception if field does not exist`() {
     assertThrows<NotFoundException> {
-      repository.getById(firstSqlField.collectionId, "Does not exist")
+      repository.getByCollectionIdAndName(firstSqlField.collectionId, "Does not exist")
     }
   }
 
@@ -61,7 +60,7 @@ class CollectionFieldRepositoryTest(
   fun `(update) should update field`() {
     val newDisplayName = "New DisplayName"
     val newName = "NEW_NAME"
-    val field = repository.getById(firstSqlField.collectionId, firstSqlField.name)
+    val field = repository.getByCollectionIdAndName(firstSqlField.collectionId, firstSqlField.name)
 
     val newCollection =
         repository.update(field.copy(displayName = newDisplayName, name = newName), field.name)

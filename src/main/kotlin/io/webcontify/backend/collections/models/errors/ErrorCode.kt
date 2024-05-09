@@ -17,6 +17,7 @@ enum class ErrorCode(var message: String) {
   CAN_NOT_CAST_VALUE("Can not cast value %s for key %s"),
   UNDEFINED_FIELD("Field is not defined for key %s"),
   NO_HANDLER_FOR_FIELD_TYPE("Field %s has unsupported type of %s"),
+  FIELD_WITH_ID_NOT_FOUND("Field with id %s does not exist"),
   FIELD_NOT_FOUND("Field with name %s does not exist for collection with id %s"),
   FIELD_NOT_UPDATED("Field with name %s for collection with id %s does not exist"),
   FIELD_WITH_NAME_ALREADY_EXISTS("Field with name %s for collection with id %s already exist"),

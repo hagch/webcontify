@@ -24,7 +24,7 @@ class CollectionFieldService(
 
   @Transactional(readOnly = true)
   fun getById(collectionId: Long, name: String): WebContifyCollectionFieldDto {
-    return repository.getById(collectionId, name)
+    return repository.getByCollectionIdAndName(collectionId, name)
   }
 
   @Transactional
