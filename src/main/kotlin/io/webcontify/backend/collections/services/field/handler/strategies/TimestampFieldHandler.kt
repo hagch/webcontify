@@ -5,6 +5,7 @@ import io.webcontify.backend.collections.services.field.handler.FieldHandler
 import io.webcontify.backend.collections.services.field.handler.TIMESTAMP_FIELD_TYPE
 import io.webcontify.backend.collections.utils.addGreaterThanIfPresent
 import io.webcontify.backend.collections.utils.addLessThanIfPresent
+import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -51,6 +52,9 @@ class TimestampFieldHandler : FieldHandler<LocalDateTime> {
     }
     if (value is LocalDateTime) {
       return value
+    }
+    if (value is Timestamp) {
+      return value.toLocalDateTime()
     }
     if (value is String) {
       try {

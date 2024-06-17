@@ -62,8 +62,14 @@ class DecimalFieldHandler : FieldHandler<BigDecimal> {
   }
 
   override fun castToJavaType(value: Any?): BigDecimal? {
+    if (value == null) {
+      return null
+    }
     if (value is Double) {
       return value.toBigDecimal()
+    }
+    if (value is BigDecimal) {
+      return BigDecimal.valueOf(value.toDouble())
     }
     if (value is String) {
       try {

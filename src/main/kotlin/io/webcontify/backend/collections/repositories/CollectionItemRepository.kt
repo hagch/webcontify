@@ -88,13 +88,20 @@ class CollectionItemRepository(
                   (it.type == WebcontifyCollectionFieldType.NUMBER ||
                       it.type == WebcontifyCollectionFieldType.UUID)
             }
-            ?.map { it.name }
-            ?.toList()
-            ?: emptyList()
+            ?.map {
+              val isRemovable =
+                  if (it.type == WebcontifyCollectionFieldType.UUID) false
+                  else if (it.type == WebcontifyCollectionFieldType.NUMBER) true else false
+              return@map it.name to isRemovable
+            }
+            ?.toMap()
+            ?: emptyMap()
     val itemWithoutRemovablePrimaryKeys =
         item
             .mapKeys { it.key.camelToSnakeCase() }
-            .filter { !(removeAblePrimaryKeys.contains(it.key) && it.value == null) }
+            .filter {
+              !(removeAblePrimaryKeys.contains(it.key) && removeAblePrimaryKeys[it.key] == true)
+            }
     val mappedItem = mapItemToStore(itemWithoutRemovablePrimaryKeys, collection)
     return mappedItem
   }

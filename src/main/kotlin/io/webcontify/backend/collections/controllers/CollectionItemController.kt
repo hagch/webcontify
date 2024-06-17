@@ -5,6 +5,8 @@ import io.webcontify.backend.collections.services.CollectionItemService
 import io.webcontify.backend.collections.utils.isSlug
 import io.webcontify.backend.collections.utils.toIdentifierMap
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -42,8 +44,12 @@ class CollectionItemController(val collectionItemService: CollectionItemService)
   }
 
   @PostMapping("$COLLECTIONS_PATH/{collectionId}/items")
-  fun create(@PathVariable("collectionId") collectionId: Long, @RequestBody item: Item): Item {
-    return collectionItemService.create(collectionId, item)
+  fun create(
+      @PathVariable("collectionId") collectionId: Long,
+      @RequestBody item: Item
+  ): ResponseEntity<Item> {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(collectionItemService.create(collectionId, item))
   }
 
   @PutMapping("$COLLECTIONS_PATH/{collectionId}/items/{*slugOrId}")

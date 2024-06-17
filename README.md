@@ -6,6 +6,9 @@ A headless cms with an ui builder
 
 # Open Todos
 - [ ] Finish Relation implementation and create tests
+- field type configuration validation tests
+- relation mirror field checking how it behaves in tests
+- [ ] split mapping from database and api
 - [ ] handle update and delete properly in database too
 - [ ] Recheck collection field updates which are referenced in relations
 - [ ] Check if collection field name update works with foreign keys
