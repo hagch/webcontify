@@ -69,12 +69,12 @@ class TimestampFieldHandler : FieldHandler<LocalDateTime> {
   override fun validateField(
       value: LocalDateTime?,
       configuration: WebContifyCollectionFieldConfigurationDto<Any>?
-  ) {
-    super.validateField(value, configuration)
+  ): LocalDateTime? {
+    val validatedValue = super.validateField(value, configuration)
     configuration?.let {
       it as WebContifyCollectionFieldTimestampConfigurationDto
       if (value == null) {
-        return
+        return null
       }
       if (it.lowerThan != null && value.isAfter(it.lowerThan)) {
         throw ValidationException()
@@ -83,5 +83,6 @@ class TimestampFieldHandler : FieldHandler<LocalDateTime> {
         throw ValidationException()
       }
     }
+    return validatedValue
   }
 }

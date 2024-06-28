@@ -67,12 +67,12 @@ class TextFieldHandler : FieldHandler<String> {
   override fun validateField(
       value: String?,
       configuration: WebContifyCollectionFieldConfigurationDto<Any>?
-  ) {
-    super.validateField(value, configuration)
+  ): String? {
+    val validatedValue = super.validateField(value, configuration)
     configuration?.let {
       it as WebContifyCollectionFieldTextConfigurationDto
       if (value == null) {
-        return
+        return null
       }
       if (it.minLength != null && value.length < it.minLength) {
         throw ValidationException()
@@ -81,5 +81,6 @@ class TextFieldHandler : FieldHandler<String> {
         throw ValidationException()
       }
     }
+    return validatedValue
   }
 }

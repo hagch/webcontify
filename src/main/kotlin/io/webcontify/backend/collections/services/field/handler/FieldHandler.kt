@@ -72,15 +72,23 @@ interface FieldHandler<T> {
   fun mapJSONBToConfiguration(configuration: JSONB?): WebContifyCollectionFieldConfigurationDto<T>?
 
   @Throws(ValidationException::class)
-  fun validateField(value: T?, configuration: WebContifyCollectionFieldConfigurationDto<Any>?) {
+  fun validateField(value: T?, configuration: WebContifyCollectionFieldConfigurationDto<Any>?): T? {
     configuration?.let {
       if (it.nullable == false && Objects.isNull(value) && Objects.isNull(it.defaultValue)) {
         throw ValidationException()
       }
-      if (!CollectionUtils.isEmpty(it.inValues) && it.inValues?.contains(value) == false) {
+      val validatedValue =
+          if (Objects.nonNull(it.defaultValue) && Objects.isNull(value)) {
+            it.defaultValue as T
+          } else {
+            value
+          }
+      if (!CollectionUtils.isEmpty(it.inValues) && it.inValues?.contains(validatedValue) == false) {
         throw ValidationException()
       }
+      return validatedValue
     }
+    return value
   }
 
   fun castAndValidate(
@@ -88,7 +96,6 @@ interface FieldHandler<T> {
       configuration: WebContifyCollectionFieldConfigurationDto<Any>?
   ): T? {
     val castedValue = castToJavaType(value)
-    validateField(castedValue, configuration)
-    return castedValue
+    return validateField(castedValue, configuration)
   }
 }

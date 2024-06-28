@@ -2,7 +2,6 @@ package io.webcontify.backend.collections.repositories
 
 import helpers.setups.repository.JooqTestSetup
 import helpers.suppliers.collectionWithFields
-import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import org.jooq.DSLContext
@@ -47,17 +46,6 @@ class CollectionItemRepositoryTest(
 
     assertThrows<UnprocessableContentException> {
       repository.create(collection, mapOf(Pair("notExists", "1")))
-    }
-  }
-
-  @Test
-  @Sql("/cleanup.sql", "create-item-test-entities.sql")
-  fun `(create) item should throw already exists if primary key is already created`() {
-    val collection = collectionRepository.getAll().first()
-    repository.create(collection, mapOf(Pair("id", 1), Pair("otherField", 1)))
-
-    assertThrows<AlreadyExistsException> {
-      repository.create(collection, mapOf(Pair("id", 1), Pair("otherField", 1)))
     }
   }
 

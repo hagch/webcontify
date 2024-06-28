@@ -84,19 +84,20 @@ class DecimalFieldHandler : FieldHandler<BigDecimal> {
   override fun validateField(
       value: BigDecimal?,
       configuration: WebContifyCollectionFieldConfigurationDto<Any>?
-  ) {
-    super.validateField(value, configuration)
+  ): BigDecimal? {
+    val validatedValue = super.validateField(value, configuration)
     configuration?.let {
       it as WebContifyCollectionFieldDecimalConfigurationDto
-      if (value == null) {
-        return
+      if (validatedValue == null) {
+        return null
       }
-      if (it.greaterThan != null && value <= it.greaterThan) {
+      if (it.greaterThan != null && validatedValue <= it.greaterThan) {
         throw ValidationException()
       }
-      if (it.lowerThan != null && value >= it.lowerThan) {
+      if (it.lowerThan != null && validatedValue >= it.lowerThan) {
         throw ValidationException()
       }
     }
+    return validatedValue
   }
 }

@@ -14,6 +14,14 @@ fun Error.equalsTo(errorCode: ErrorCode, message: String) {
   Assertions.assertEquals(message, message)
 }
 
+fun Error.codeEquals(errorCode: ErrorCode) {
+  Assertions.assertEquals(code, errorCode)
+}
+
+fun Error.messageContains(message: String) {
+  Assertions.assertTrue(message.contains(message))
+}
+
 fun ErrorResponse.instanceEquals(instanceComparison: String) {
   Assertions.assertEquals(instance, instanceComparison)
 }
