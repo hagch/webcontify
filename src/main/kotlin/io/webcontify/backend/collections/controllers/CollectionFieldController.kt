@@ -12,28 +12,28 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
+// TODO change to delete field without collection if necessary
 @RestController
 class CollectionFieldController(
     val service: CollectionFieldService,
     val mapper: CollectionFieldMapper
 ) {
 
-  // TODO check if changing to id
-  @DeleteMapping("$COLLECTIONS_PATH/{collectionId}/fields/{name}")
+  @DeleteMapping("$COLLECTIONS_PATH/{collectionId}/fields/{id}")
   fun delete(
       @PathVariable("collectionId") collectionId: Long,
-      @PathVariable("name") name: String
+      @PathVariable("id") id: Long
   ): ResponseEntity<Void> {
-    service.deleteById(collectionId, name.lowercase())
+    service.deleteById(collectionId, id)
     return ResponseEntity.noContent().build()
   }
 
-  @GetMapping("$COLLECTIONS_PATH/{collectionId}/fields/{name}")
+  @GetMapping("$COLLECTIONS_PATH/{collectionId}/fields/{id}")
   fun getById(
       @PathVariable("collectionId") collectionId: Long,
-      @PathVariable("name") name: String
+      @PathVariable("id") id: Long
   ): WebContifyCollectionFieldDto {
-    return service.getById(collectionId, name.lowercase())
+    return service.getById(collectionId, id)
   }
 
   @GetMapping("$COLLECTIONS_PATH/{collectionId}/fields")
@@ -54,12 +54,12 @@ class CollectionFieldController(
     return service.create(mapper.mapApiToDto(field, collectionId))
   }
 
-  @PutMapping("$COLLECTIONS_PATH/{collectionId}/fields/{name}")
+  @PutMapping("$COLLECTIONS_PATH/{collectionId}/fields/{id}")
   fun update(
       @PathVariable("collectionId") collectionId: Long,
-      @PathVariable("name") oldName: String,
+      @PathVariable("id") id: Long,
       @RequestBody @Valid newField: WebContifyCollectionFieldApiUpdateRequest
   ): WebContifyCollectionFieldDto {
-    return service.update(oldName.lowercase(), mapper.mapApiToDto(newField, collectionId))
+    return service.update(id, mapper.mapApiToDto(newField, collectionId))
   }
 }

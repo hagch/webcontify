@@ -183,7 +183,7 @@ class UpdateItemApiTest : ApiTestSetup() {
 
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
-  fun `(CreateItem) should create item with all field type values with primary key uuid`() {
+  fun `(UpdateItem) should create item with all field type values with primary key uuid`() {
     val item =
         mapOf(
             "decimal_field" to 123.01,
@@ -209,5 +209,38 @@ class UpdateItemApiTest : ApiTestSetup() {
           body("uuidField", notNullValue())
           body("numberField", equalTo(123))
         }
+  }
+
+  @Test
+  @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
+  fun `(UpdateItem) should throw error on trying to update an mirror field`() {
+    val item =
+        mapOf(
+            "decimal_field" to 123.01,
+            "text_field" to "Thats an text",
+            "timestamp_field" to "2000-10-31T01:30:00",
+            "boolean_field" to true,
+            "mirror_field" to 123,
+        )
+    val errorResponse =
+        Given {
+          mockMvc(mockMvc)
+          contentType(MediaType.APPLICATION_JSON_VALUE)
+          body(item)
+        } When
+            {
+              patch("$COLLECTIONS_PATH/1/items/1")
+            } Then
+            {
+              status(HttpStatus.BAD_REQUEST)
+            } Extract
+            {
+              body().`as`(ErrorResponse::class.java)
+            }
+    errorResponse.timestampNotNull()
+    errorResponse.instanceEquals("/$COLLECTIONS_PATH/1/items/1")
+    errorResponse.errorSizeEquals(1)
+    errorResponse.errors[0].equalsTo(
+        ErrorCode.MIRROR_FIELD_INCLUDED, ErrorCode.MIRROR_FIELD_INCLUDED.message)
   }
 }

@@ -43,14 +43,17 @@ class MirrorFieldService(
 
   fun create(
       collectionRelationMapping: CollectionRelationMapping,
-      relationId: Long
+      relationId: Long,
+      mirrorReferenceCollectionId: Long
   ): Set<RelationMirrorField> {
     val mirrorFields: MutableSet<RelationMirrorField> = mutableSetOf()
     if (collectionRelationMapping.mirrorFields.isNullOrEmpty()) {
       return mirrorFields
     }
     for (mirrorRelationFieldMapping in collectionRelationMapping.mirrorFields) {
-      val referencedField = fieldRepository.getById(mirrorRelationFieldMapping.referencedFieldId)
+      val referencedField =
+          fieldRepository.getById(
+              mirrorReferenceCollectionId, mirrorRelationFieldMapping.referencedFieldId)
       val mirrorField =
           fieldRepository.create(
               WebContifyCollectionFieldDto(

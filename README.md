@@ -5,12 +5,8 @@ A headless cms with an ui builder
 8081
 
 # Open Todos
-- [ ] check relation field on update item
-  - [ ] Check if collection field name update works with foreign keys
-  - [ ] make field configuration updateable
-- [ ] check mirror field on update field
-- [ ] check relation field on delete field
-- [ ] check relation field on create
+- [ ] make field configuration updateable
+- [ ] change item endpoint to accept camelcase instead of snake case
 - [ ] authentication
 - [ ] basic ui
 - [ ] permissioning
@@ -19,8 +15,8 @@ A headless cms with an ui builder
 - [ ] Handle relations properly in collection item crud ??
 - [ ] create swagger ui documentation
 - [ ] Recheck code structure
-  - [ ] check relation handler implementation duplicated code
-  - [ ] think about making the tests more readable
+- [ ] check relation handler implementation duplicated code
+- [ ] think about making the tests more readable
 - [ ] logging
 - [ ] Switch FielType Timestamp implementation to offset datetime to handle different timezones in DB
 - [ ] Recheck error handling

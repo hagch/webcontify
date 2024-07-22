@@ -22,6 +22,10 @@ data class WebContifyCollectionDto(
     return this.fields?.firstOrNull { it.name == name }
   }
 
+  fun getFieldWithId(id: Long): WebContifyCollectionFieldDto? {
+    return this.fields?.firstOrNull { it.id == id }
+  }
+
   fun queryAbleFields(): List<WebContifyCollectionFieldDto> {
     return this.fields?.filter { it.type != WebcontifyCollectionFieldType.RELATION_MIRROR }
         ?: listOf()

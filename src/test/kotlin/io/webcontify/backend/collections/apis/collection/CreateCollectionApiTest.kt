@@ -110,6 +110,18 @@ class CreateCollectionApiTest : ApiTestSetup() {
   }
 
   @Test
+  fun `(CreateCollection) endpoint should throw error if mirror field is included`() {
+    val errorResponse =
+        sendInvalidCollectionCreation(
+            CollectionApiCreateRequestSupplier.COLLECTION_WITH_MIRROR_FIELD)
+
+    generalErrorChecks(errorResponse)
+    errorResponse.errorSizeEquals(1)
+    errorResponse.errors[0].equalsTo(
+        ErrorCode.MIRROR_FIELD_INCLUDED, ErrorCode.MIRROR_FIELD_INCLUDED.message)
+  }
+
+  @Test
   fun `(CreateCollection) endpoint should throw already exists on collection with name already exists`() {
     val collection = CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField()
     sendValidCollectionCreation(collection)

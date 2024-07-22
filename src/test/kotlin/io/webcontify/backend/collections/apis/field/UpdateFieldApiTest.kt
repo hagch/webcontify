@@ -15,9 +15,11 @@ import io.restassured.module.mockmvc.kotlin.extensions.Extract
 import io.restassured.module.mockmvc.kotlin.extensions.Given
 import io.restassured.module.mockmvc.kotlin.extensions.Then
 import io.restassured.module.mockmvc.kotlin.extensions.When
+import io.webcontify.backend.collections.models.apis.WebContifyCollectionFieldApiUpdateRequest
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.models.errors.ErrorResponse
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
+import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -36,7 +38,7 @@ class UpdateFieldApiTest : ApiTestSetup() {
       body(DECIMAL_FIELD_NAME_CHANGED.second)
     } When
         {
-          put("$COLLECTIONS_PATH/1/fields/${DECIMAL_FIELD_NAME_CHANGED.first}")
+          put("$COLLECTIONS_PATH/1/fields/3")
         } Then
         {
           status(HttpStatus.OK)
@@ -76,7 +78,7 @@ class UpdateFieldApiTest : ApiTestSetup() {
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(UpdateField) should return error if field with new name already exists`() {
-    val path = "$COLLECTIONS_PATH/1/fields/${EXISTING_FIELD_NAME.first}"
+    val path = "$COLLECTIONS_PATH/1/fields/3"
     val errorResponse =
         Given {
           mockMvc(mockMvc)
@@ -104,7 +106,7 @@ class UpdateFieldApiTest : ApiTestSetup() {
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(UpdateField) should throw error on changing primary key`() {
-    val path = "$COLLECTIONS_PATH/1/fields/${NUMBER_FIELD_PRIMARY_CHANGED.first}"
+    val path = "$COLLECTIONS_PATH/1/fields/2"
     val errorResponse =
         Given {
           mockMvc(mockMvc)
@@ -130,7 +132,7 @@ class UpdateFieldApiTest : ApiTestSetup() {
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(UpdateField) should throw error on changing primary key field name`() {
-    val path = "$COLLECTIONS_PATH/1/fields/${NUMBER_PRIMARY_FIELD_NAME_CHANGED.first}"
+    val path = "$COLLECTIONS_PATH/1/fields/2"
     val errorResponse =
         Given {
           mockMvc(mockMvc)
@@ -156,7 +158,7 @@ class UpdateFieldApiTest : ApiTestSetup() {
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(UpdateField) should throw error on changing type`() {
-    val path = "$COLLECTIONS_PATH/1/fields/${DECIMAL_FIELD_TYPE_CHANGED.first}"
+    val path = "$COLLECTIONS_PATH/1/fields/3"
     val errorResponse =
         Given {
           mockMvc(mockMvc)
@@ -177,5 +179,21 @@ class UpdateFieldApiTest : ApiTestSetup() {
     errorResponse.timestampNotNull()
     errorResponse.errors[0].equalsTo(
         ErrorCode.UNSUPPORTED_FIELD_OPERATION, ErrorCode.UNSUPPORTED_FIELD_OPERATION.message)
+  }
+
+  @Test
+  @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
+  fun `(UpdateField) should update name of mirror field`() {
+    val path = "$COLLECTIONS_PATH/1/fields/13"
+    Given {
+      mockMvc(mockMvc)
+      contentType(MediaType.APPLICATION_JSON)
+      body(
+          WebContifyCollectionFieldApiUpdateRequest(
+              "mirror_field_changed",
+              "Mirror Field Changed",
+              WebcontifyCollectionFieldType.RELATION_MIRROR,
+              false))
+    } When { put(path) } Then { status(HttpStatus.OK) }
   }
 }

@@ -7,6 +7,7 @@ import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.repositories.CollectionFieldRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
 import io.webcontify.backend.collections.repositories.CollectionTableFieldRepository
+import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -23,26 +24,30 @@ class CollectionFieldService(
   }
 
   @Transactional(readOnly = true)
-  fun getById(collectionId: Long, name: String): WebContifyCollectionFieldDto {
-    return repository.getByCollectionIdAndName(collectionId, name)
+  fun getById(collectionId: Long, id: Long): WebContifyCollectionFieldDto {
+    return repository.getById(collectionId, id)
   }
 
   @Transactional
-  fun deleteById(collectionId: Long, name: String) {
+  fun deleteById(collectionId: Long, id: Long) {
     val collection = collectionRepository.getById(collectionId)
     val field =
-        collection.getFieldWithName(name)
-            ?: throw NotFoundException(ErrorCode.FIELD_NOT_FOUND, collectionId.toString(), name)
+        collection.getFieldWithId(id)
+            ?: throw NotFoundException(
+                ErrorCode.FIELD_NOT_FOUND, collectionId.toString(), id.toString())
     if (field.isPrimaryKey) {
       throw UnprocessableContentException(
-          ErrorCode.FIELD_IS_PRIMARY_FIELD, name, collectionId.toString())
+          ErrorCode.FIELD_IS_PRIMARY_FIELD, id.toString(), collectionId.toString())
     }
-    repository.deleteById(collectionId, name)
-    tableFieldRepository.delete(collection, name)
+    repository.deleteById(collectionId, id)
+    tableFieldRepository.delete(collection, field.name)
   }
 
   @Transactional
   fun create(field: WebContifyCollectionFieldDto): WebContifyCollectionFieldDto {
+    if (field.type == WebcontifyCollectionFieldType.RELATION_MIRROR) {
+      throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
+    }
     val collection = collectionRepository.getById(field.collectionId)
     tableFieldRepository.create(collection, field)
     return repository.create(field)
@@ -57,13 +62,12 @@ class CollectionFieldService(
   }
 
   @Transactional
-  fun update(
-      oldName: String,
-      newField: WebContifyCollectionFieldDto
-  ): WebContifyCollectionFieldDto {
+  fun update(id: Long, newField: WebContifyCollectionFieldDto): WebContifyCollectionFieldDto {
     val collection = collectionRepository.getById(newField.collectionId)
-    return repository.update(newField, oldName).also {
-      tableFieldRepository.update(collection, newField, oldName)
+    val field = repository.update(newField, id)
+    if (collection.getFieldWithId(id)?.type != WebcontifyCollectionFieldType.RELATION_MIRROR) {
+      tableFieldRepository.update(collection, newField, id)
     }
+    return field
   }
 }

@@ -1,10 +1,13 @@
 package io.webcontify.backend.collections.services
 
+import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.mappers.CollectionMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
+import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.repositories.CollectionFieldRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
 import io.webcontify.backend.collections.repositories.CollectionTableRepository
+import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -35,6 +38,11 @@ class CollectionService(
 
   @Transactional
   fun create(collection: WebContifyCollectionDto): WebContifyCollectionDto {
+    if (collection.fields?.firstOrNull {
+      it.type == WebcontifyCollectionFieldType.RELATION_MIRROR
+    } != null) {
+      throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
+    }
     val createdCollection = repository.create(collection)
     val createdCollectionWithFields =
         createdCollection.copy(

@@ -26,10 +26,10 @@ class CollectionTableFieldRepositoryTest(
 ) : JooqTestSetup() {
   private final val firstField =
       WebContifyCollectionFieldDto(
-          null, 1, "id", "id", WebcontifyCollectionFieldType.NUMBER, true, null)
+          1, 1, "id", "id", WebcontifyCollectionFieldType.NUMBER, true, null)
   private final val secondField =
       WebContifyCollectionFieldDto(
-          null, 1, "otherfield", "otherField", WebcontifyCollectionFieldType.NUMBER, false, null)
+          1, 1, "otherfield", "otherField", WebcontifyCollectionFieldType.NUMBER, false, null)
   private final val collection =
       collectionWithFields(listOf(Pair("id", true), Pair("otherfield", false)))
   private final val fields = listOf(DSL.field(firstField.name), DSL.field(secondField.name))
@@ -121,7 +121,7 @@ class CollectionTableFieldRepositoryTest(
   @Test
   fun `(update) field should throw exception if table not exists`() {
     assertThrows<UnprocessableContentException> {
-      repository.update(collection, firstField.copy(name = "new"), "id")
+      repository.update(collection, firstField.copy(name = "new"), 1)
     }
   }
 
@@ -129,7 +129,7 @@ class CollectionTableFieldRepositoryTest(
   @Sql("/cleanup.sql", "create-test-table.sql")
   fun `(update) field should throw exception if old field not exists`() {
     assertThrows<NotFoundException> {
-      repository.update(collection, firstField.copy(name = "new"), "notExists")
+      repository.update(collection, firstField.copy(name = "new"), 33)
     }
   }
 
@@ -139,18 +139,18 @@ class CollectionTableFieldRepositoryTest(
     val collection =
         collection.copy(fields = listOf(firstField, secondField, firstField.copy(name = "new")))
     assertThrows<UnprocessableContentException> {
-      repository.update(collection, firstField.copy(name = "newer"), "new")
+      repository.update(collection, firstField.copy(name = "newer"), firstField.id!!)
     }
   }
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
   fun `(update) field should update field`() {
-    repository.update(collection, secondField.copy(name = "new"), "otherfield")
+    repository.update(collection, secondField.copy(name = "test"), 2)
 
     assertDoesNotThrow {
       context
-          .insertInto(DSL.table(collection.name), DSL.field("new"), DSL.field("id"))
+          .insertInto(DSL.table(collection.name), DSL.field("test"), DSL.field("id"))
           .values(1, 1)
           .execute()
     }
@@ -162,7 +162,7 @@ class CollectionTableFieldRepositoryTest(
       repository.update(
           collection,
           firstField.copy(name = "new", type = WebcontifyCollectionFieldType.TIMESTAMP),
-          "id")
+          1)
     }
   }
 
@@ -170,7 +170,7 @@ class CollectionTableFieldRepositoryTest(
   @Sql("/cleanup.sql", "create-test-table.sql")
   fun `(update) field should throw exception if new name is empty`() {
     assertThrows<UnprocessableContentException> {
-      repository.update(collection, firstField.copy(name = ""), "id")
+      repository.update(collection, firstField.copy(name = ""), 1)
     }
   }
 }

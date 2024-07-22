@@ -23,10 +23,10 @@ class GetFieldApiTest : ApiTestSetup() {
 
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
-  fun `(GetFieldByName) should return field`() {
+  fun `(GetFieldById) should return field`() {
     Given { mockMvc(mockMvc) } When
         {
-          get("$COLLECTIONS_PATH/1/fields/number_field")
+          get("$COLLECTIONS_PATH/1/fields/2")
         } Then
         {
           status(HttpStatus.OK)
@@ -38,7 +38,7 @@ class GetFieldApiTest : ApiTestSetup() {
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(GetFieldByName) should return not found if field does not exist`() {
-    val path = "$COLLECTIONS_PATH/1/fields/does_not_exist"
+    val path = "$COLLECTIONS_PATH/1/fields/33"
     val error =
         Given { mockMvc(mockMvc) } When
             {
@@ -54,14 +54,13 @@ class GetFieldApiTest : ApiTestSetup() {
     error.instanceEquals("/$path")
     error.errorSizeEquals(1)
     error.errors[0].equalsTo(
-        ErrorCode.FIELD_NOT_FOUND,
-        String.format(ErrorCode.FIELD_NOT_FOUND.message, "does_not_exist", "1"))
+        ErrorCode.FIELD_NOT_FOUND, String.format(ErrorCode.FIELD_NOT_FOUND.message, 33, "1"))
   }
 
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(GetFieldByName) should return field not found if collection does not exist`() {
-    val path = "$COLLECTIONS_PATH/5/fields/does_not_exist"
+    val path = "$COLLECTIONS_PATH/5/fields/33"
     val error =
         Given { mockMvc(mockMvc) } When
             {
@@ -77,8 +76,7 @@ class GetFieldApiTest : ApiTestSetup() {
     error.instanceEquals("/$path")
     error.errorSizeEquals(1)
     error.errors[0].equalsTo(
-        ErrorCode.FIELD_NOT_FOUND,
-        String.format(ErrorCode.FIELD_NOT_FOUND.message, "does_not_exist", "5"))
+        ErrorCode.FIELD_NOT_FOUND, String.format(ErrorCode.FIELD_NOT_FOUND.message, 33, "5"))
   }
 
   @Test
@@ -92,7 +90,7 @@ class GetFieldApiTest : ApiTestSetup() {
             } Then
             {
               status(HttpStatus.OK)
-              body("", hasSize<MutableCollection<Map<String, Any>>>(equalTo(6)))
+              body("", hasSize<MutableCollection<Map<String, Any>>>(equalTo(7)))
             } Extract
             {
               body().jsonPath().getList<Map<String, Any>>("")

@@ -6,6 +6,7 @@ import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.FIELD
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.FIELD_WITH_INVALID_NAME
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.FIELD_WITH_INVALID_NAME_TEXT
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.FIELD_WITH_WRONG_CONFIGURATION
+import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.MIRROR_FIELD
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.NUMBER_PRIMARY_FIELD
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.NUMBER_RELATION_FIELD
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.TEXT_FIELD
@@ -35,6 +36,8 @@ class CollectionApiCreateRequestSupplier {
     val COLLECTION_WITH_FIELD_WRONG_CONFIGURATION =
         WebContifyCollectionApiCreateRequest(
             "empty_field_name", "DisplayName", listOf(FIELD_WITH_WRONG_CONFIGURATION))
+    val COLLECTION_WITH_MIRROR_FIELD =
+        WebContifyCollectionApiCreateRequest("with_mirror", "With Mirror", listOf(MIRROR_FIELD))
 
     fun getCollectionWithValidNameOnePrimaryField(): WebContifyCollectionApiCreateRequest {
       return WebContifyCollectionApiCreateRequest(

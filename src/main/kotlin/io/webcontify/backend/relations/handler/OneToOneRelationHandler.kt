@@ -19,7 +19,10 @@ class OneToOneRelationHandler(
         relation.sourceCollectionMapping.fieldsMapping)
     val relationDto = relationRepository.create(relation)
     val mirrorFields =
-        mirrorFieldService.create(relation.referencedCollectionMapping, relationDto.id)
+        mirrorFieldService.create(
+            relation.referencedCollectionMapping,
+            relationDto.id,
+            relation.sourceCollectionMapping.id)
     relationDto.mirrorFields = mirrorFields
     return relationDto
   }

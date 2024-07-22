@@ -18,30 +18,18 @@ import org.springframework.transaction.annotation.Transactional
 class CollectionFieldRepository(val dslContext: DSLContext, val mapper: CollectionFieldMapper) {
 
   @Transactional(readOnly = true)
-  fun getByCollectionIdAndName(collectionId: Long?, name: String?): WebContifyCollectionFieldDto {
+  fun getById(collectionId: Long?, id: Long): WebContifyCollectionFieldDto {
     val field =
         dslContext
             .select()
             .from(WEBCONTIFY_COLLECTION_FIELD)
             .where(
                 WEBCONTIFY_COLLECTION_FIELD.COLLECTION_ID.eq(collectionId)
-                    .and(WEBCONTIFY_COLLECTION_FIELD.NAME.eq(name)))
+                    .and(WEBCONTIFY_COLLECTION_FIELD.ID.eq(id)))
             .fetchOneInto(WebcontifyCollectionFieldRecord::class.java)
     return field?.let { mapper.mapToDto(field) }
         ?: throw NotFoundException(
-            ErrorCode.FIELD_NOT_FOUND, name.toString(), collectionId?.toString().toString())
-  }
-
-  @Transactional(readOnly = true)
-  fun getById(fieldId: Long): WebContifyCollectionFieldDto {
-    val field =
-        dslContext
-            .select()
-            .from(WEBCONTIFY_COLLECTION_FIELD)
-            .where(WEBCONTIFY_COLLECTION_FIELD.ID.eq(fieldId))
-            .fetchOneInto(WebcontifyCollectionFieldRecord::class.java)
-    return field?.let { mapper.mapToDto(field) }
-        ?: throw NotFoundException(ErrorCode.FIELD_WITH_ID_NOT_FOUND, fieldId.toString())
+            ErrorCode.FIELD_NOT_FOUND, id.toString(), collectionId?.toString().toString())
   }
 
   @Transactional(readOnly = true)
@@ -57,22 +45,22 @@ class CollectionFieldRepository(val dslContext: DSLContext, val mapper: Collecti
   }
 
   @Transactional
-  fun deleteById(collectionId: Long?, name: String?) {
+  fun deleteById(collectionId: Long?, id: Long?) {
     try {
       dslContext
           .deleteFrom(WEBCONTIFY_COLLECTION_FIELD)
           .where(
               WEBCONTIFY_COLLECTION_FIELD.COLLECTION_ID.eq(collectionId)
-                  .and(WEBCONTIFY_COLLECTION_FIELD.NAME.eq(name)))
+                  .and(WEBCONTIFY_COLLECTION_FIELD.ID.eq(id)))
           .execute()
     } catch (e: DataIntegrityViolationException) {
       throw UnprocessableContentException(
-          ErrorCode.FIELD_USED_IN_RELATION, name.toString(), collectionId.toString())
+          ErrorCode.FIELD_USED_IN_RELATION, id.toString(), collectionId.toString())
     }
   }
 
   @Transactional
-  fun update(record: WebContifyCollectionFieldDto, oldName: String): WebContifyCollectionFieldDto {
+  fun update(record: WebContifyCollectionFieldDto, id: Long): WebContifyCollectionFieldDto {
     val query =
         dslContext
             .update(WEBCONTIFY_COLLECTION_FIELD)
@@ -80,20 +68,17 @@ class CollectionFieldRepository(val dslContext: DSLContext, val mapper: Collecti
             .set(WEBCONTIFY_COLLECTION_FIELD.DISPLAY_NAME, record.displayName)
             .where(
                 WEBCONTIFY_COLLECTION_FIELD.COLLECTION_ID.eq(record.collectionId)
-                    .and(WEBCONTIFY_COLLECTION_FIELD.NAME.eq(oldName)))
+                    .and(WEBCONTIFY_COLLECTION_FIELD.ID.eq(id)))
     try {
       query.execute().let {
         if (it == 0) {
           throw NotFoundException(
-              ErrorCode.FIELD_NOT_UPDATED, oldName, record.collectionId.toString())
+              ErrorCode.FIELD_NOT_UPDATED, id.toString(), record.collectionId.toString())
         }
       }
     } catch (e: DuplicateKeyException) {
       throw AlreadyExistsException(
-          ErrorCode.FIELD_WITH_NAME_ALREADY_EXISTS, oldName, record.collectionId.toString())
-    } catch (e: DataIntegrityViolationException) {
-      throw UnprocessableContentException(
-          ErrorCode.FIELD_USED_IN_RELATION, oldName, record.collectionId.toString())
+          ErrorCode.FIELD_WITH_NAME_ALREADY_EXISTS, record.name, record.collectionId.toString())
     }
     return record
   }

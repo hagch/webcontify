@@ -18,7 +18,11 @@ class OneToManyRelationHandler(
         relation.sourceCollectionMapping.mirrorFields,
         relation.referencedCollectionMapping.fieldsMapping)
     val relationDto = relationRepository.create(relation)
-    val mirrorFields = mirrorFieldService.create(relation.sourceCollectionMapping, relationDto.id)
+    val mirrorFields =
+        mirrorFieldService.create(
+            relation.sourceCollectionMapping,
+            relationDto.id,
+            relation.referencedCollectionMapping.id)
     relationDto.mirrorFields = mirrorFields
     return relationDto
   }

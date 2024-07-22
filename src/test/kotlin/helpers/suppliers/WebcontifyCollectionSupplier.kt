@@ -21,8 +21,14 @@ fun collectionWithFields(fieldIsPrimaryMap: List<Pair<String, Boolean>>): WebCon
       1,
       "test",
       "Test",
-      fieldIsPrimaryMap.map {
+      fieldIsPrimaryMap.mapIndexed() { index, it ->
         WebContifyCollectionFieldDto(
-            null, 1, it.first, it.first, WebcontifyCollectionFieldType.NUMBER, it.second, null)
+            index + 1L,
+            1,
+            it.first,
+            it.first,
+            WebcontifyCollectionFieldType.NUMBER,
+            it.second,
+            null)
       })
 }

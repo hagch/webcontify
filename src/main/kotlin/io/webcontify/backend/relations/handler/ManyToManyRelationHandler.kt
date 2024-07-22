@@ -113,9 +113,17 @@ class ManyToManyRelationHandler(
                 sourceCollectionMapping =
                     relation.sourceCollectionMapping.copy(fieldsMapping = sourceFieldsMapping)))
     val referencedCollectionMirrorFields =
-        mirrorFieldService.create(relation.referencedCollectionMapping, relationDto.id)
+        mirrorFieldService.create(
+            CollectionRelationMapping(
+                relation.referencedCollectionMapping.id, setOf(), referencedMirrorFields),
+            relationDto.id,
+            mappingCollectionMapping.id!!)
     val sourceCollectionMirrorFields =
-        mirrorFieldService.create(relation.sourceCollectionMapping, relationDto.id)
+        mirrorFieldService.create(
+            CollectionRelationMapping(
+                relation.sourceCollectionMapping.id, setOf(), sourceMirrorFields),
+            relationDto.id,
+            mappingCollectionMapping.id!!)
     relationDto.mirrorFields =
         setOf(
             *referencedCollectionMirrorFields.toTypedArray(),

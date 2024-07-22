@@ -37,25 +37,24 @@ class CollectionTableFieldRepository(
   }
 
   @Transactional
-  fun update(
-      collection: WebContifyCollectionDto,
-      field: WebContifyCollectionFieldDto,
-      oldName: String
-  ) {
+  fun update(collection: WebContifyCollectionDto, field: WebContifyCollectionFieldDto, id: Long) {
     val oldField =
-        collection.getFieldWithName(oldName)
+        collection.getFieldWithId(id)
             ?: throw NotFoundException(
-                ErrorCode.FIELD_NOT_FOUND, oldName, field.collectionId.toString())
+                ErrorCode.FIELD_NOT_FOUND, id.toString(), field.collectionId.toString())
     if (!oldField.isUpdateAble(field)) {
       throw UnprocessableContentException(ErrorCode.UNSUPPORTED_FIELD_OPERATION)
     }
-    if (oldName != field.name) {
-      val query = dslContext.alterTable(collection.name).renameColumn(oldName).to(field.name)
+    if (oldField.name != field.name) {
+      val query = dslContext.alterTable(collection.name).renameColumn(oldField.name).to(field.name)
       try {
         query.execute()
       } catch (_: BadSqlGrammarException) {
         throw UnprocessableContentException(
-            ErrorCode.UNABLE_TO_RENAME_FIELD, oldName, field.name, field.collectionId.toString())
+            ErrorCode.UNABLE_TO_RENAME_FIELD,
+            oldField.name,
+            field.name,
+            field.collectionId.toString())
       }
     }
   }

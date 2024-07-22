@@ -36,9 +36,9 @@ class CollectionFieldServiceTest {
 
   @Test
   fun `(getByCollectionIdAndName) should call collection field repository`() {
-    service.getById(0, "test")
+    service.getById(0, 1)
 
-    verify(exactly = 1) { collectionFieldRepository.getByCollectionIdAndName(0, "test") }
+    verify(exactly = 1) { collectionFieldRepository.getById(0, 1) }
   }
 
   @Test
@@ -46,10 +46,10 @@ class CollectionFieldServiceTest {
     val collection = collectionWithFields(listOf(Pair("test", false)))
     every { collectionRepository.getById(0) } returns collection
 
-    service.deleteById(0, "test")
+    service.deleteById(0, 1)
 
     verify(exactly = 1) {
-      collectionFieldRepository.deleteById(0, "test")
+      collectionFieldRepository.deleteById(0, 1)
       collectionTableFieldRepository.delete(collection, "test")
     }
   }
@@ -92,14 +92,14 @@ class CollectionFieldServiceTest {
 
   @Test
   fun `(update) should update field and on table`() {
-    every { collectionFieldRepository.update(firstSqlInsertedField(), "") } returns
+    every { collectionFieldRepository.update(firstSqlInsertedField(), 1) } returns
         firstSqlInsertedField()
 
-    service.update("", firstSqlInsertedField())
+    service.update(1, firstSqlInsertedField())
 
     verify(exactly = 1) {
-      collectionFieldRepository.update(firstSqlInsertedField(), "")
-      collectionTableFieldRepository.update(any(), firstSqlInsertedField(), "")
+      collectionFieldRepository.update(firstSqlInsertedField(), 1)
+      collectionTableFieldRepository.update(any(), firstSqlInsertedField(), 1)
     }
   }
 }

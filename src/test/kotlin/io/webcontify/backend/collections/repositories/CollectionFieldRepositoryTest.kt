@@ -41,7 +41,7 @@ class CollectionFieldRepositoryTest(
   @Test
   @Sql("/cleanup.sql", "collection-with-fields.sql")
   fun `(getByCollectionIdAndName) should return field`() {
-    val field = repository.getByCollectionIdAndName(firstSqlField.collectionId, firstSqlField.name)
+    val field = repository.getById(firstSqlField.collectionId, firstSqlField.id!!)
 
     assertEquals(firstSqlField.collectionId, field.collectionId)
     assertEquals(firstSqlField.name, field.name)
@@ -50,9 +50,7 @@ class CollectionFieldRepositoryTest(
   @Test
   @Sql("/cleanup.sql", "collection-with-fields.sql")
   fun `(getByCollectionIdAndName) should throw exception if field does not exist`() {
-    assertThrows<NotFoundException> {
-      repository.getByCollectionIdAndName(firstSqlField.collectionId, "Does not exist")
-    }
+    assertThrows<NotFoundException> { repository.getById(firstSqlField.collectionId, 33) }
   }
 
   @Test
@@ -60,10 +58,10 @@ class CollectionFieldRepositoryTest(
   fun `(update) should update field`() {
     val newDisplayName = "New DisplayName"
     val newName = "NEW_NAME"
-    val field = repository.getByCollectionIdAndName(firstSqlField.collectionId, firstSqlField.name)
+    val field = repository.getById(firstSqlField.collectionId, firstSqlField.id!!)
 
     val newCollection =
-        repository.update(field.copy(displayName = newDisplayName, name = newName), field.name)
+        repository.update(field.copy(displayName = newDisplayName, name = newName), field.id!!)
 
     assertNotEquals(field.name, newCollection.name)
     assertEquals(newName, newCollection.name)
@@ -76,16 +74,16 @@ class CollectionFieldRepositoryTest(
   @Sql("/cleanup.sql", "collection-with-fields.sql")
   fun `(update) should throw Exception on field does not exist`() {
     assertThrows<NotFoundException> {
-      repository.update(firstSqlInsertedField().copy(collectionId = 2), "Test")
+      repository.update(firstSqlInsertedField().copy(collectionId = 2), 33)
     }
-    assertThrows<NotFoundException> { repository.update(firstSqlInsertedField(), "test") }
+    assertThrows<NotFoundException> { repository.update(firstSqlInsertedField(), 33) }
   }
 
   @Test
   @Sql("/cleanup.sql", "collection-with-multiple-fields.sql")
   fun `(update) should throw Exception on another field with name exists`() {
     assertThrows<AlreadyExistsException> {
-      repository.update(secondSqlInsertedField(), firstSqlInsertedField().name)
+      repository.update(secondSqlInsertedField(), firstSqlInsertedField().id!!)
     }
   }
 
@@ -93,13 +91,13 @@ class CollectionFieldRepositoryTest(
   @Sql("/cleanup.sql", "collection-with-fields.sql")
   fun `(deleteById) should be success full on resource exists`() {
     assertDoesNotThrow {
-      repository.deleteById(firstSqlInsertedField().collectionId, firstSqlInsertedField().name)
+      repository.deleteById(firstSqlInsertedField().collectionId, firstSqlInsertedField().id!!)
     }
   }
 
   @Test
   fun `(deleteById) should not throw an exception on an resource that does not exist`() {
-    assertDoesNotThrow { repository.deleteById(2, "Not Exists") }
+    assertDoesNotThrow { repository.deleteById(2, 33) }
   }
 
   @Test

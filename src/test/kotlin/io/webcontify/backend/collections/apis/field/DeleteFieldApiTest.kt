@@ -5,7 +5,6 @@ import helpers.asserts.errorSizeEquals
 import helpers.asserts.instanceEquals
 import helpers.asserts.timestampNotNull
 import helpers.setups.api.ApiTestSetup
-import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.DECIMAL_FIELD
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.NUMBER_PRIMARY_FIELD
 import io.restassured.module.mockmvc.kotlin.extensions.Extract
 import io.restassured.module.mockmvc.kotlin.extensions.Given
@@ -25,7 +24,7 @@ class DeleteFieldApiTest : ApiTestSetup() {
   fun `(DeleteField) should delete field for collection`() {
     Given { mockMvc(mockMvc) } When
         {
-          delete("$COLLECTIONS_PATH/1/fields/${DECIMAL_FIELD.name}")
+          delete("$COLLECTIONS_PATH/1/fields/3")
         } Then
         {
           status(HttpStatus.NO_CONTENT)
@@ -35,7 +34,7 @@ class DeleteFieldApiTest : ApiTestSetup() {
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(DeleteField) should return not found if field does not exist`() {
-    val path = "$COLLECTIONS_PATH/1/fields/does_not_exist"
+    val path = "$COLLECTIONS_PATH/1/fields/33"
     val errorResponse =
         Given { mockMvc(mockMvc) } When
             {
@@ -51,14 +50,13 @@ class DeleteFieldApiTest : ApiTestSetup() {
     errorResponse.instanceEquals("/$path")
     errorResponse.errorSizeEquals(1)
     errorResponse.errors[0].equalsTo(
-        ErrorCode.FIELD_NOT_FOUND,
-        String.format(ErrorCode.FIELD_NOT_FOUND.message, 1, "does_not_exist"))
+        ErrorCode.FIELD_NOT_FOUND, String.format(ErrorCode.FIELD_NOT_FOUND.message, 1, 33))
   }
 
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(DeleteField) should return not found if collection does not exist`() {
-    val path = "$COLLECTIONS_PATH/5/fields/number_field"
+    val path = "$COLLECTIONS_PATH/5/fields/1"
     val errorResponse =
         Given { mockMvc(mockMvc) } When
             {
@@ -80,7 +78,7 @@ class DeleteFieldApiTest : ApiTestSetup() {
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(DeleteField) should return bad request if field is primary key`() {
-    val path = "$COLLECTIONS_PATH/1/fields/${NUMBER_PRIMARY_FIELD.name}"
+    val path = "$COLLECTIONS_PATH/1/fields/2"
     val errorResponse =
         Given { mockMvc(mockMvc) } When
             {
@@ -103,7 +101,7 @@ class DeleteFieldApiTest : ApiTestSetup() {
   @Test
   @Sql("/cleanup.sql", "./../collection-with-relation.sql")
   fun `(DeleteField) should return error if field is used in relation`() {
-    val path = "$COLLECTIONS_PATH/2/fields/related_field"
+    val path = "$COLLECTIONS_PATH/2/fields/3"
     val errorResponse =
         Given { mockMvc(mockMvc) } When
             {
@@ -120,6 +118,6 @@ class DeleteFieldApiTest : ApiTestSetup() {
     errorResponse.errorSizeEquals(1)
     errorResponse.errors[0].equalsTo(
         ErrorCode.FIELD_USED_IN_RELATION,
-        String.format(ErrorCode.FIELD_USED_IN_RELATION.message, 2, "related_field"))
+        String.format(ErrorCode.FIELD_USED_IN_RELATION.message, 2, 3))
   }
 }

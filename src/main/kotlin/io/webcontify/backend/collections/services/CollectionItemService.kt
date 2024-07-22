@@ -9,6 +9,7 @@ import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.repositories.CollectionItemRepository
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.collections.utils.toKeyValueString
+import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -71,6 +72,13 @@ class CollectionItemService(
   @Transactional
   fun create(collectionId: Long, item: Item): Item {
     val collection = collectionService.getById(collectionId)
+    val mirrorFields =
+        collection.fields
+            ?.filter { it.type == WebcontifyCollectionFieldType.RELATION_MIRROR }
+            ?.mapNotNull { item[it.name] }
+    if (mirrorFields?.isNotEmpty() == true) {
+      throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
+    }
     return collectionItemRepository.create(collection, item)
   }
 
@@ -89,6 +97,13 @@ class CollectionItemService(
     if (updateAbleItem.isEmpty()) {
       throw UnprocessableContentException(
           ErrorCode.NO_FIELDS_TO_UPDATE, identifierMap.toKeyValueString(), collectionId.toString())
+    }
+    val mirrorFields =
+        collection.fields
+            .filter { it.type == WebcontifyCollectionFieldType.RELATION_MIRROR }
+            .mapNotNull { updateAbleItem[it.name] }
+    if (mirrorFields.isNotEmpty()) {
+      throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
     }
     return collectionItemRepository.update(collection, identifierMap, updateAbleItem)
   }
