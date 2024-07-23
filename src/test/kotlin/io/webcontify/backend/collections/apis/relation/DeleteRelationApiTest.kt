@@ -8,6 +8,7 @@ import io.restassured.module.mockmvc.kotlin.extensions.Given
 import io.restassured.module.mockmvc.kotlin.extensions.Then
 import io.restassured.module.mockmvc.kotlin.extensions.When
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiCreateRequest
+import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import io.webcontify.backend.configurations.RELATIONS_PATH
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
@@ -68,14 +69,16 @@ class DeleteRelationApiTest : ApiTestSetup() {
         createCollection(
             CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField())
     val relation = createOneToOneRelation(collection, relatedCollection)
-    assertEquals(dslContext.fetch(postgresConstranintNameSQL(collection.name)).size, 2)
+    assertEquals(
+        dslContext.fetch(postgresConstranintNameSQL(collection.name.camelToSnakeCase())).size, 2)
     assertEquals(getMirrorFieldSizeForRelation(relationId = relation.id), 1)
     assertEquals(getRelationSize(relationId = relation.id), 1)
     Given {
       mockMvc(mockMvc)
       contentType(MediaType.APPLICATION_JSON_VALUE)
     } When { delete("$RELATIONS_PATH/${relation.id}") } Then { status(HttpStatus.NO_CONTENT) }
-    assertEquals(dslContext.fetch(postgresConstranintNameSQL(collection.name)).size, 1)
+    assertEquals(
+        dslContext.fetch(postgresConstranintNameSQL(collection.name.camelToSnakeCase())).size, 1)
     assertEquals(getMirrorFieldSizeForRelation(relationId = relation.id), 0)
     assertEquals(getRelationSize(relationId = relation.id), 0)
   }
@@ -98,8 +101,7 @@ class DeleteRelationApiTest : ApiTestSetup() {
                     sourceCollectionId,
                     setOf(RelationFieldMapping(sourceCollectionPrimaryFieldId, relationField)),
                     setOf(
-                        MirrorRelationFieldMapping(
-                            "mirror_field_for_$relationField", relationField))),
+                        MirrorRelationFieldMapping("mirrorFieldFor$relationField", relationField))),
             mappingCollectionMapping = null,
             referencedCollectionMapping =
                 CollectionRelationMapping(
@@ -122,14 +124,22 @@ class DeleteRelationApiTest : ApiTestSetup() {
             {
               body().`as`(RelationDto::class.java)
             }
-    assertEquals(dslContext.fetch(postgresConstranintNameSQL(relatedCollection.name)).size, 2)
+    assertEquals(
+        dslContext
+            .fetch(postgresConstranintNameSQL(relatedCollection.name.camelToSnakeCase()))
+            .size,
+        2)
     assertEquals(getMirrorFieldSizeForRelation(relationId = relation.id), 1)
     assertEquals(getRelationSize(relationId = relation.id), 1)
     Given {
       mockMvc(mockMvc)
       contentType(MediaType.APPLICATION_JSON_VALUE)
     } When { delete("$RELATIONS_PATH/${relation.id}") } Then { status(HttpStatus.NO_CONTENT) }
-    assertEquals(dslContext.fetch(postgresConstranintNameSQL(relatedCollection.name)).size, 1)
+    assertEquals(
+        dslContext
+            .fetch(postgresConstranintNameSQL(relatedCollection.name.camelToSnakeCase()))
+            .size,
+        1)
     assertEquals(getMirrorFieldSizeForRelation(relationId = relation.id), 0)
     assertEquals(getRelationSize(relationId = relation.id), 0)
   }
@@ -158,8 +168,7 @@ class DeleteRelationApiTest : ApiTestSetup() {
                     relatedCollectionId,
                     setOf(RelationFieldMapping(relatedCollectionPrimaryField, relationField)),
                     setOf(
-                        MirrorRelationFieldMapping(
-                            "mirror_field_for_$relationField", relationField))),
+                        MirrorRelationFieldMapping("mirrorFieldFor$relationField", relationField))),
             type = WebcontifyCollectionRelationType.MANY_TO_ONE)
     val relation =
         Given {
@@ -176,14 +185,16 @@ class DeleteRelationApiTest : ApiTestSetup() {
             {
               body().`as`(RelationDto::class.java)
             }
-    assertEquals(dslContext.fetch(postgresConstranintNameSQL(collection.name)).size, 2)
+    assertEquals(
+        dslContext.fetch(postgresConstranintNameSQL(collection.name.camelToSnakeCase())).size, 2)
     assertEquals(getMirrorFieldSizeForRelation(relationId = relation.id), 1)
     assertEquals(getRelationSize(relationId = relation.id), 1)
     Given {
       mockMvc(mockMvc)
       contentType(MediaType.APPLICATION_JSON_VALUE)
     } When { delete("$RELATIONS_PATH/${relation.id}") } Then { status(HttpStatus.NO_CONTENT) }
-    assertEquals(dslContext.fetch(postgresConstranintNameSQL(collection.name)).size, 1)
+    assertEquals(
+        dslContext.fetch(postgresConstranintNameSQL(collection.name.camelToSnakeCase())).size, 1)
     assertEquals(getMirrorFieldSizeForRelation(relationId = relation.id), 0)
     assertEquals(getRelationSize(relationId = relation.id), 0)
   }
@@ -208,7 +219,7 @@ class DeleteRelationApiTest : ApiTestSetup() {
                     setOf(),
                     setOf(
                         MirrorRelationFieldMapping(
-                            "mirror_field_for_$relatedCollectionPrimaryFieldId",
+                            "mirrorFieldFor$relatedCollectionPrimaryFieldId",
                             relatedCollectionPrimaryFieldId))),
             mappingCollectionMapping =
                 MappingCollectionRelationMapping(
@@ -223,7 +234,7 @@ class DeleteRelationApiTest : ApiTestSetup() {
                     setOf(),
                     setOf(
                         MirrorRelationFieldMapping(
-                            "mirror_field_for_$sourceCollectionPrimaryFieldId",
+                            "mirrorFieldFor$sourceCollectionPrimaryFieldId",
                             sourceCollectionPrimaryFieldId))),
             type = WebcontifyCollectionRelationType.MANY_TO_MANY)
     val relation =
@@ -247,14 +258,14 @@ class DeleteRelationApiTest : ApiTestSetup() {
             .where(WEBCONTIFY_COLLECTION.ID.eq(relation.mappingCollectionMapping!!.id))
             .fetchOne()!!
             .getValue(WEBCONTIFY_COLLECTION.NAME)
-    assertEquals(dslContext.fetch(postgresConstranintNameSQL(mappingCollectionName ?: "")).size, 5)
+    assertEquals(5, dslContext.fetch(postgresConstranintNameSQL(mappingCollectionName!!)).size)
     assertEquals(getMirrorFieldSizeForRelation(relationId = relation.id), 2)
     assertEquals(getRelationSize(relationId = relation.id), 1)
     Given {
       mockMvc(mockMvc)
       contentType(MediaType.APPLICATION_JSON_VALUE)
     } When { delete("$RELATIONS_PATH/${relation.id}") } Then { status(HttpStatus.NO_CONTENT) }
-    assertEquals(dslContext.fetch(postgresConstranintNameSQL(mappingCollectionName ?: "")).size, 3)
+    assertEquals(dslContext.fetch(postgresConstranintNameSQL(mappingCollectionName)).size, 3)
     assertEquals(getMirrorFieldSizeForRelation(relationId = relation.id), 0)
     assertEquals(getRelationSize(relationId = relation.id), 0)
   }
@@ -280,8 +291,7 @@ class DeleteRelationApiTest : ApiTestSetup() {
                     relatedCollectionId,
                     setOf(RelationFieldMapping(relatedCollectionPrimaryFieldId, relationField)),
                     setOf(
-                        MirrorRelationFieldMapping(
-                            "mirror_field_for_$relationField", relationField))),
+                        MirrorRelationFieldMapping("mirrorFieldFor$relationField", relationField))),
             type = WebcontifyCollectionRelationType.ONE_TO_ONE)
     val relationDto =
         Given {

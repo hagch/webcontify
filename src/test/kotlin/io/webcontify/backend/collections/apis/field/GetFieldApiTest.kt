@@ -31,7 +31,7 @@ class GetFieldApiTest : ApiTestSetup() {
         {
           status(HttpStatus.OK)
           body("collectionId", Matchers.equalTo(1))
-          body("name", Matchers.equalTo("number_field"))
+          body("name", Matchers.equalTo("numberField"))
         }
   }
 

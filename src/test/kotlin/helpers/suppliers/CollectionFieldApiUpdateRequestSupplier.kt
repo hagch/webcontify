@@ -8,24 +8,24 @@ class CollectionFieldApiUpdateRequestSupplier {
   companion object {
     val NUMBER_PRIMARY_FIELD_NAME_CHANGED =
         Pair(
-            "number_field",
+            "numberField",
             WebContifyCollectionFieldApiUpdateRequest(
-                "number_field_changed", "Number Field", WebcontifyCollectionFieldType.NUMBER, true))
+                "numberFieldChanged", "Number Field", WebcontifyCollectionFieldType.NUMBER, true))
     val NUMBER_FIELD_PRIMARY_CHANGED =
         Pair(
-            "number_field",
+            "numberField",
             WebContifyCollectionFieldApiUpdateRequest(
-                "number_field", "Number Field", WebcontifyCollectionFieldType.NUMBER, false))
+                "numberField", "Number Field", WebcontifyCollectionFieldType.NUMBER, false))
     val DECIMAL_FIELD_TYPE_CHANGED =
         Pair(
-            "decimal_field",
+            "decimalField",
             WebContifyCollectionFieldApiUpdateRequest(
-                "decimal_field", "Decimal Field", WebcontifyCollectionFieldType.NUMBER, false))
+                "decimalField", "Decimal Field", WebcontifyCollectionFieldType.NUMBER, false))
     val DECIMAL_FIELD_NAME_CHANGED =
         Pair(
-            "decimal_field",
+            "decimalField",
             WebContifyCollectionFieldApiUpdateRequest(
-                "decimal_field_changed",
+                "decimalFieldChanged",
                 "Decimal Field",
                 WebcontifyCollectionFieldType.DECIMAL,
                 false))
@@ -39,9 +39,9 @@ class CollectionFieldApiUpdateRequestSupplier {
                 false))
     val RELATED_FIELD_CHANGED =
         Pair(
-            "related_field",
+            "relatedField",
             WebContifyCollectionFieldApiUpdateRequest(
-                "related_field_changed",
+                "relatedFieldChanged",
                 "Related Field",
                 WebcontifyCollectionFieldType.NUMBER,
                 false))

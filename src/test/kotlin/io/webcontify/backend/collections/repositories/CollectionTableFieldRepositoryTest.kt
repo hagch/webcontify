@@ -7,6 +7,7 @@ import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
+import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -29,10 +30,11 @@ class CollectionTableFieldRepositoryTest(
           1, 1, "id", "id", WebcontifyCollectionFieldType.NUMBER, true, null)
   private final val secondField =
       WebContifyCollectionFieldDto(
-          1, 1, "otherfield", "otherField", WebcontifyCollectionFieldType.NUMBER, false, null)
+          1, 1, "otherField", "otherField", WebcontifyCollectionFieldType.NUMBER, false, null)
   private final val collection =
-      collectionWithFields(listOf(Pair("id", true), Pair("otherfield", false)))
-  private final val fields = listOf(DSL.field(firstField.name), DSL.field(secondField.name))
+      collectionWithFields(listOf(Pair("id", true), Pair("otherField", false)))
+  private final val fields =
+      listOf(DSL.field(firstField.name), DSL.field(secondField.name.camelToSnakeCase()))
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
@@ -50,7 +52,8 @@ class CollectionTableFieldRepositoryTest(
 
     assertDoesNotThrow {
       context
-          .insertInto(DSL.table(collection.name), fields.plus(DSL.field(newField.name)))
+          .insertInto(
+              DSL.table(collection.name), fields.plus(DSL.field(newField.name.camelToSnakeCase())))
           .values(1, 1, 1)
           .execute()
     }
@@ -65,7 +68,7 @@ class CollectionTableFieldRepositoryTest(
         assertThrows<BadSqlGrammarException> {
           context
               .selectFrom(collection.name)
-              .where(field(relationMirrorField().name).eq(0))
+              .where(field(relationMirrorField().name.camelToSnakeCase()).eq(0))
               .execute()
         }
     assertEquals(
@@ -77,7 +80,7 @@ class CollectionTableFieldRepositoryTest(
   fun `(create) field should throw exception if field already exists`() {
     val newField =
         WebContifyCollectionFieldDto(
-            null, 1, "otherfield", "otherField", WebcontifyCollectionFieldType.NUMBER, false, null)
+            null, 1, "otherField", "otherField", WebcontifyCollectionFieldType.NUMBER, false, null)
     assertThrows<AlreadyExistsException> { repository.create(collection, newField) }
   }
 

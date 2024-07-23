@@ -190,7 +190,7 @@ class UpdateFieldApiTest : ApiTestSetup() {
       contentType(MediaType.APPLICATION_JSON)
       body(
           WebContifyCollectionFieldApiUpdateRequest(
-              "mirror_field_changed",
+              "mirrorFieldChanged",
               "Mirror Field Changed",
               WebcontifyCollectionFieldType.RELATION_MIRROR,
               false))

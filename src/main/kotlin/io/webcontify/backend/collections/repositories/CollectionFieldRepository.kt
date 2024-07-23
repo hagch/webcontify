@@ -6,6 +6,7 @@ import io.webcontify.backend.collections.exceptions.UnprocessableContentExceptio
 import io.webcontify.backend.collections.mappers.CollectionFieldMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
+import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionFieldRecord
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_FIELD
 import org.jooq.DSLContext
@@ -64,7 +65,7 @@ class CollectionFieldRepository(val dslContext: DSLContext, val mapper: Collecti
     val query =
         dslContext
             .update(WEBCONTIFY_COLLECTION_FIELD)
-            .set(WEBCONTIFY_COLLECTION_FIELD.NAME, record.name)
+            .set(WEBCONTIFY_COLLECTION_FIELD.NAME, record.name.camelToSnakeCase())
             .set(WEBCONTIFY_COLLECTION_FIELD.DISPLAY_NAME, record.displayName)
             .where(
                 WEBCONTIFY_COLLECTION_FIELD.COLLECTION_ID.eq(record.collectionId)
@@ -87,7 +88,7 @@ class CollectionFieldRepository(val dslContext: DSLContext, val mapper: Collecti
   fun create(field: WebContifyCollectionFieldDto): WebContifyCollectionFieldDto {
     return dslContext.newRecord(WEBCONTIFY_COLLECTION_FIELD).let {
       it.collectionId = field.collectionId
-      it.name = field.name
+      it.name = field.name.camelToSnakeCase()
       it.displayName = field.displayName
       it.type = field.type
       it.isPrimaryKey = field.isPrimaryKey

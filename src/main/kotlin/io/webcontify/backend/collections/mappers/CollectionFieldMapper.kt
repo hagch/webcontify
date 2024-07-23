@@ -5,6 +5,7 @@ import io.webcontify.backend.collections.models.apis.WebContifyCollectionFieldAp
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldConfigurationDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
 import io.webcontify.backend.collections.services.field.handler.FieldHandlerStrategy
+import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionFieldRecord
 import org.jooq.JSONB
 import org.mapstruct.Mapper
@@ -18,7 +19,7 @@ abstract class CollectionFieldMapper {
   @Autowired private lateinit var handler: FieldHandlerStrategy
 
   @Mapping(source = "collectionId", target = "collectionId")
-  @Mapping(source = "name", target = "name")
+  @Mapping(source = "name", target = "name", qualifiedByName = ["mapFieldNameSnakeToCamelCase"])
   @Mapping(source = "displayName", target = "displayName")
   @Mapping(source = "type", target = "type")
   @Mapping(source = "primaryKey", target = "isPrimaryKey")
@@ -63,6 +64,11 @@ abstract class CollectionFieldMapper {
               null),
           field.configuration)
     }
+  }
+
+  @Named("mapFieldNameSnakeToCamelCase")
+  fun mapFieldNameSnakeToCamelCase(name: String): String {
+    return name.snakeToCamelCase()
   }
 
   fun mapConfigurationToPersistence(field: WebContifyCollectionFieldDto): JSONB? {

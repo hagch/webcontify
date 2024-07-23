@@ -16,7 +16,6 @@ import io.restassured.module.mockmvc.kotlin.extensions.When
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiCreateRequest
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.models.errors.ErrorResponse
-import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.collections.utils.toKeyValueString
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import io.webcontify.backend.configurations.RELATIONS_PATH
@@ -30,7 +29,7 @@ import org.springframework.http.MediaType
 class CreateItemRelationApiTest : ApiTestSetup() {
 
   @Test
-  fun `(CreateItem) should throw error on relation with value which does not exist`() {
+  fun `(CreateItemRelation) should throw error on relation with value which does not exist`() {
     val collection =
         createCollection(CollectionApiCreateRequestSupplier.getCollectionRelationField())
     val relatedCollection =
@@ -66,7 +65,7 @@ class CreateItemRelationApiTest : ApiTestSetup() {
   }
 
   @Test
-  fun `(CreateItem) should create item with referenced field`() {
+  fun `(CreateItemRelation) should create item with referenced field`() {
     val collection =
         createCollection(CollectionApiCreateRequestSupplier.getCollectionRelationField())
     val relatedCollection =
@@ -77,7 +76,7 @@ class CreateItemRelationApiTest : ApiTestSetup() {
         Given {
           mockMvc(mockMvc)
           contentType(MediaType.APPLICATION_JSON_VALUE)
-          body(mapOf(DECIMAL_FIELD.name.snakeToCamelCase() to 1.0))
+          body(mapOf(DECIMAL_FIELD.name to 1.0))
         } When
             {
               post("$COLLECTIONS_PATH/${relatedCollection.id}/items")
@@ -90,7 +89,7 @@ class CreateItemRelationApiTest : ApiTestSetup() {
             }
     val item =
         mapOf(
-            NUMBER_RELATION_FIELD.name.snakeToCamelCase() to createdItemIdToRelate,
+            NUMBER_RELATION_FIELD.name to createdItemIdToRelate,
         )
     Given {
       mockMvc(mockMvc)
@@ -108,7 +107,7 @@ class CreateItemRelationApiTest : ApiTestSetup() {
   }
 
   @Test
-  fun `(CreateItem) should throw exception on trying to set value over mirror field of relation`() {
+  fun `(CreateItemRelation) should throw exception on trying to set value over mirror field of relation`() {
     val collection =
         createCollection(CollectionApiCreateRequestSupplier.getCollectionRelationField())
     val relatedCollection =
@@ -121,7 +120,7 @@ class CreateItemRelationApiTest : ApiTestSetup() {
           contentType(MediaType.APPLICATION_JSON_VALUE)
           body(
               mapOf(
-                  DECIMAL_FIELD.name.snakeToCamelCase() to 1.0,
+                  DECIMAL_FIELD.name to 1.0,
                   "mirrorFieldFor${collection.fields!!.first { !it.isPrimaryKey }.id!!}" to 1))
         } When
             {
@@ -161,8 +160,7 @@ class CreateItemRelationApiTest : ApiTestSetup() {
                     relatedCollectionId,
                     setOf(RelationFieldMapping(relatedCollectionPrimaryFieldId, relationField)),
                     setOf(
-                        MirrorRelationFieldMapping(
-                            "mirror_field_for_$relationField", relationField))),
+                        MirrorRelationFieldMapping("mirrorFieldFor$relationField", relationField))),
             type = WebcontifyCollectionRelationType.ONE_TO_ONE)
     val relationDto =
         Given {

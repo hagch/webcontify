@@ -1,6 +1,7 @@
 package io.webcontify.backend.relations
 
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
+import io.webcontify.backend.collections.utils.camelToSnakeCase
 import org.jooq.ConstraintForeignKeyOnStep
 import org.jooq.Name
 import org.jooq.impl.DSL.constraint
@@ -29,10 +30,10 @@ data class RelationTable(
     val fields: Set<WebContifyCollectionFieldDto>
 ) {
   fun columnNames(): Set<Name> {
-    return fields.map { name(it.name) }.toSet()
+    return fields.map { name(it.name.camelToSnakeCase()) }.toSet()
   }
 
   fun tableName(): Name {
-    return name(name)
+    return name(name.camelToSnakeCase())
   }
 }

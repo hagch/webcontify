@@ -6,6 +6,7 @@ import io.webcontify.backend.collections.exceptions.UnprocessableContentExceptio
 import io.webcontify.backend.collections.mappers.CollectionMapper
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
+import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.jooq.tables.records.*
 import io.webcontify.backend.jooq.tables.references.*
 import java.util.stream.Collectors
@@ -58,7 +59,7 @@ class CollectionRepository(val dslContext: DSLContext, val mapper: CollectionMap
   fun update(collection: WebContifyCollectionDto): WebContifyCollectionDto {
     val updateAbleRecord = dslContext.newRecord(WEBCONTIFY_COLLECTION)
     updateAbleRecord.displayName = collection.displayName
-    updateAbleRecord.name = collection.name
+    updateAbleRecord.name = collection.name.camelToSnakeCase()
     updateAbleRecord.id = collection.id
     try {
       updateAbleRecord.update().let {
@@ -78,7 +79,7 @@ class CollectionRepository(val dslContext: DSLContext, val mapper: CollectionMap
     val collection =
         dslContext.newRecord(WEBCONTIFY_COLLECTION).apply {
           this.displayName = record.displayName
-          this.name = record.name
+          this.name = record.name.camelToSnakeCase()
           try {
             this.insert()
           } catch (e: DuplicateKeyException) {

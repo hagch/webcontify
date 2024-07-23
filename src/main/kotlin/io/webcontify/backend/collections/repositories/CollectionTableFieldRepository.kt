@@ -7,6 +7,7 @@ import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.services.field.handler.FieldHandlerStrategy
+import io.webcontify.backend.collections.utils.camelToSnakeCase
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.springframework.jdbc.BadSqlGrammarException
@@ -27,7 +28,10 @@ class CollectionTableFieldRepository(
           ErrorCode.FIELD_WITH_NAME_ALREADY_EXISTS, field.name, field.collectionId.toString())
     }
 
-    val query = dslContext.alterTable(collection.name).addColumn(field(field.name, type))
+    val query =
+        dslContext
+            .alterTable(collection.name.camelToSnakeCase())
+            .addColumn(field(field.name.camelToSnakeCase(), type))
     try {
       query.execute()
     } catch (_: BadSqlGrammarException) {
@@ -46,7 +50,11 @@ class CollectionTableFieldRepository(
       throw UnprocessableContentException(ErrorCode.UNSUPPORTED_FIELD_OPERATION)
     }
     if (oldField.name != field.name) {
-      val query = dslContext.alterTable(collection.name).renameColumn(oldField.name).to(field.name)
+      val query =
+          dslContext
+              .alterTable(collection.name.camelToSnakeCase())
+              .renameColumn(oldField.name.camelToSnakeCase())
+              .to(field.name.camelToSnakeCase())
       try {
         query.execute()
       } catch (_: BadSqlGrammarException) {
@@ -61,6 +69,9 @@ class CollectionTableFieldRepository(
 
   @Transactional
   fun delete(collection: WebContifyCollectionDto, name: String) {
-    dslContext.alterTableIfExists(collection.name).dropColumnIfExists(field(name)).execute()
+    dslContext
+        .alterTableIfExists(collection.name.camelToSnakeCase())
+        .dropColumnIfExists(field(name))
+        .execute()
   }
 }

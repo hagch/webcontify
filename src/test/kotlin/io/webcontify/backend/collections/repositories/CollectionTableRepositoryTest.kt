@@ -5,6 +5,7 @@ import helpers.suppliers.collectionWithFields
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
+import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
@@ -34,12 +35,15 @@ class CollectionTableRepositoryTest(
 
   private final val onePrimaryKeyCollection =
       collectionWithFields(listOf(Pair("id", true), Pair("otherField", false)))
-  private final val onePrimaryKeyFields = listOf(field(firstField.name), field(secondField.name))
+  private final val onePrimaryKeyFields =
+      listOf(field(firstField.name.camelToSnakeCase()), field(secondField.name.camelToSnakeCase()))
 
   private final val compositePrimaryKeyCollection =
       collectionWithFields(listOf(Pair("primary1", true), Pair("primary2", true)))
   private final val compositePrimaryKeyFields =
-      listOf(field(firstFieldPrimary.name), field(secondFieldPrimary.name))
+      listOf(
+          field(firstFieldPrimary.name.camelToSnakeCase()),
+          field(secondFieldPrimary.name.camelToSnakeCase()))
 
   @Test
   @Sql("/cleanup.sql")

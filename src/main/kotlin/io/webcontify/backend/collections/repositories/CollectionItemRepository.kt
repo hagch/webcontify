@@ -3,13 +3,13 @@ package io.webcontify.backend.collections.repositories
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
+import io.webcontify.backend.collections.mappers.ItemMapper
 import io.webcontify.backend.collections.models.IdentifierMap
 import io.webcontify.backend.collections.models.Item
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.services.field.handler.FieldHandlerStrategy
 import io.webcontify.backend.collections.utils.camelToSnakeCase
-import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.collections.utils.toKeyValueString
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.jooq.Condition
@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional
 @Repository
 class CollectionItemRepository(
     val dslContext: DSLContext,
+    val mapper: ItemMapper,
     val fieldHandlerStrategy: FieldHandlerStrategy
 ) {
 
@@ -31,7 +32,7 @@ class CollectionItemRepository(
   fun getByIdFor(collection: WebContifyCollectionDto, identifierMap: IdentifierMap): Item {
     val fields = getFieldConditionsFor(collection, identifierMap)
     try {
-      return dslContext.selectFrom(collection.name).where(fields).fetchOne {
+      return dslContext.selectFrom(collection.name.camelToSnakeCase()).where(fields).fetchOne {
         mapItemToResult(it.intoMap(), collection)
       }
           ?: throw NotFoundException(
@@ -48,7 +49,7 @@ class CollectionItemRepository(
   fun deleteById(collection: WebContifyCollectionDto, identifierMap: IdentifierMap) {
     val fields = getFieldConditionsFor(collection, identifierMap)
     try {
-      dslContext.deleteFrom(table(collection.name)).where(fields).execute()
+      dslContext.deleteFrom(table(collection.name.camelToSnakeCase())).where(fields).execute()
     } catch (e: BadSqlGrammarException) {
       throw UnprocessableContentException(
           ErrorCode.UNABLE_TO_DELETE_ITEM,
@@ -61,10 +62,10 @@ class CollectionItemRepository(
   fun create(collection: WebContifyCollectionDto, item: Item): Item {
     val createAbleItem = getCreateAbleItem(collection, item)
     val fields = createAbleItem.keys.map { field(it) }
-    val allFields = collection.queryAbleFields().map { field(it.name) }
+    val allFields = collection.queryAbleFields().map { field(it.name.camelToSnakeCase()) }
     try {
       dslContext
-          .insertInto(table(collection.name), fields)
+          .insertInto(table(collection.name.camelToSnakeCase()), fields)
           .values(createAbleItem.values)
           .returning(allFields)
           .fetchOne()
@@ -101,27 +102,22 @@ class CollectionItemRepository(
             ?.toMap()
             ?: emptyMap()
     val itemWithoutRemovablePrimaryKeys =
-        item
-            .mapKeys { it.key.camelToSnakeCase() }
-            .filter {
-              !(removeAblePrimaryKeys.contains(it.key) && removeAblePrimaryKeys[it.key] == true)
-            }
+        item.filter {
+          !(removeAblePrimaryKeys.contains(it.key) && removeAblePrimaryKeys[it.key] == true)
+        }
     val mappedItem = mapItemToStore(itemWithoutRemovablePrimaryKeys, collection)
     return mappedItem
   }
 
   @Transactional
   fun update(collection: WebContifyCollectionDto, identifierMap: IdentifierMap, item: Item): Item {
-    val query = dslContext.update(table(collection.name))
-    val fieldMap =
-        mapItemToStore(item.mapKeys { it.key.camelToSnakeCase() }, collection).entries.associate {
-          field(it.key) to it.value
-        }
+    val query = dslContext.update(table(collection.name.camelToSnakeCase()))
+    val fieldMap = mapItemToStore(item, collection).entries.associate { field(it.key) to it.value }
     val conditions = getConditions(identifierMap, collection)
     try {
       query.set(fieldMap).where(conditions).returning(fieldMap.keys).fetchOne()?.let {
         val updatedItemValues = it.intoMap().toMutableMap()
-        updatedItemValues.putAll(identifierMap.mapKeys { entry -> entry.key.camelToSnakeCase() })
+        updatedItemValues.putAll(mapper.mapKeysToDataStore(identifierMap))
         return mapItemToResult(updatedItemValues, collection).toMutableMap()
       }
     } catch (e: DataIntegrityViolationException) {
@@ -136,7 +132,7 @@ class CollectionItemRepository(
 
   @Transactional
   fun getAllFor(collection: WebContifyCollectionDto): List<Item> {
-    val select = dslContext.selectFrom(collection.name)
+    val select = dslContext.selectFrom(collection.name.camelToSnakeCase())
     try {
       return select.fetch { record -> mapItemToResult(record.intoMap(), collection) }
     } catch (e: BadSqlGrammarException) {
@@ -147,7 +143,7 @@ class CollectionItemRepository(
 
   private fun getConditions(identifierMap: IdentifierMap, collection: WebContifyCollectionDto) =
       mapItemToStore(identifierMap, collection).map {
-        condition(field("${collection.name}.${it.key.camelToSnakeCase()}").eq(it.value))
+        condition(field("${collection.name.camelToSnakeCase()}.${it.key}").eq(it.value))
       }
 
   private fun getFieldConditionsFor(
@@ -155,7 +151,7 @@ class CollectionItemRepository(
       identifierTypeMap: IdentifierMap
   ): List<Condition> {
     return mapItemToStore(identifierTypeMap, collection).map {
-      field("${collection.name}.${it.key.camelToSnakeCase()}").eq(it.value)
+      field("${collection.name.camelToSnakeCase()}.${it.key}").eq(it.value)
     }
   }
 
@@ -167,17 +163,16 @@ class CollectionItemRepository(
       throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
     }
     return collection.fields?.let { fields ->
-      return fieldHandlerStrategy.castItemToJavaTypes(fields, item).toMap()
+      val castedItem = fieldHandlerStrategy.castItemToJavaTypes(fields, item).toMap()
+      return mapper.mapKeysToDataStore(castedItem)
     }
         ?: emptyMap()
   }
 
   private fun mapItemToResult(item: Item, collection: WebContifyCollectionDto): Item {
+    val responseItem = mapper.mapKeysToResponse(item)
     return collection.fields?.let { fields ->
-      return fieldHandlerStrategy
-          .castItemToJavaTypes(fields, item)
-          .map { it.key.snakeToCamelCase() to it.value }
-          .toMap()
+      return fieldHandlerStrategy.castItemToJavaTypes(fields, responseItem)
     }
         ?: emptyMap()
   }

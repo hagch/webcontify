@@ -17,7 +17,7 @@ fun relationMirrorField(): WebContifyCollectionFieldDto {
   return WebContifyCollectionFieldDto(
       2,
       1,
-      "relation_mirror",
+      "relationMirror",
       "DisplayName",
       WebcontifyCollectionFieldType.RELATION_MIRROR,
       true,

@@ -53,8 +53,13 @@ class CreateCollectionApiTest : ApiTestSetup() {
         sendInvalidCollectionCreation(CollectionApiCreateRequestSupplier.COLLECTION_WITH_EMPTY_NAME)
 
     generalErrorChecks(errorResponse)
-    errorResponse.errorSizeEquals(1)
-    errorResponse.errors[0].equalsTo(ErrorCode.NAME_REQUIRED, ErrorCode.NAME_REQUIRED.message)
+    errorResponse.errorSizeEquals(2)
+    errorResponse.errors
+        .first { it.code == ErrorCode.INVALID_NAME }
+        .equalsTo(ErrorCode.INVALID_NAME, ErrorCode.INVALID_NAME.message)
+    errorResponse.errors
+        .first { it.code == ErrorCode.NAME_REQUIRED }
+        .equalsTo(ErrorCode.NAME_REQUIRED, ErrorCode.NAME_REQUIRED.message)
   }
 
   @Test
@@ -76,11 +81,11 @@ class CreateCollectionApiTest : ApiTestSetup() {
             CollectionApiCreateRequestSupplier.COLLECTION_WITH_INVALID_FIELD_NAMES)
 
     generalErrorChecks(errorResponse)
-    errorResponse.errorSizeEquals(3)
+    errorResponse.errorSizeEquals(4)
     assertTrue(
         errorResponse.errors.containsAll(
             listOf(Error(ErrorCode.INVALID_NAME), Error(ErrorCode.NAME_REQUIRED))))
-    assertEquals(2, errorResponse.errors.filter { it.code == ErrorCode.INVALID_NAME }.size)
+    assertEquals(3, errorResponse.errors.filter { it.code == ErrorCode.INVALID_NAME }.size)
   }
 
   @Test

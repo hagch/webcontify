@@ -164,8 +164,8 @@ class UpdateItemApiTest : ApiTestSetup() {
     val uuid = UUID.randomUUID().toString()
     val item =
         mapOf(
-            "uuid_field" to uuid,
-            "text_field" to "Thats an text",
+            "uuidField" to uuid,
+            "textField" to "Thats an text",
         )
     Given {
       mockMvc(mockMvc)

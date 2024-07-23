@@ -189,21 +189,23 @@ class ManyToManyRelationHandler(
             relation.referencedCollectionMapping.id, referencedCollectionFields)
     val sourceFieldMapping =
         sourceCollection.fields
-            .map {
+            .map { fieldDto ->
               val field =
-                  it.copy(
-                      name = "ref_${it.collectionId}_${it.name}",
-                      displayName = "Reference ${it.collectionId} ${it.displayName}")
-              Pair(field, Pair(field.name, it.id))
+                  fieldDto.copy(
+                      name =
+                          "ref${fieldDto.collectionId}${fieldDto.name.replaceFirstChar { it.uppercase() }}",
+                      displayName = "Reference ${fieldDto.collectionId} ${fieldDto.displayName}")
+              Pair(field, Pair(field.name, fieldDto.id))
             }
             .toMutableList()
     val referencedFieldMapping =
-        referencedCollection.fields.map {
+        referencedCollection.fields.map { fieldDto ->
           val field =
-              it.copy(
-                  name = "ref_${it.collectionId}_${it.name}",
-                  displayName = "Reference ${it.collectionId} ${it.displayName}")
-          Pair(field, Pair(field.name, it.id))
+              fieldDto.copy(
+                  name =
+                      "ref${fieldDto.collectionId}${fieldDto.name.replaceFirstChar { it.uppercase() }}",
+                  displayName = "Reference ${fieldDto.collectionId} ${fieldDto.displayName}")
+          Pair(field, Pair(field.name, fieldDto.id))
         }
     sourceFieldMapping.addAll(referencedFieldMapping)
     val mappingTable =

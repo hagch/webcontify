@@ -1,7 +1,6 @@
 package io.webcontify.backend.collections.models.dtos
 
 import io.webcontify.backend.collections.models.Item
-import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 
 data class WebContifyCollectionDto(
@@ -14,7 +13,7 @@ data class WebContifyCollectionDto(
   fun primaryFieldItemValueString(item: Item): String {
     return fields
         ?.filter { it.isPrimaryKey }
-        ?.joinToString { "${it.name.snakeToCamelCase()}= ${item[it.name.snakeToCamelCase()]}" }
+        ?.joinToString { "${it.name}= ${item[it.name]}" }
         .toString()
   }
 

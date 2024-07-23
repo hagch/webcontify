@@ -20,28 +20,28 @@ class CollectionApiCreateRequestSupplier {
     private var collectionId: Long = 0
 
     val COLLECTION_WITHOUT_FIELDS =
-        WebContifyCollectionApiCreateRequest("without_fields", "DisplayName", listOf())
+        WebContifyCollectionApiCreateRequest("withoutFields", "DisplayName", listOf())
     val COLLECTION_WITH_EMPTY_NAME =
         WebContifyCollectionApiCreateRequest("", "DisplayName", listOf(NUMBER_PRIMARY_FIELD))
     val COLLECTION_WITH_INVALID_NAME =
         WebContifyCollectionApiCreateRequest("_testA?", "DisplayName", listOf(NUMBER_PRIMARY_FIELD))
     val COLLECTION_WITHOUT_PRIMARY_FIELD =
         WebContifyCollectionApiCreateRequest(
-            "without_primary_key", "DisplayName", listOf(DECIMAL_FIELD))
+            "withoutPrimaryKey", "DisplayName", listOf(DECIMAL_FIELD))
     val COLLECTION_WITH_INVALID_FIELD_NAMES =
         WebContifyCollectionApiCreateRequest(
-            "invalid_field_name",
+            "invalidFieldName",
             "DisplayName",
             listOf(FIELD_WITH_INVALID_NAME, FIELD_WITH_INVALID_NAME_TEXT, FIELD_WITH_EMPTY_NAME))
     val COLLECTION_WITH_FIELD_WRONG_CONFIGURATION =
         WebContifyCollectionApiCreateRequest(
-            "empty_field_name", "DisplayName", listOf(FIELD_WITH_WRONG_CONFIGURATION))
+            "emptyFieldName", "DisplayName", listOf(FIELD_WITH_WRONG_CONFIGURATION))
     val COLLECTION_WITH_MIRROR_FIELD =
-        WebContifyCollectionApiCreateRequest("with_mirror", "With Mirror", listOf(MIRROR_FIELD))
+        WebContifyCollectionApiCreateRequest("withMirror", "With Mirror", listOf(MIRROR_FIELD))
 
     fun getCollectionWithValidNameOnePrimaryField(): WebContifyCollectionApiCreateRequest {
       return WebContifyCollectionApiCreateRequest(
-          "collection_" + collectionId++.toString(),
+          "collection" + collectionId++.toString(),
           "DisplayName",
           listOf(
               NUMBER_PRIMARY_FIELD,
@@ -54,19 +54,19 @@ class CollectionApiCreateRequestSupplier {
 
     fun getCollectionRelationField(): WebContifyCollectionApiCreateRequest {
       return WebContifyCollectionApiCreateRequest(
-          "collection_" + collectionId++.toString(),
+          "collection" + collectionId++.toString(),
           "DisplayName",
           listOf(NUMBER_PRIMARY_FIELD, NUMBER_RELATION_FIELD))
     }
 
     fun getCollectionWithValidNameMultiplePrimaryFields(): WebContifyCollectionApiCreateRequest {
       return WebContifyCollectionApiCreateRequest(
-          "collection_" + collectionId++.toString(),
+          "collection" + collectionId++.toString(),
           "DisplayName",
           listOf(
               NUMBER_PRIMARY_FIELD,
               DECIMAL_FIELD,
-              UUID_FIELD.copy(name = "uuid_primary_field", isPrimaryKey = true),
+              UUID_FIELD.copy(name = "uuidPrimaryField", isPrimaryKey = true),
               TIMESTAMP_FIELD,
               BOOLEAN_FIELD,
               TEXT_FIELD))

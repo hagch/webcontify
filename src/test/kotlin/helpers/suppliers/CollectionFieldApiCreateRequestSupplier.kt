@@ -11,14 +11,14 @@ class CollectionFieldApiCreateRequestSupplier {
   companion object {
     val NEW_FIELD =
         WebContifyCollectionFieldApiCreateRequest(
-            "new_field",
+            "newField",
             "New Field",
             WebcontifyCollectionFieldType.NUMBER,
             false,
             WebContifyCollectionFieldNumberConfigurationDto(null, null, false, true, null, null))
     val NEW_PRIMARY_FIELD =
         WebContifyCollectionFieldApiCreateRequest(
-            "new_primary_field",
+            "newPrimaryField",
             "New Primary Field",
             WebcontifyCollectionFieldType.NUMBER,
             true,
@@ -26,48 +26,48 @@ class CollectionFieldApiCreateRequestSupplier {
 
     val MIRROR_FIELD =
         WebContifyCollectionFieldApiCreateRequest(
-            "new_mirror_field",
+            "newMirrorField",
             "New Mirror Field",
             WebcontifyCollectionFieldType.RELATION_MIRROR,
             true,
             WebContifyCollectionFieldRelationMirrorConfigurationDto(1, 1, false, true, null, null))
     val NUMBER_RELATION_FIELD =
         WebContifyCollectionFieldApiCreateRequest(
-            "relation_field",
+            "relationField",
             "Number Relation Field",
             WebcontifyCollectionFieldType.NUMBER,
             false,
             WebContifyCollectionFieldNumberConfigurationDto(null, null, false, false, null, null))
     val NUMBER_PRIMARY_FIELD =
         WebContifyCollectionFieldApiCreateRequest(
-            "number_field",
+            "numberField",
             "Number Field",
             WebcontifyCollectionFieldType.NUMBER,
             true,
             WebContifyCollectionFieldNumberConfigurationDto(null, null, false, true, null, null))
     val DECIMAL_FIELD =
         WebContifyCollectionFieldApiCreateRequest(
-            "decimal_field", "Decimal Field", WebcontifyCollectionFieldType.DECIMAL, false, null)
+            "decimalField", "Decimal Field", WebcontifyCollectionFieldType.DECIMAL, false, null)
     val UUID_FIELD =
         WebContifyCollectionFieldApiCreateRequest(
-            "uuid_field", "Uuid Field", WebcontifyCollectionFieldType.UUID, false, null)
+            "uuidField", "Uuid Field", WebcontifyCollectionFieldType.UUID, false, null)
     val TIMESTAMP_FIELD =
         WebContifyCollectionFieldApiCreateRequest(
-            "timestamp_field",
+            "timestampField",
             "Timestamp Field",
             WebcontifyCollectionFieldType.TIMESTAMP,
             false,
             null)
     val BOOLEAN_FIELD =
         WebContifyCollectionFieldApiCreateRequest(
-            "boolean_field", "Boolean Field", WebcontifyCollectionFieldType.BOOLEAN, false, null)
+            "booleanField", "Boolean Field", WebcontifyCollectionFieldType.BOOLEAN, false, null)
     val TEXT_FIELD =
         WebContifyCollectionFieldApiCreateRequest(
-            "text_field", "Text Field", WebcontifyCollectionFieldType.TEXT, false, null)
+            "textField", "Text Field", WebcontifyCollectionFieldType.TEXT, false, null)
 
     val FIELD_WITH_INVALID_NAME =
         WebContifyCollectionFieldApiCreateRequest(
-            "invalidFieldName", "Invalid Field", WebcontifyCollectionFieldType.NUMBER, true, null)
+            "invalid_FieldName", "Invalid Field", WebcontifyCollectionFieldType.NUMBER, true, null)
     val FIELD_WITH_INVALID_NAME_TEXT =
         WebContifyCollectionFieldApiCreateRequest(
             "_?qwd", "Text Field", WebcontifyCollectionFieldType.TEXT, false, null)
@@ -76,7 +76,7 @@ class CollectionFieldApiCreateRequestSupplier {
             "", "Number Field", WebcontifyCollectionFieldType.NUMBER, true, null)
     val FIELD_WITH_WRONG_CONFIGURATION =
         WebContifyCollectionFieldApiCreateRequest(
-            "wrong_configured",
+            "wrongConfigured",
             "Number Field",
             WebcontifyCollectionFieldType.NUMBER,
             true,

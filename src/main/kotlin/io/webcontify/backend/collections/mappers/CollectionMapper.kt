@@ -5,19 +5,24 @@ import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiResp
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiUpdateRequest
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
+import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionFieldRecord
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRecord
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
+import org.mapstruct.Named
 
 @Mapper(componentModel = "spring", uses = [CollectionFieldMapper::class])
-interface CollectionMapper {
+abstract class CollectionMapper {
 
   @Mapping(source = "collection.id", target = "id")
-  @Mapping(source = "collection.name", target = "name")
+  @Mapping(
+      source = "collection.name",
+      target = "name",
+      qualifiedByName = ["mapCollectionNameSnakeToCamelCase"])
   @Mapping(source = "collection.displayName", target = "displayName")
   @Mapping(source = "fields", target = "fields")
-  fun mapToDto(
+  abstract fun mapToDto(
       collection: WebcontifyCollectionRecord,
       fields: Set<WebcontifyCollectionFieldRecord>
   ): WebContifyCollectionDto
@@ -26,31 +31,40 @@ interface CollectionMapper {
   @Mapping(source = "collection.name", target = "name")
   @Mapping(source = "collection.displayName", target = "displayName")
   @Mapping(source = "fields", target = "fields")
-  fun addFieldsToDto(
+  abstract fun addFieldsToDto(
       collection: WebContifyCollectionDto,
       fields: Set<WebContifyCollectionFieldDto>
   ): WebContifyCollectionDto
 
   @Mapping(source = "collection.id", target = "id")
-  @Mapping(source = "collection.name", target = "name")
+  @Mapping(
+      source = "collection.name",
+      target = "name",
+      qualifiedByName = ["mapCollectionNameSnakeToCamelCase"])
   @Mapping(source = "collection.displayName", target = "displayName")
   @Mapping(source = "fields", target = "fields")
-  fun mapCollectionToDto(
+  abstract fun mapCollectionToDto(
       collection: WebcontifyCollectionRecord,
       fields: Set<WebContifyCollectionFieldDto>
   ): WebContifyCollectionDto
 
   @Mapping(target = "id", ignore = true)
-  fun mapApiToDto(
+  @Mapping(source = "name", target = "name")
+  abstract fun mapApiToDto(
       collectionCreateRequest: WebContifyCollectionApiCreateRequest
   ): WebContifyCollectionDto
 
   @Mapping(source = "id", target = "id")
   @Mapping(target = "fields", ignore = true)
-  fun mapApiToDto(
+  abstract fun mapApiToDto(
       collectionCreateRequest: WebContifyCollectionApiUpdateRequest,
       id: Int
   ): WebContifyCollectionDto
 
-  fun mapDtoToResponse(dto: WebContifyCollectionDto): WebContifyCollectionApiResponse
+  abstract fun mapDtoToResponse(dto: WebContifyCollectionDto): WebContifyCollectionApiResponse
+
+  @Named("mapCollectionNameSnakeToCamelCase")
+  fun mapCollectionNameSnakeToCamelCase(name: String): String {
+    return name!!.snakeToCamelCase()
+  }
 }

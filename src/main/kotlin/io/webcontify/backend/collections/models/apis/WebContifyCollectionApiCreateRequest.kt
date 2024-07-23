@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 
 data class WebContifyCollectionApiCreateRequest(
-    @field:Pattern(regexp = "^(?!_)[0-9a-z_]*(?<!_)$", message = "INVALID_NAME")
+    @field:Pattern(regexp = "[a-z]+((\\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?", message = "INVALID_NAME")
     @field:NotBlank(message = "NAME_REQUIRED")
     val name: String,
     val displayName: String = name,

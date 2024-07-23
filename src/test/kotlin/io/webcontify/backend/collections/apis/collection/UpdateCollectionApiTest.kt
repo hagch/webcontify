@@ -47,7 +47,7 @@ class UpdateCollectionApiTest : ApiTestSetup() {
         Given {
           mockMvc(mockMvc)
           contentType(MediaType.APPLICATION_JSON_VALUE)
-          body(WebContifyCollectionApiUpdateRequest("invalidName", "Test"))
+          body(WebContifyCollectionApiUpdateRequest("invalid_Name", "Test"))
         } When
             {
               put("$COLLECTIONS_PATH/1")
@@ -68,7 +68,7 @@ class UpdateCollectionApiTest : ApiTestSetup() {
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
   fun `(UpdateCollectionById) should return error on name already exists`() {
-    val newCollectionName = "all_field_types_primary_uuid"
+    val newCollectionName = "allFieldTypesPrimaryUuid"
     val errorResponse =
         Given {
           mockMvc(mockMvc)

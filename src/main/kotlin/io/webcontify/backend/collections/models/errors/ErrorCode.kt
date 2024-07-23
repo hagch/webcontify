@@ -4,7 +4,8 @@ enum class ErrorCode(var message: String) {
   INTERNAL_SERVER_ERROR("Unhandled error occurred"),
   INVALID_REQUEST_BODY("Request body cannot be processed"),
   INVALID_PATH_PARAMETERS("Atleast one primary key field has to be specified"),
-  INVALID_NAME("Name cannot have leading or ending '_', following values are allowed 0-9, a-z, _"),
+  INVALID_NAME(
+      "Name is not in camelCase, first letter must be lowercase and only single numbers are allowed"),
   NAME_REQUIRED("Name cannot be null or empty"),
   TYPE_NON_NULLABLE("Type cannot be null"),
   FIELD_REQUIRED("At least one field is required for collection creation"),
