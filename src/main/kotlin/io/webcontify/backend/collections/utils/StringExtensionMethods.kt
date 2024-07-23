@@ -5,12 +5,12 @@ import io.webcontify.backend.collections.models.IdentifierMap
 import io.webcontify.backend.collections.models.errors.ErrorCode
 
 fun String.snakeToCamelCase(): String {
-  val pattern = "_[a-z]".toRegex()
+  val pattern = "_[a-z0-9]".toRegex()
   return this.lowercase().replace(pattern) { it.value.last().uppercase() }
 }
 
 fun String.camelToSnakeCase(): String {
-  val pattern = "(?<=.)[A-Z]".toRegex()
+  val pattern = "(?<=.)[A-Z0-9]".toRegex()
   return this.replace(pattern, "_$0").lowercase()
 }
 

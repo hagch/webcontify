@@ -22,7 +22,7 @@ class UUIDConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with uuid value in constraints`() {
     val item =
         mapOf(
-            "uuid_field" to "9b5ae74f-49e4-4a6f-bbf0-c6b622c77f63",
+            "uuidField" to "9b5ae74f-49e4-4a6f-bbf0-c6b622c77f63",
         )
     Given {
       mockMvc(mockMvc)
@@ -44,7 +44,7 @@ class UUIDConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with default value on uuid value is null`() {
     val item =
         mapOf(
-            "uuid_field" to null,
+            "uuidField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -85,7 +85,7 @@ class UUIDConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should not create uuid field because value is not inValues`() {
     val item =
         mapOf(
-            "uuid_field" to "0572648b-8524-4175-b916-bdd36a661a60",
+            "uuidField" to "0572648b-8524-4175-b916-bdd36a661a60",
         )
     val errorResponse =
         Given {
@@ -115,7 +115,7 @@ class UUIDConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create uuid field with value null`() {
     var item =
         mapOf(
-            "uuid_field" to null,
+            "uuidField" to null,
         )
     Given {
       mockMvc(mockMvc)

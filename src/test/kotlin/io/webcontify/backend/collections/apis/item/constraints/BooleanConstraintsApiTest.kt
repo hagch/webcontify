@@ -22,7 +22,7 @@ class BooleanConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with boolean value in constraints`() {
     val item =
         mapOf(
-            "boolean_field" to true,
+            "booleanField" to true,
         )
     Given {
       mockMvc(mockMvc)
@@ -44,7 +44,7 @@ class BooleanConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with default value on boolean value is null`() {
     val item =
         mapOf(
-            "boolean_field" to null,
+            "booleanField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -85,7 +85,7 @@ class BooleanConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should not create boolean field because value is not inValues`() {
     val item =
         mapOf(
-            "boolean_field" to false,
+            "booleanField" to false,
         )
     val errorResponse =
         Given {
@@ -115,7 +115,7 @@ class BooleanConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create boolean field with value null`() {
     var item =
         mapOf(
-            "boolean_field" to null,
+            "booleanField" to null,
         )
     Given {
       mockMvc(mockMvc)

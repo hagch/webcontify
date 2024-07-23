@@ -6,7 +6,7 @@ A headless cms with an ui builder
 
 # Open Todos
 - [ ] make field configuration updateable
-- [ ] change item endpoint to accept camelcase instead of snake case
+- [ ] change name from field by api to have to be camelCase instead of snake case
 - [ ] authentication
 - [ ] basic ui
 - [ ] permissioning

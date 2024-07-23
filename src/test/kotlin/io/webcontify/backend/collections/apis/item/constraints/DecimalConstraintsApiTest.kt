@@ -22,7 +22,7 @@ class DecimalConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with decimal value in constraints`() {
     val item =
         mapOf(
-            "decimal_field" to 20.1,
+            "decimalField" to 20.1,
         )
     Given {
       mockMvc(mockMvc)
@@ -44,7 +44,7 @@ class DecimalConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with default value on decimal value is null`() {
     val item =
         mapOf(
-            "decimal_field" to null,
+            "decimalField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -85,7 +85,7 @@ class DecimalConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should not create decimal field because value is not inValues`() {
     val item =
         mapOf(
-            "decimal_field" to 11.1,
+            "decimalField" to 11.1,
         )
     val errorResponse =
         Given {
@@ -115,7 +115,7 @@ class DecimalConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create decimal field with value null`() {
     var item =
         mapOf(
-            "decimal_field" to null,
+            "decimalField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -151,7 +151,7 @@ class DecimalConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should not create item if decimal field is out of greaterThan or lowerThan`() {
     var item =
         mapOf(
-            "decimal_field" to 10.1,
+            "decimalField" to 10.1,
         )
     var errorResponse =
         Given {
@@ -177,7 +177,7 @@ class DecimalConstraintsApiTest : ApiTestSetup() {
 
     item =
         mapOf(
-            "decimal_field" to 13.2,
+            "decimalField" to 13.2,
         )
     errorResponse =
         Given {
@@ -207,7 +207,7 @@ class DecimalConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create decimal field if value is between lower and greater then`() {
     val item =
         mapOf(
-            "decimal_field" to 10.6,
+            "decimalField" to 10.6,
         )
     Given {
       mockMvc(mockMvc)
@@ -229,7 +229,7 @@ class DecimalConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create decimal field if value is in precision and scale`() {
     val item =
         mapOf(
-            "decimal_field" to 10.65,
+            "decimalField" to 10.65,
         )
     Given {
       mockMvc(mockMvc)
@@ -251,7 +251,7 @@ class DecimalConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create decimal field with value rounded into scale`() {
     val item =
         mapOf(
-            "decimal_field" to 1.6545,
+            "decimalField" to 1.6545,
         )
     Given {
       mockMvc(mockMvc)

@@ -22,7 +22,7 @@ class TextConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with text value in constraints`() {
     val item =
         mapOf(
-            "text_field" to "test",
+            "textField" to "test",
         )
     Given {
       mockMvc(mockMvc)
@@ -44,7 +44,7 @@ class TextConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with default value on text value is null`() {
     val item =
         mapOf(
-            "text_field" to null,
+            "textField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -85,7 +85,7 @@ class TextConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should not create text field because value is not inValues`() {
     val item =
         mapOf(
-            "text_field" to "notInValues",
+            "textField" to "notInValues",
         )
     val errorResponse =
         Given {
@@ -115,7 +115,7 @@ class TextConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create text field with value null`() {
     var item =
         mapOf(
-            "text_field" to null,
+            "textField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -151,7 +151,7 @@ class TextConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should not create item if number field is out of max or min length`() {
     var item =
         mapOf(
-            "text_field" to "te",
+            "textField" to "te",
         )
     var errorResponse =
         Given {
@@ -177,7 +177,7 @@ class TextConstraintsApiTest : ApiTestSetup() {
 
     item =
         mapOf(
-            "text_field" to "tester",
+            "textField" to "tester",
         )
     errorResponse =
         Given {
@@ -207,7 +207,7 @@ class TextConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create text field if value is in min and max length`() {
     val item =
         mapOf(
-            "text_field" to "teste",
+            "textField" to "teste",
         )
     Given {
       mockMvc(mockMvc)
@@ -224,7 +224,7 @@ class TextConstraintsApiTest : ApiTestSetup() {
         }
     val item2 =
         mapOf(
-            "text_field" to "tes",
+            "textField" to "tes",
         )
     Given {
       mockMvc(mockMvc)
@@ -246,7 +246,7 @@ class TextConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create text field if value matches regex`() {
     val item =
         mapOf(
-            "text_field" to "test.test@gmail.com",
+            "textField" to "test.test@gmail.com",
         )
     Given {
       mockMvc(mockMvc)
@@ -268,7 +268,7 @@ class TextConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should not create text field if value does not match regex`() {
     val item =
         mapOf(
-            "text_field" to "test.testgmail.com",
+            "textField" to "test.testgmail.com",
         )
     val errorResponse =
         Given {

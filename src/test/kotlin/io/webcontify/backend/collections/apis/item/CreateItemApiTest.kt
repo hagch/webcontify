@@ -24,11 +24,11 @@ class CreateItemApiTest : ApiTestSetup() {
     val uuid = UUID.randomUUID().toString()
     val item =
         mapOf(
-            "decimal_field" to 123.01,
-            "text_field" to "Thats an text",
-            "timestamp_field" to "2000-10-31T01:30:00",
-            "boolean_field" to true,
-            "uuid_field" to uuid,
+            "decimalField" to 123.01,
+            "textField" to "Thats an text",
+            "timestampField" to "2000-10-31T01:30:00",
+            "booleanField" to true,
+            "uuidField" to uuid,
         )
     Given {
       mockMvc(mockMvc)
@@ -54,7 +54,7 @@ class CreateItemApiTest : ApiTestSetup() {
   fun `(CreateItem) should ignore primary number field with an value`() {
     val item =
         mapOf(
-            "number_field" to 123,
+            "numberField" to 123,
         )
     Given {
       mockMvc(mockMvc)
@@ -76,7 +76,7 @@ class CreateItemApiTest : ApiTestSetup() {
     val uuid = UUID.randomUUID().toString()
     val item =
         mapOf(
-            "uuid_field" to uuid,
+            "uuidField" to uuid,
         )
     Given {
       mockMvc(mockMvc)
@@ -97,11 +97,11 @@ class CreateItemApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with all field type values with primary key uuid`() {
     val item =
         mapOf(
-            "decimal_field" to 123.01,
-            "text_field" to "Thats an text",
-            "timestamp_field" to "2000-10-31T01:30:00",
-            "boolean_field" to true,
-            "number_field" to 123,
+            "decimalField" to 123.01,
+            "textField" to "Thats an text",
+            "timestampField" to "2000-10-31T01:30:00",
+            "booleanField" to true,
+            "numberField" to 123,
         )
     Given {
       mockMvc(mockMvc)
@@ -127,11 +127,11 @@ class CreateItemApiTest : ApiTestSetup() {
   fun `(CreateItem) should throw error on trying to create item with an mirror field`() {
     val item =
         mapOf(
-            "decimal_field" to 123.01,
-            "text_field" to "Thats an text",
-            "timestamp_field" to "2000-10-31T01:30:00",
-            "boolean_field" to true,
-            "mirror_field" to 123,
+            "decimalField" to 123.01,
+            "textField" to "Thats an text",
+            "timestampField" to "2000-10-31T01:30:00",
+            "booleanField" to true,
+            "mirrorField" to 123,
         )
     val errorResponse =
         Given {

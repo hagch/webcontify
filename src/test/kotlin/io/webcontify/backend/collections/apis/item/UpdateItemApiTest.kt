@@ -24,11 +24,11 @@ class UpdateItemApiTest : ApiTestSetup() {
     val uuid = UUID.randomUUID().toString()
     val item =
         mapOf(
-            "decimal_field" to 123.01,
-            "text_field" to "Thats an text",
-            "timestamp_field" to "2000-10-31T01:30:00",
-            "boolean_field" to true,
-            "uuid_field" to uuid,
+            "decimalField" to 123.01,
+            "textField" to "Thats an text",
+            "timestampField" to "2000-10-31T01:30:00",
+            "booleanField" to true,
+            "uuidField" to uuid,
         )
     Given {
       mockMvc(mockMvc)
@@ -54,8 +54,8 @@ class UpdateItemApiTest : ApiTestSetup() {
   fun `(UpdateItem) should ignore primary number field with an value`() {
     val item =
         mapOf(
-            "number_field" to 12,
-            "text_field" to "Thats an text",
+            "numberField" to 12,
+            "textField" to "Thats an text",
         )
     Given {
       mockMvc(mockMvc)
@@ -76,7 +76,7 @@ class UpdateItemApiTest : ApiTestSetup() {
   fun `(UpdateItem) should throw exception if no updatable fields are contained`() {
     val item =
         mapOf(
-            "number_field" to 12,
+            "numberField" to 12,
         )
     val errorResponse =
         Given {
@@ -106,7 +106,7 @@ class UpdateItemApiTest : ApiTestSetup() {
   fun `(UpdateItem) should only update contained fields and return whole object`() {
     val item =
         mapOf(
-            "decimal_field" to 123.01,
+            "decimalField" to 123.01,
         )
     Given {
       mockMvc(mockMvc)
@@ -132,7 +132,7 @@ class UpdateItemApiTest : ApiTestSetup() {
   fun `(UpdateItem) should throw error if not found`() {
     val item =
         mapOf(
-            "decimal_field" to 123.01,
+            "decimalField" to 123.01,
         )
     val errorResponse =
         Given {
@@ -155,7 +155,7 @@ class UpdateItemApiTest : ApiTestSetup() {
     errorResponse.errors[0].equalsTo(
         ErrorCode.ITEM_NOT_UPDATED,
         String.format(
-            ErrorCode.ITEM_NOT_UPDATED.message, "(number_field= 1): decimal_field= 123.01", "1"))
+            ErrorCode.ITEM_NOT_UPDATED.message, "(numberField= 1): decimalField= 123.01", "1"))
   }
 
   @Test
@@ -186,11 +186,11 @@ class UpdateItemApiTest : ApiTestSetup() {
   fun `(UpdateItem) should create item with all field type values with primary key uuid`() {
     val item =
         mapOf(
-            "decimal_field" to 123.01,
-            "text_field" to "Thats an text",
-            "timestamp_field" to "2000-10-31T01:30:00",
-            "boolean_field" to true,
-            "number_field" to 123,
+            "decimalField" to 123.01,
+            "textField" to "Thats an text",
+            "timestampField" to "2000-10-31T01:30:00",
+            "booleanField" to true,
+            "numberField" to 123,
         )
     Given {
       mockMvc(mockMvc)
@@ -216,11 +216,11 @@ class UpdateItemApiTest : ApiTestSetup() {
   fun `(UpdateItem) should throw error on trying to update an mirror field`() {
     val item =
         mapOf(
-            "decimal_field" to 123.01,
-            "text_field" to "Thats an text",
-            "timestamp_field" to "2000-10-31T01:30:00",
-            "boolean_field" to true,
-            "mirror_field" to 123,
+            "decimalField" to 123.01,
+            "textField" to "Thats an text",
+            "timestampField" to "2000-10-31T01:30:00",
+            "booleanField" to true,
+            "mirrorField" to 123,
         )
     val errorResponse =
         Given {
@@ -243,4 +243,6 @@ class UpdateItemApiTest : ApiTestSetup() {
     errorResponse.errors[0].equalsTo(
         ErrorCode.MIRROR_FIELD_INCLUDED, ErrorCode.MIRROR_FIELD_INCLUDED.message)
   }
+
+  // TODO add cases for identifiermap
 }

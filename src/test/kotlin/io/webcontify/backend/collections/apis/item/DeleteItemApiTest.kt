@@ -29,4 +29,6 @@ class DeleteItemApiTest : ApiTestSetup() {
       contentType(MediaType.APPLICATION_JSON_VALUE)
     } When { delete("$COLLECTIONS_PATH/1/items/1001") } Then { status(HttpStatus.OK) }
   }
+
+  // TODO add cases for identifiermap
 }

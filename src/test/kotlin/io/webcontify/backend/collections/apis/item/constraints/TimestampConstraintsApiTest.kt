@@ -22,7 +22,7 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with timestamp value in constraints`() {
     val item =
         mapOf(
-            "timestamp_field" to "2000-10-31T01:30:00",
+            "timestampField" to "2000-10-31T01:30:00",
         )
     Given {
       mockMvc(mockMvc)
@@ -44,7 +44,7 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with default value on timestamp value is null`() {
     val item =
         mapOf(
-            "timestamp_field" to null,
+            "timestampField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -85,7 +85,7 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should not create timestamp field because value is not inValues`() {
     val item =
         mapOf(
-            "timestamp_field" to "2000-10-31T01:30:01",
+            "timestampField" to "2000-10-31T01:30:01",
         )
     val errorResponse =
         Given {
@@ -115,7 +115,7 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create timestamp field with value null`() {
     var item =
         mapOf(
-            "timestamp_field" to null,
+            "timestampField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -158,7 +158,7 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
   private fun checkGreaterAndLowerConstraintViolatesOn(dateTime: String) {
     val item =
         mapOf(
-            "timestamp_field" to dateTime,
+            "timestampField" to dateTime,
         )
     val errorResponse =
         Given {
@@ -188,7 +188,7 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create timestamp field if value is between lower and greater then`() {
     val item =
         mapOf(
-            "timestamp_field" to "2000-10-31T01:45:00",
+            "timestampField" to "2000-10-31T01:45:00",
         )
     Given {
       mockMvc(mockMvc)

@@ -7,6 +7,7 @@ import io.webcontify.backend.collections.models.Item
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.repositories.CollectionItemRepository
+import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.collections.utils.snakeToCamelCase
 import io.webcontify.backend.collections.utils.toKeyValueString
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
@@ -22,7 +23,8 @@ class CollectionItemService(
   @Transactional(readOnly = true)
   fun getById(collectionId: Long, identifierMap: IdentifierMap): Item {
     val collection = collectionService.getById(collectionId)
-    return collectionItemRepository.getByIdFor(collection, identifierMap)
+    return collectionItemRepository.getByIdFor(
+        collection, identifierMap.map { it.key.camelToSnakeCase() to it.value }.toMap())
   }
 
   @Transactional(readOnly = true)
@@ -75,11 +77,12 @@ class CollectionItemService(
     val mirrorFields =
         collection.fields
             ?.filter { it.type == WebcontifyCollectionFieldType.RELATION_MIRROR }
-            ?.mapNotNull { item[it.name] }
+            ?.mapNotNull { item[it.name.snakeToCamelCase()] }
     if (mirrorFields?.isNotEmpty() == true) {
       throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
     }
-    return collectionItemRepository.create(collection, item)
+    return collectionItemRepository.create(
+        collection, item.map { it.key.camelToSnakeCase() to it.value }.toMap())
   }
 
   @Transactional
@@ -88,7 +91,10 @@ class CollectionItemService(
     if (collection.fields == null) {
       throw UnprocessableContentException(ErrorCode.UPDATE_ITEM_FROM_COLLECTION_WITHOUT_FIELDS)
     }
-    val primaryKeys = collection.fields.filter { it.isPrimaryKey }
+    val primaryKeys =
+        collection.fields
+            .filter { it.isPrimaryKey }
+            .map { it.copy(name = it.name.snakeToCamelCase().lowercase()) }
     val updateAbleItem = item.toMutableMap()
     validatePrimaryKeys(primaryKeys, identifierMap, updateAbleItem)
     for (primaryKey in primaryKeys) {
@@ -101,11 +107,14 @@ class CollectionItemService(
     val mirrorFields =
         collection.fields
             .filter { it.type == WebcontifyCollectionFieldType.RELATION_MIRROR }
-            .mapNotNull { updateAbleItem[it.name] }
+            .mapNotNull { updateAbleItem[it.name.snakeToCamelCase().lowercase()] }
     if (mirrorFields.isNotEmpty()) {
       throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
     }
-    return collectionItemRepository.update(collection, identifierMap, updateAbleItem)
+    return collectionItemRepository.update(
+        collection,
+        identifierMap,
+        updateAbleItem.map { it.key.camelToSnakeCase() to it.value }.toMap())
   }
 
   @Transactional
@@ -116,13 +125,17 @@ class CollectionItemService(
     }
     val primaryKey = collection.fields.first { it.isPrimaryKey }
     val updateAbleItem = item.toMutableMap()
-    updateAbleItem.remove(primaryKey.name)
+    updateAbleItem.remove(primaryKey.name.snakeToCamelCase())
     if (updateAbleItem.isEmpty()) {
       throw UnprocessableContentException(
-          ErrorCode.NO_FIELDS_TO_UPDATE, "${primaryKey.name}= $itemId", collectionId.toString())
+          ErrorCode.NO_FIELDS_TO_UPDATE,
+          "${primaryKey.name.camelToSnakeCase()}= $itemId",
+          collectionId.toString())
     }
     return collectionItemRepository.update(
-        collection, mapOf(Pair(primaryKey.name.lowercase(), itemId)), updateAbleItem)
+        collection,
+        mapOf(Pair(primaryKey.name.lowercase(), itemId)),
+        updateAbleItem.map { it.key.camelToSnakeCase() to it.value }.toMap())
   }
 
   private fun validatePrimaryKeys(
@@ -138,8 +151,7 @@ class CollectionItemService(
       val camelCaseName = it.name.snakeToCamelCase()
       updateAbleItem -= camelCaseName
       if (!identifierMap.containsKey(camelCaseName.lowercase())) {
-        throw UnprocessableContentException(
-            ErrorCode.PRIMARY_KEY_NOT_INCLUDED, it.name.snakeToCamelCase())
+        throw UnprocessableContentException(ErrorCode.PRIMARY_KEY_NOT_INCLUDED, camelCaseName)
       }
     }
   }

@@ -22,7 +22,7 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with number value in constraints`() {
     val item =
         mapOf(
-            "number_field" to 20,
+            "numberField" to 20,
         )
     Given {
       mockMvc(mockMvc)
@@ -44,7 +44,7 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create item with default value on number value is null`() {
     val item =
         mapOf(
-            "number_field" to null,
+            "numberField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -85,7 +85,7 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
   fun `(CreateItem) should not create number field because value is not inValues`() {
     val item =
         mapOf(
-            "number_field" to 11,
+            "numberField" to 11,
         )
     val errorResponse =
         Given {
@@ -115,7 +115,7 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create number field with value null`() {
     var item =
         mapOf(
-            "number_field" to null,
+            "numberField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -151,7 +151,7 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
   fun `(CreateItem) should not create item if number field is out of greaterThan or lowerThan`() {
     var item =
         mapOf(
-            "number_field" to 10,
+            "numberField" to 10,
         )
     var errorResponse =
         Given {
@@ -177,7 +177,7 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
 
     item =
         mapOf(
-            "number_field" to 13,
+            "numberField" to 13,
         )
     errorResponse =
         Given {
@@ -207,7 +207,7 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
   fun `(CreateItem) should create number field if value is between lower and greater then`() {
     val item =
         mapOf(
-            "number_field" to 11,
+            "numberField" to 11,
         )
     Given {
       mockMvc(mockMvc)
