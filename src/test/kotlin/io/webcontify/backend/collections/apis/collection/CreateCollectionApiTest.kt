@@ -23,7 +23,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 
 // TODO max size of field and table names cause constraint names cannot be endless long,
-// transaction testing
 class CreateCollectionApiTest : ApiTestSetup() {
 
   @Test

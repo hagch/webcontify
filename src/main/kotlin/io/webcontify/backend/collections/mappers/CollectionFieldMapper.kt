@@ -30,12 +30,14 @@ abstract class CollectionFieldMapper {
 
   @Mapping(source = "primaryKey", target = "isPrimaryKey")
   @Mapping(target = "collectionId", ignore = true)
+  @Mapping(target = "id", ignore = true)
   abstract fun mapApiToDto(
       fieldApiCreateRequest: WebContifyCollectionFieldApiCreateRequest
   ): WebContifyCollectionFieldDto
 
   @Mapping(source = "fieldApiCreateRequest.primaryKey", target = "isPrimaryKey")
   @Mapping(source = "collectionId", target = "collectionId")
+  @Mapping(target = "id", ignore = true)
   abstract fun mapApiToDto(
       fieldApiCreateRequest: WebContifyCollectionFieldApiCreateRequest,
       collectionId: Long
@@ -43,6 +45,8 @@ abstract class CollectionFieldMapper {
 
   @Mapping(source = "collectionId", target = "collectionId")
   @Mapping(source = "fieldApiUpdateRequest.primaryKey", target = "isPrimaryKey")
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "configuration", ignore = true)
   abstract fun mapApiToDto(
       fieldApiUpdateRequest: WebContifyCollectionFieldApiUpdateRequest,
       collectionId: Long

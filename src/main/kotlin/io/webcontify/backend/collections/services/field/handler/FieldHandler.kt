@@ -79,6 +79,7 @@ interface FieldHandler<T> {
       }
       val validatedValue =
           if (Objects.nonNull(it.defaultValue) && Objects.isNull(value)) {
+            @Suppress("UNCHECKED_CAST")
             it.defaultValue as T
           } else {
             value

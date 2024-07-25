@@ -12,7 +12,6 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-// TODO change to delete field without collection if necessary
 @RestController
 class CollectionFieldController(
     val service: CollectionFieldService,

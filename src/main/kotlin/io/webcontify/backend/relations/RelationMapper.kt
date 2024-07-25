@@ -17,6 +17,7 @@ abstract class RelationMapper {
   @Mapping(source = "createDto.referencedCollectionMapping", target = "referencedCollectionMapping")
   @Mapping(source = "createDto.mappingCollectionMapping", target = "mappingCollectionMapping")
   @Mapping(source = "createDto.type", target = "type")
+  @Mapping(target = "mirrorFields", ignore = true)
   abstract fun mapCreateDtoToDto(id: Long, createDto: CreateRelationDto): RelationDto
 
   fun toTableRelationDto(collectionId: Long, fieldIds: Set<Long>): RelationTable {
