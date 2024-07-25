@@ -5,12 +5,11 @@ A headless cms with an ui builder
 8081
 
 # Open Todos
-- [ ] make field configuration updateable
-- [ ] change name from field by api to have to be camelCase instead of snake case
 - [ ] authentication
 - [ ] basic ui
 - [ ] permissioning
 - [ ] check ui page builder idea
+- [ ] make field configuration updateable
 - [ ] split mapping from database and api
 - [ ] Handle relations properly in collection item crud ??
 - [ ] create swagger ui documentation

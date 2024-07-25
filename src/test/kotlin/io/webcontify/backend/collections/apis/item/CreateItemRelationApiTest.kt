@@ -35,7 +35,7 @@ class CreateItemRelationApiTest : ApiTestSetup() {
     val relatedCollection =
         createCollection(
             CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField())
-    val relation = createOneToOneRelation(collection, relatedCollection)
+    createOneToOneRelation(collection, relatedCollection)
     val item =
         mapOf(
             NUMBER_RELATION_FIELD.name to 1,
@@ -71,7 +71,7 @@ class CreateItemRelationApiTest : ApiTestSetup() {
     val relatedCollection =
         createCollection(
             CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField())
-    val relation = createOneToOneRelation(collection, relatedCollection)
+    createOneToOneRelation(collection, relatedCollection)
     val createdItemIdToRelate =
         Given {
           mockMvc(mockMvc)
@@ -113,7 +113,7 @@ class CreateItemRelationApiTest : ApiTestSetup() {
     val relatedCollection =
         createCollection(
             CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField())
-    val relation = createOneToOneRelation(collection, relatedCollection)
+    createOneToOneRelation(collection, relatedCollection)
     val errorResponse =
         Given {
           mockMvc(mockMvc)

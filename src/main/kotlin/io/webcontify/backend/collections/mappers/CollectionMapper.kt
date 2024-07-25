@@ -65,6 +65,6 @@ abstract class CollectionMapper {
 
   @Named("mapCollectionNameSnakeToCamelCase")
   fun mapCollectionNameSnakeToCamelCase(name: String): String {
-    return name!!.snakeToCamelCase()
+    return name.snakeToCamelCase()
   }
 }
