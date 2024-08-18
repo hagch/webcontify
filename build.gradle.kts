@@ -7,68 +7,75 @@ buildscript {
     mavenCentral()
     mavenLocal()
   }
-  dependencies { classpath("org.testcontainers:postgresql:1.19.1") }
+  dependencies {
+    classpath("org.testcontainers:postgresql:1.20.1")
+    classpath("org.flywaydb:flyway-database-postgresql:10.17.1")
+  }
 }
 
 plugins {
   id("jacoco")
-  id("org.springframework.boot") version "3.2.0"
-  id("io.spring.dependency-management") version "1.1.4"
-  id("nu.studer.jooq") version "8.2.1"
-  id("com.diffplug.spotless") version "6.21.0"
-  id("org.flywaydb.flyway") version "9.22.1"
-  kotlin("jvm") version "1.9.22"
-  kotlin("plugin.spring") version "1.9.22"
-  kotlin("kapt") version "1.9.22"
+  id("org.springframework.boot") version "3.3.2"
+  id("io.spring.dependency-management") version "1.1.6"
+  id("nu.studer.jooq") version "9.0"
+  id("com.diffplug.spotless") version "6.25.0"
+  id("org.flywaydb.flyway") version "10.17.1"
+  kotlin("jvm") version "2.0.10"
+  kotlin("plugin.spring") version "2.0.10"
+  kotlin("kapt") version "2.0.10"
   application
 }
 
-group = "io.webcontify"
+dependencyManagement {
+  imports {
+    mavenBom("org.springframework.modulith:spring-modulith-bom:1.2.2")
+    mavenBom("org.testcontainers:testcontainers-bom:1.20.1")
+  }
+}
 
+group = "io.webcontify"
 version = "0.0.1-SNAPSHOT"
 
-java { sourceCompatibility = JavaVersion.VERSION_20 }
+java { sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21 }
 
 configurations { compileOnly { extendsFrom(configurations.annotationProcessor.get()) } }
 
 repositories { mavenCentral() }
 
 dependencies {
-  implementation("org.springframework.boot:spring-boot-starter-jooq:3.1.0")
-  implementation("org.springframework.boot:spring-boot-starter-web:3.1.0")
-  implementation("org.springframework.boot:spring-boot-starter-validation:3.0.4")
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
-  implementation("org.jetbrains.kotlin:kotlin-reflect:1.8.10")
-  implementation("org.springframework.modulith:spring-modulith-starter-core:1.1.0")
-  implementation("org.mapstruct:mapstruct:1.5.5.Final")
-  implementation("org.flywaydb:flyway-core:9.16.0")
-  kapt("org.mapstruct:mapstruct-processor:1.5.5.Final")
-  compileOnly("org.projectlombok:lombok:1.18.26")
-  developmentOnly("org.springframework.boot:spring-boot-docker-compose:3.1.1")
-  runtimeOnly("org.postgresql:postgresql:42.5.4")
-  jooqGenerator("org.postgresql:postgresql:42.5.4")
-  testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.0")
-  testImplementation("org.springframework.modulith:spring-modulith-starter-test:1.1.0")
-  testImplementation("org.springframework.boot:spring-boot-testcontainers:3.2.0")
-  testImplementation("org.testcontainers:junit-jupiter:1.19.1")
-  testImplementation("org.testcontainers:postgresql:1.19.1")
-  implementation("org.jooq:jooq-jackson-extensions:3.18.0")
-  testImplementation("io.mockk:mockk:1.13.8")
-  testImplementation("io.rest-assured:spring-mock-mvc-kotlin-extensions:5.4.0")
-}
+  implementation("org.springframework.boot:spring-boot-starter-jooq")
+  implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-starter-validation")
+  implementation("org.springframework.modulith:spring-modulith-starter-core")
+  developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation("org.springframework.modulith:spring-modulith-starter-test")
+  testImplementation("org.springframework.boot:spring-boot-testcontainers")
 
-dependencyManagement {
-  imports {
-    mavenBom("org.springframework.modulith:spring-modulith-bom:1.0.0")
-    mavenBom("org.testcontainers:testcontainers-bom:1.19.1")
-  }
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.2")
+  implementation(kotlin("reflect"))
+  implementation("org.mapstruct:mapstruct:1.6.0")
+  kapt("org.mapstruct:mapstruct-processor:1.6.0")
+
+  implementation("org.flywaydb:flyway-core:10.17.1")
+  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.17.1")
+
+  implementation("org.jooq:jooq-jackson-extensions:3.19.10")
+  jooqGenerator("org.postgresql:postgresql:42.7.3")
+  runtimeOnly("org.postgresql:postgresql:42.7.3")
+
+
+  testImplementation("org.testcontainers:junit-jupiter")
+  testImplementation("org.testcontainers:postgresql")
+
+  testImplementation("io.mockk:mockk:1.13.12")
+
+  testImplementation("io.rest-assured:spring-mock-mvc-kotlin-extensions:5.5.0")
 }
 
 tasks.withType<KotlinCompile> {
-  kotlinOptions {
-    freeCompilerArgs += "-Xjsr305=strict"
-    jvmTarget = "20"
-  }
+  kotlin.jvmToolchain(21)
 }
 
 tasks.withType<ProcessResources> {
@@ -123,6 +130,8 @@ tasks.withType<JooqGenerate> {
 }
 
 jooq {
+  version.set("3.19.10")
+  edition = nu.studer.gradle.jooq.JooqEdition.OSS
   configurations {
     create("main") {
       jooqConfiguration.apply {

@@ -11,5 +11,8 @@ spring:
   flyway:
     locations:
       - "classpath:db/test"
+  threads:
+    virtual:
+      enabled: on
 server:
   port: 8081
