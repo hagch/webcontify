@@ -34,10 +34,13 @@ dependencyManagement {
 }
 
 group = "io.webcontify"
+
 version = "0.0.1-SNAPSHOT"
 
-java { sourceCompatibility = JavaVersion.VERSION_21
-targetCompatibility = JavaVersion.VERSION_21 }
+java {
+  sourceCompatibility = JavaVersion.VERSION_21
+  targetCompatibility = JavaVersion.VERSION_21
+}
 
 configurations { compileOnly { extendsFrom(configurations.annotationProcessor.get()) } }
 
@@ -65,7 +68,6 @@ dependencies {
   jooqGenerator("org.postgresql:postgresql:42.7.3")
   runtimeOnly("org.postgresql:postgresql:42.7.3")
 
-
   testImplementation("org.testcontainers:junit-jupiter")
   testImplementation("org.testcontainers:postgresql")
 
@@ -74,9 +76,7 @@ dependencies {
   testImplementation("io.rest-assured:spring-mock-mvc-kotlin-extensions:5.5.0")
 }
 
-tasks.withType<KotlinCompile> {
-  kotlin.jvmToolchain(21)
-}
+tasks.withType<KotlinCompile> { kotlin.jvmToolchain(21) }
 
 tasks.withType<ProcessResources> {
   filesMatching("application.yaml") { expand(project.properties) }

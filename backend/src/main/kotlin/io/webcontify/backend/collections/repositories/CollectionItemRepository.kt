@@ -99,8 +99,7 @@ class CollectionItemRepository(
                   else if (it.type == WebcontifyCollectionFieldType.NUMBER) true else false
               return@map it.name to isRemovable
             }
-            ?.toMap()
-            ?: emptyMap()
+            ?.toMap() ?: emptyMap()
     val itemWithoutRemovablePrimaryKeys =
         item.filter {
           !(removeAblePrimaryKeys.contains(it.key) && removeAblePrimaryKeys[it.key] == true)
@@ -165,15 +164,13 @@ class CollectionItemRepository(
     return collection.fields?.let { fields ->
       val castedItem = fieldHandlerStrategy.castItemToJavaTypes(fields, item).toMap()
       return mapper.mapKeysToDataStore(castedItem)
-    }
-        ?: emptyMap()
+    } ?: emptyMap()
   }
 
   private fun mapItemToResult(item: Item, collection: WebContifyCollectionDto): Item {
     val responseItem = mapper.mapKeysToResponse(item)
     return collection.fields?.let { fields ->
       return fieldHandlerStrategy.castItemToJavaTypes(fields, responseItem)
-    }
-        ?: emptyMap()
+    } ?: emptyMap()
   }
 }

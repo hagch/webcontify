@@ -31,8 +31,7 @@ class RelationRepository(
     val mappingFieldRecords =
         createRelationDto.mappingCollectionMapping?.fieldsMapping?.let {
           createFieldRecords(relation.id!!, it)
-        }
-            ?: emptyList()
+        } ?: emptyList()
     val sourceFieldRecords =
         createFieldRecords(relation.id!!, createRelationDto.sourceCollectionMapping.fieldsMapping)
     val referencedFieldRecords =
@@ -58,8 +57,7 @@ class RelationRepository(
         .on(WEBCONTIFY_COLLECTION_RELATION.MAPPING_COLLECTION_ID.eq(mappingCollectionTable.ID))
         .where(WEBCONTIFY_COLLECTION_RELATION.ID.eq(id))
         .fetchOne()
-        ?.map { mapToRelationCollectionDto(it) }
-        ?: throw RuntimeException("Relation not found")
+        ?.map { mapToRelationCollectionDto(it) } ?: throw RuntimeException("Relation not found")
   }
 
   private fun mapToRelationCollectionDto(record: Record): RelationCollectionDto {
