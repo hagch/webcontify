@@ -46,8 +46,7 @@ class FieldHandlerStrategy(private val handlers: Map<String, FieldHandler<*>>) {
               entry.key,
               field.configuration.toString())
         }
-      }
-          ?: entry.value)
+      } ?: entry.value)
 
   private fun getFirstMatchingFieldFor(
       key: String,
