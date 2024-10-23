@@ -1,7 +1,6 @@
 package io.webcontify.backend.collections.models.dtos
 
 import io.webcontify.backend.collections.models.Item
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 
 data class WebContifyCollectionDto(
     val id: Long?,
@@ -25,8 +24,7 @@ data class WebContifyCollectionDto(
     return this.fields?.firstOrNull { it.id == id }
   }
 
-  fun queryAbleFields(): List<WebContifyCollectionFieldDto> {
-    return this.fields?.filter { it.type != WebcontifyCollectionFieldType.RELATION_MIRROR }
-        ?: listOf()
+  fun getPrimaryFields(): List<WebContifyCollectionFieldDto> {
+    return this.fields?.filter { it.isPrimaryKey } ?: emptyList()
   }
 }

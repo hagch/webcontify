@@ -7,23 +7,12 @@ import org.springframework.stereotype.Component
 class OneToManyRelationHandler(
     private val relationMapper: RelationMapper,
     private val tableRelationRepository: TableRelationRepository,
-    private val relationRepository: RelationRepository,
-    private val mirrorFieldService: MirrorFieldService
+    private val relationRepository: RelationRepository
 ) : RelationHandler {
   override fun saveRelation(relation: CreateRelationDto): RelationDto {
     if (relation.mappingCollectionMapping != null)
         throw RuntimeException("No mapping collection allowed")
-    mirrorFieldService.mustBeEmpty(relation.referencedCollectionMapping.mirrorFields)
-    mirrorFieldService.canBeEmpty(
-        relation.sourceCollectionMapping.mirrorFields,
-        relation.referencedCollectionMapping.fieldsMapping)
     val relationDto = relationRepository.create(relation)
-    val mirrorFields =
-        mirrorFieldService.create(
-            relation.sourceCollectionMapping,
-            relationDto.id,
-            relation.referencedCollectionMapping.id)
-    relationDto.mirrorFields = mirrorFields
     return relationDto
   }
 

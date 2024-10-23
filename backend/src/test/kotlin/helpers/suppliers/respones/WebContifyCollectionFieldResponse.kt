@@ -33,9 +33,6 @@ data class WebContifyCollectionFieldResponse(
         JsonSubTypes.Type(
             value = WebContifyCollectionFieldBooleanConfigurationResponse::class,
             name = BOOLEAN_FIELD_TYPE),
-        JsonSubTypes.Type(
-            value = WebContifyCollectionFieldRelationMirrorConfigurationResponse::class,
-            name = RELATION_MIRROR_FIELD_TYPE),
     )
     val configuration: WebContifyCollectionFieldConfigurationResponse<Any>?
 ) {}

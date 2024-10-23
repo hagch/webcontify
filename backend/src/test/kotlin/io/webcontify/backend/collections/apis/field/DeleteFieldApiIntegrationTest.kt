@@ -4,7 +4,7 @@ import helpers.asserts.equalsTo
 import helpers.asserts.errorSizeEquals
 import helpers.asserts.instanceEquals
 import helpers.asserts.timestampNotNull
-import helpers.setups.api.ApiTestSetup
+import helpers.setups.api.ApiIntegrationTestSetup
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.NUMBER_PRIMARY_FIELD
 import io.restassured.module.mockmvc.kotlin.extensions.Extract
 import io.restassured.module.mockmvc.kotlin.extensions.Given
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.jdbc.Sql
 
-class DeleteFieldApiTest : ApiTestSetup() {
+class DeleteFieldApiIntegrationTest : ApiIntegrationTestSetup() {
 
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")

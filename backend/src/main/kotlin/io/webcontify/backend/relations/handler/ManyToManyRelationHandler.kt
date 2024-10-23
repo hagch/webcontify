@@ -14,75 +14,20 @@ class ManyToManyRelationHandler(
     private val collectionRepository: CollectionRepository,
     private val collectionFieldRepository: CollectionFieldRepository,
     private val tableRepository: CollectionTableRepository,
-    private val relationRepository: RelationRepository,
-    private val mirrorFieldService: MirrorFieldService
+    private val relationRepository: RelationRepository
 ) : RelationHandler {
   // TODO change logic to mapping table is used instead of source and referenced. if mapping table
-  // id is null create mapping table. the referenced fields of source and referenced must be
-  // relation mirror if any are referenced
   override fun saveRelation(relation: CreateRelationDto): RelationDto {
     relation.mappingCollectionMapping ?: throw RuntimeException("mapping collection cannot be null")
     var mappingCollectionMapping = relation.mappingCollectionMapping
-    var sourceMirrorFields = relation.sourceCollectionMapping.mirrorFields
-    var referencedMirrorFields = relation.referencedCollectionMapping.mirrorFields
     if (mappingCollectionMapping.id == null) {
       mappingCollectionMapping = createMappingCollection(relation)
-      if (relation.sourceCollectionMapping.mirrorFields != null) {
-        sourceMirrorFields =
-            relation.sourceCollectionMapping.mirrorFields
-                .map { field ->
-                  val referencedField =
-                      relation.mappingCollectionMapping.fieldsMapping
-                          .first { field.referencedFieldId == it.referencedFieldId }
-                          .sourceFieldId
-                  val mappingField =
-                      mappingCollectionMapping.fieldsMapping
-                          .first { it.referencedFieldId == referencedField }
-                          .sourceFieldId
-                  return@map field.copy(referencedFieldId = mappingField)
-                }
-                .toSet()
-      }
-      if (relation.referencedCollectionMapping.mirrorFields != null) {
-        referencedMirrorFields =
-            relation.referencedCollectionMapping.mirrorFields
-                .map { field ->
-                  val referencedField =
-                      relation.mappingCollectionMapping.fieldsMapping
-                          .first { field.referencedFieldId == it.sourceFieldId }
-                          .referencedFieldId
-                  val mappingField =
-                      mappingCollectionMapping.fieldsMapping
-                          .first { it.referencedFieldId == referencedField }
-                          .sourceFieldId
-                  return@map field.copy(referencedFieldId = mappingField)
-                }
-                .toSet()
-      }
     }
 
     if (relation.sourceCollectionMapping.fieldsMapping.isNotEmpty()) {
       throw RuntimeException(
           "field mappings for many to many have to be defined in mappingCollectionMapping")
     }
-    mirrorFieldService.canBeEmpty(
-        referencedMirrorFields,
-        mappingCollectionMapping.fieldsMapping
-            .filter {
-              referencedMirrorFields?.firstOrNull { field ->
-                field.referencedFieldId == it.sourceFieldId
-              } != null
-            }
-            .toSet())
-    mirrorFieldService.canBeEmpty(
-        sourceMirrorFields,
-        mappingCollectionMapping.fieldsMapping
-            .filter {
-              sourceMirrorFields?.firstOrNull { field ->
-                field.referencedFieldId == it.sourceFieldId
-              } != null
-            }
-            .toSet())
     val referencedFieldsMapping =
         relation.mappingCollectionMapping.fieldsMapping
             .map {
@@ -112,22 +57,6 @@ class ManyToManyRelationHandler(
                 mappingCollectionMapping = mappingCollectionMapping,
                 sourceCollectionMapping =
                     relation.sourceCollectionMapping.copy(fieldsMapping = sourceFieldsMapping)))
-    val referencedCollectionMirrorFields =
-        mirrorFieldService.create(
-            CollectionRelationMapping(
-                relation.referencedCollectionMapping.id, setOf(), referencedMirrorFields),
-            relationDto.id,
-            mappingCollectionMapping.id!!)
-    val sourceCollectionMirrorFields =
-        mirrorFieldService.create(
-            CollectionRelationMapping(
-                relation.sourceCollectionMapping.id, setOf(), sourceMirrorFields),
-            relationDto.id,
-            mappingCollectionMapping.id!!)
-    relationDto.mirrorFields =
-        setOf(
-            *referencedCollectionMirrorFields.toTypedArray(),
-            *sourceCollectionMirrorFields.toTypedArray())
     return relationDto
   }
 
@@ -190,16 +119,23 @@ class ManyToManyRelationHandler(
     val sourceFieldMapping =
         sourceCollection.fields
             .map { fieldDto ->
+              fieldDto.configuration?.unique = false
+              fieldDto.configuration?.inValues = null
+              fieldDto.configuration?.defaultValue = null
               val field =
                   fieldDto.copy(
                       name =
                           "ref${fieldDto.collectionId}${fieldDto.name.replaceFirstChar { it.uppercase() }}",
                       displayName = "Reference ${fieldDto.collectionId} ${fieldDto.displayName}")
+
               Pair(field, Pair(field.name, fieldDto.id))
             }
             .toMutableList()
     val referencedFieldMapping =
         referencedCollection.fields.map { fieldDto ->
+          fieldDto.configuration?.unique = false
+          fieldDto.configuration?.inValues = null
+          fieldDto.configuration?.defaultValue = null
           val field =
               fieldDto.copy(
                   name =
@@ -207,32 +143,35 @@ class ManyToManyRelationHandler(
                   displayName = "Reference ${fieldDto.collectionId} ${fieldDto.displayName}")
           Pair(field, Pair(field.name, fieldDto.id))
         }
-    sourceFieldMapping.addAll(referencedFieldMapping)
+    val mappingCollectionFieldMapping = sourceFieldMapping + referencedFieldMapping
     val mappingTable =
         WebContifyCollectionDto(
             id = null,
             name = "mapping_${sourceCollection.name}_to_${referencedCollection.name}",
             displayName = "Mapping ${sourceCollection.name} to ${referencedCollection.name}",
-            fields = sourceFieldMapping.map { it.first.copy(isPrimaryKey = true) })
+            fields = mappingCollectionFieldMapping.map { it.first.copy(isPrimaryKey = true) })
 
     tableRepository.create(mappingTable, false)
     val mappingCollection = collectionRepository.create(mappingTable)
     val mappingCollectionFields =
-        sourceFieldMapping
+        mappingCollectionFieldMapping
             .map {
               collectionFieldRepository.create(it.first.copy(collectionId = mappingCollection.id))
             }
             .toList()
+    val fieldsMapping =
+        mappingCollectionFields
+            .map { field ->
+              RelationFieldMapping(
+                  field.id!!,
+                  mappingCollectionFieldMapping
+                      .first { it.first.name == field.name }
+                      .second
+                      .second!!)
+            }
+            .toSet()
     return MappingCollectionRelationMapping(
-        id = mappingCollection.id!!,
-        fieldsMapping =
-            mappingCollectionFields
-                .map { field ->
-                  RelationFieldMapping(
-                      field.id!!,
-                      sourceFieldMapping.first { it.first.name == field.name }.second.second!!)
-                }
-                .toSet())
+        id = mappingCollection.id!!, name = mappingTable.name, fieldsMapping = fieldsMapping)
   }
 
   override fun deleteRelation(relation: RelationCollectionDto) {

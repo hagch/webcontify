@@ -1,7 +1,7 @@
 package io.webcontify.backend.collections.apis.item.constraints
 
 import helpers.asserts.*
-import helpers.setups.api.ApiTestSetup
+import helpers.setups.api.ApiIntegrationTestSetup
 import io.restassured.module.mockmvc.kotlin.extensions.Extract
 import io.restassured.module.mockmvc.kotlin.extensions.Given
 import io.restassured.module.mockmvc.kotlin.extensions.Then
@@ -15,14 +15,14 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 
-class ItemNumberConstrainsApiTest : ApiTestSetup() {
+class TextConstraintsApiIntegrationTest : ApiIntegrationTestSetup() {
 
   @Test
-  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
-  fun `(CreateItem) should create item with number value in constraints`() {
+  @Sql("/cleanup.sql", "./../../text-constraints-collections.sql")
+  fun `(CreateItem) should create item with text value in constraints`() {
     val item =
         mapOf(
-            "numberField" to 20,
+            "textField" to "test",
         )
     Given {
       mockMvc(mockMvc)
@@ -34,17 +34,17 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("numberField", equalTo(20))
+          body("textField", equalTo("test"))
           body("uuidField", notNullValue())
         }
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
-  fun `(CreateItem) should create item with default value on number value is null`() {
+  @Sql("/cleanup.sql", "./../../text-constraints-collections.sql")
+  fun `(CreateItem) should create item with default value on text value is null`() {
     val item =
         mapOf(
-            "numberField" to null,
+            "textField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -56,14 +56,14 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("numberField", equalTo(10))
+          body("textField", equalTo("test"))
           body("uuidField", notNullValue())
         }
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
-  fun `(CreateItem) should create item with default value on number value is not contained`() {
+  @Sql("/cleanup.sql", "./../../text-constraints-collections.sql")
+  fun `(CreateItem) should create item with default value on text value is not contained`() {
     val item: Map<String, Any> = mapOf()
     Given {
       mockMvc(mockMvc)
@@ -75,17 +75,17 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("numberField", equalTo(10))
+          body("textField", equalTo("test"))
           body("uuidField", notNullValue())
         }
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
-  fun `(CreateItem) should not create number field because value is not inValues`() {
+  @Sql("/cleanup.sql", "./../../text-constraints-collections.sql")
+  fun `(CreateItem) should not create text field because value is not inValues`() {
     val item =
         mapOf(
-            "numberField" to 11,
+            "textField" to "notInValues",
         )
     val errorResponse =
         Given {
@@ -107,15 +107,15 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
     errorResponse.timestampNotNull()
     errorResponse.errors[0].codeEquals(ErrorCode.INVALID_VALUE_PASSED)
     errorResponse.errors[0].messageContains(
-        "Value 11 for field number_field is invalid, please check if value complies to configuration")
+        "Value notInValues for field text_field is invalid, please check if value complies to configuration")
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
-  fun `(CreateItem) should create number field with value null`() {
+  @Sql("/cleanup.sql", "./../../text-constraints-collections.sql")
+  fun `(CreateItem) should create text field with value null`() {
     var item =
         mapOf(
-            "numberField" to null,
+            "textField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -127,7 +127,7 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("numberField", nullValue())
+          body("textField", nullValue())
           body("uuidField", notNullValue())
         }
     item = mapOf()
@@ -141,17 +141,17 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("numberField", nullValue())
+          body("textField", nullValue())
           body("uuidField", notNullValue())
         }
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
-  fun `(CreateItem) should not create item if number field is out of greaterThan or lowerThan`() {
+  @Sql("/cleanup.sql", "./../../text-constraints-collections.sql")
+  fun `(CreateItem) should not create item if number field is out of max or min length`() {
     var item =
         mapOf(
-            "numberField" to 10,
+            "textField" to "te",
         )
     var errorResponse =
         Given {
@@ -173,11 +173,11 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
     errorResponse.timestampNotNull()
     errorResponse.errors[0].codeEquals(ErrorCode.INVALID_VALUE_PASSED)
     errorResponse.errors[0].messageContains(
-        "Value 10 for field number_field is invalid, please check if value complies to configuration")
+        "Value te for field text_field is invalid, please check if value complies to configuration")
 
     item =
         mapOf(
-            "numberField" to 13,
+            "textField" to "tester",
         )
     errorResponse =
         Given {
@@ -199,15 +199,15 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
     errorResponse.timestampNotNull()
     errorResponse.errors[0].codeEquals(ErrorCode.INVALID_VALUE_PASSED)
     errorResponse.errors[0].messageContains(
-        "Value null for field number_field is invalid, please check if value complies to configuration")
+        "Value null for field text_field is invalid, please check if value complies to configuration")
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
-  fun `(CreateItem) should create number field if value is between lower and greater then`() {
+  @Sql("/cleanup.sql", "./../../text-constraints-collections.sql")
+  fun `(CreateItem) should create text field if value is in min and max length`() {
     val item =
         mapOf(
-            "numberField" to 11,
+            "textField" to "teste",
         )
     Given {
       mockMvc(mockMvc)
@@ -219,8 +219,77 @@ class ItemNumberConstrainsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("numberField", equalTo(11))
+          body("textField", equalTo("teste"))
           body("uuidField", notNullValue())
         }
+    val item2 =
+        mapOf(
+            "textField" to "tes",
+        )
+    Given {
+      mockMvc(mockMvc)
+      contentType(MediaType.APPLICATION_JSON_VALUE)
+      body(item2)
+    } When
+        {
+          post("$COLLECTIONS_PATH/4/items")
+        } Then
+        {
+          status(HttpStatus.CREATED)
+          body("textField", equalTo("tes"))
+          body("uuidField", notNullValue())
+        }
+  }
+
+  @Test
+  @Sql("/cleanup.sql", "./../../text-constraints-collections.sql")
+  fun `(CreateItem) should create text field if value matches regex`() {
+    val item =
+        mapOf(
+            "textField" to "test.test@gmail.com",
+        )
+    Given {
+      mockMvc(mockMvc)
+      contentType(MediaType.APPLICATION_JSON_VALUE)
+      body(item)
+    } When
+        {
+          post("$COLLECTIONS_PATH/5/items")
+        } Then
+        {
+          status(HttpStatus.CREATED)
+          body("textField", equalTo("test.test@gmail.com"))
+          body("uuidField", notNullValue())
+        }
+  }
+
+  @Test
+  @Sql("/cleanup.sql", "./../../text-constraints-collections.sql")
+  fun `(CreateItem) should not create text field if value does not match regex`() {
+    val item =
+        mapOf(
+            "textField" to "test.testgmail.com",
+        )
+    val errorResponse =
+        Given {
+          mockMvc(mockMvc)
+          contentType(MediaType.APPLICATION_JSON_VALUE)
+          body(item)
+        } When
+            {
+              post("$COLLECTIONS_PATH/5/items")
+            } Then
+            {
+              status(HttpStatus.BAD_REQUEST)
+            } Extract
+            {
+              body().`as`(ErrorResponse::class.java)
+            }
+    errorResponse.instanceEquals("/$COLLECTIONS_PATH/5/items")
+    errorResponse.errorSizeEquals(1)
+    errorResponse.timestampNotNull()
+    errorResponse.errors[0].codeEquals(ErrorCode.INVALID_VALUE_PASSED)
+    errorResponse.errors[0].messageContains(
+        "Value test.testgmail.com for field text_field is invalid, please check if value complies to configuration")
   }
 }

@@ -2,7 +2,6 @@ package helpers.suppliers
 
 import io.webcontify.backend.collections.models.apis.WebContifyCollectionFieldApiCreateRequest
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldNumberConfigurationDto
-import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldRelationMirrorConfigurationDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldTextConfigurationDto
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 
@@ -23,14 +22,6 @@ class CollectionFieldApiCreateRequestSupplier {
             WebcontifyCollectionFieldType.NUMBER,
             true,
             WebContifyCollectionFieldNumberConfigurationDto(null, null, false, true, null, null))
-
-    val MIRROR_FIELD =
-        WebContifyCollectionFieldApiCreateRequest(
-            "newMirrorField",
-            "New Mirror Field",
-            WebcontifyCollectionFieldType.RELATION_MIRROR,
-            true,
-            WebContifyCollectionFieldRelationMirrorConfigurationDto(1, 1, false, true, null, null))
     val NUMBER_RELATION_FIELD =
         WebContifyCollectionFieldApiCreateRequest(
             "relationField",

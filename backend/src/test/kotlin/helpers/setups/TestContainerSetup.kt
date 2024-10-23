@@ -8,6 +8,8 @@ abstract class TestContainerSetup {
   companion object {
     @ServiceConnection
     val container: PostgreSQLContainer<*> =
-        PostgreSQLContainer("postgres:latest").apply { this.start() }
+        PostgreSQLContainer("postgres:latest").apply {
+          this.withPassword("test").withUsername("test").withExposedPorts(5432).start()
+        }
   }
 }

@@ -1,7 +1,7 @@
 package io.webcontify.backend.collections.apis.item.constraints
 
 import helpers.asserts.*
-import helpers.setups.api.ApiTestSetup
+import helpers.setups.api.ApiIntegrationTestSetup
 import io.restassured.module.mockmvc.kotlin.extensions.Extract
 import io.restassured.module.mockmvc.kotlin.extensions.Given
 import io.restassured.module.mockmvc.kotlin.extensions.Then
@@ -15,14 +15,14 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 
-class TimestampConstraintsApiTest : ApiTestSetup() {
+class ItemNumberConstrainsApiIntegrationTest : ApiIntegrationTestSetup() {
 
   @Test
-  @Sql("/cleanup.sql", "./../../timestamp-constraints-collections.sql")
-  fun `(CreateItem) should create item with timestamp value in constraints`() {
+  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
+  fun `(CreateItem) should create item with number value in constraints`() {
     val item =
         mapOf(
-            "timestampField" to "2000-10-31T01:30:00",
+            "numberField" to 20,
         )
     Given {
       mockMvc(mockMvc)
@@ -34,17 +34,17 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("timestampField", equalTo("2000-10-31T01:30:00"))
+          body("numberField", equalTo(20))
           body("uuidField", notNullValue())
         }
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../timestamp-constraints-collections.sql")
-  fun `(CreateItem) should create item with default value on timestamp value is null`() {
+  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
+  fun `(CreateItem) should create item with default value on number value is null`() {
     val item =
         mapOf(
-            "timestampField" to null,
+            "numberField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -56,14 +56,14 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("timestampField", equalTo("2000-10-31T01:30:00"))
+          body("numberField", equalTo(10))
           body("uuidField", notNullValue())
         }
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../timestamp-constraints-collections.sql")
-  fun `(CreateItem) should create item with default value on timestamp value is not contained`() {
+  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
+  fun `(CreateItem) should create item with default value on number value is not contained`() {
     val item: Map<String, Any> = mapOf()
     Given {
       mockMvc(mockMvc)
@@ -75,17 +75,17 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("timestampField", equalTo("2000-10-31T01:30:00"))
+          body("numberField", equalTo(10))
           body("uuidField", notNullValue())
         }
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../timestamp-constraints-collections.sql")
-  fun `(CreateItem) should not create timestamp field because value is not inValues`() {
+  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
+  fun `(CreateItem) should not create number field because value is not inValues`() {
     val item =
         mapOf(
-            "timestampField" to "2000-10-31T01:30:01",
+            "numberField" to 11,
         )
     val errorResponse =
         Given {
@@ -107,15 +107,15 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
     errorResponse.timestampNotNull()
     errorResponse.errors[0].codeEquals(ErrorCode.INVALID_VALUE_PASSED)
     errorResponse.errors[0].messageContains(
-        "Value 0572648b-8524-4175-b916-bdd36a661a60 for field timestamp_field is invalid, please check if value complies to configuration")
+        "Value 11 for field number_field is invalid, please check if value complies to configuration")
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../timestamp-constraints-collections.sql")
-  fun `(CreateItem) should create timestamp field with value null`() {
+  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
+  fun `(CreateItem) should create number field with value null`() {
     var item =
         mapOf(
-            "timestampField" to null,
+            "numberField" to null,
         )
     Given {
       mockMvc(mockMvc)
@@ -127,7 +127,7 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("timestampField", nullValue())
+          body("numberField", nullValue())
           body("uuidField", notNullValue())
         }
     item = mapOf()
@@ -141,26 +141,19 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("timestampField", nullValue())
+          body("numberField", nullValue())
           body("uuidField", notNullValue())
         }
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../timestamp-constraints-collections.sql")
+  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
   fun `(CreateItem) should not create item if number field is out of greaterThan or lowerThan`() {
-    checkGreaterAndLowerConstraintViolatesOn("2000-10-31T01:30:00")
-    checkGreaterAndLowerConstraintViolatesOn("2000-10-31T02:30:00")
-    checkGreaterAndLowerConstraintViolatesOn("2000-10-31T02:31:00")
-    checkGreaterAndLowerConstraintViolatesOn("2000-10-31T01:29:00")
-  }
-
-  private fun checkGreaterAndLowerConstraintViolatesOn(dateTime: String) {
-    val item =
+    var item =
         mapOf(
-            "timestampField" to dateTime,
+            "numberField" to 10,
         )
-    val errorResponse =
+    var errorResponse =
         Given {
           mockMvc(mockMvc)
           contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -180,15 +173,41 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
     errorResponse.timestampNotNull()
     errorResponse.errors[0].codeEquals(ErrorCode.INVALID_VALUE_PASSED)
     errorResponse.errors[0].messageContains(
-        "Value $dateTime for field timestamp_field is invalid, please check if value complies to configuration")
+        "Value 10 for field number_field is invalid, please check if value complies to configuration")
+
+    item =
+        mapOf(
+            "numberField" to 13,
+        )
+    errorResponse =
+        Given {
+          mockMvc(mockMvc)
+          contentType(MediaType.APPLICATION_JSON_VALUE)
+          body(item)
+        } When
+            {
+              post("$COLLECTIONS_PATH/4/items")
+            } Then
+            {
+              status(HttpStatus.BAD_REQUEST)
+            } Extract
+            {
+              body().`as`(ErrorResponse::class.java)
+            }
+    errorResponse.instanceEquals("/$COLLECTIONS_PATH/4/items")
+    errorResponse.errorSizeEquals(1)
+    errorResponse.timestampNotNull()
+    errorResponse.errors[0].codeEquals(ErrorCode.INVALID_VALUE_PASSED)
+    errorResponse.errors[0].messageContains(
+        "Value null for field number_field is invalid, please check if value complies to configuration")
   }
 
   @Test
-  @Sql("/cleanup.sql", "./../../timestamp-constraints-collections.sql")
-  fun `(CreateItem) should create timestamp field if value is between lower and greater then`() {
+  @Sql("/cleanup.sql", "./../../number-constraints-collections.sql")
+  fun `(CreateItem) should create number field if value is between lower and greater then`() {
     val item =
         mapOf(
-            "timestampField" to "2000-10-31T01:45:00",
+            "numberField" to 11,
         )
     Given {
       mockMvc(mockMvc)
@@ -200,7 +219,7 @@ class TimestampConstraintsApiTest : ApiTestSetup() {
         } Then
         {
           status(HttpStatus.CREATED)
-          body("timestampField", equalTo("2000-10-31T01:45:00"))
+          body("numberField", equalTo(11))
           body("uuidField", notNullValue())
         }
   }

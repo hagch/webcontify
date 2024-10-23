@@ -2,7 +2,6 @@ package io.webcontify.backend.collections.repositories
 
 import helpers.setups.repository.JooqTestSetup
 import helpers.suppliers.collectionWithFields
-import helpers.suppliers.relationMirrorField
 import io.webcontify.backend.collections.exceptions.AlreadyExistsException
 import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
@@ -11,14 +10,10 @@ import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.field
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.jdbc.BadSqlGrammarException
 import org.springframework.test.context.jdbc.Sql
 
 class CollectionTableFieldRepositoryTest(
@@ -61,22 +56,6 @@ class CollectionTableFieldRepositoryTest(
 
   @Test
   @Sql("/cleanup.sql", "create-test-table.sql")
-  fun `(create) should not add relation mirror field on table`() {
-    assertNotNull(repository.create(collection, relationMirrorField()))
-
-    val exception =
-        assertThrows<BadSqlGrammarException> {
-          context
-              .selectFrom(collection.name)
-              .where(field(relationMirrorField().name.camelToSnakeCase()).eq(0))
-              .execute()
-        }
-    assertEquals(
-        "jOOQ; bad SQL grammar [select * from test where relation_mirror = ?]", exception.message)
-  }
-
-  @Test
-  @Sql("/cleanup.sql", "create-test-table.sql")
   fun `(create) field should throw exception if field already exists`() {
     val newField =
         WebContifyCollectionFieldDto(
@@ -115,6 +94,7 @@ class CollectionTableFieldRepositoryTest(
   }
 
   @Test
+  @Sql("/cleanup.sql")
   fun `(delete) field should not throw exception if table not exists`() {
     assertDoesNotThrow {
       repository.delete(collection.copy(name = "DOES_NOT_EXIST"), secondField.name)
@@ -122,6 +102,7 @@ class CollectionTableFieldRepositoryTest(
   }
 
   @Test
+  @Sql("/cleanup.sql")
   fun `(update) field should throw exception if table not exists`() {
     assertThrows<UnprocessableContentException> {
       repository.update(collection, firstField.copy(name = "new"), 1)
@@ -160,6 +141,7 @@ class CollectionTableFieldRepositoryTest(
   }
 
   @Test
+  @Sql("/cleanup.sql")
   fun `(update) field should throw exception if field type has changed`() {
     assertThrows<UnprocessableContentException> {
       repository.update(

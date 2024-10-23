@@ -1,6 +1,5 @@
 package helpers.suppliers.respones
 
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
@@ -73,12 +72,3 @@ class WebContifyCollectionFieldBooleanConfigurationResponse(
 ) :
     WebContifyCollectionFieldConfigurationResponse<Boolean>(
         nullable, unique, inValues, defaultValue)
-
-class WebContifyCollectionFieldRelationMirrorConfigurationResponse(
-    val relationId: Long,
-    val fieldType: WebcontifyCollectionFieldType,
-    override val nullable: Boolean?,
-    override val unique: Boolean?,
-    override val inValues: List<Any?>?,
-    override val defaultValue: Any?
-) : WebContifyCollectionFieldConfigurationResponse<Any>(nullable, unique, inValues, defaultValue)

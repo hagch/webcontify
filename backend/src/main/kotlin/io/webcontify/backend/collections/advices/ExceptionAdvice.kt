@@ -71,7 +71,8 @@ class ExceptionAdvice {
       exception: MethodArgumentNotValidException,
       request: HttpServletRequest
   ): ResponseEntity<ErrorResponse> {
-    val errors = exception.allErrors.map { Error(ErrorCode.valueOf(it.defaultMessage.toString())) }
+    val errors =
+        exception.allErrors.map { Error(ErrorCode.valueOf(it.defaultMessage?.toString() ?: "")) }
     return ResponseEntity(ErrorResponse(request.requestURI, errors), HttpStatus.BAD_REQUEST)
   }
 }

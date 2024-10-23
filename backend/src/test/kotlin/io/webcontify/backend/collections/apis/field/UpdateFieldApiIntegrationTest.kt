@@ -4,7 +4,7 @@ import helpers.asserts.equalsTo
 import helpers.asserts.errorSizeEquals
 import helpers.asserts.instanceEquals
 import helpers.asserts.timestampNotNull
-import helpers.setups.api.ApiTestSetup
+import helpers.setups.api.ApiIntegrationTestSetup
 import helpers.suppliers.CollectionFieldApiUpdateRequestSupplier.Companion.DECIMAL_FIELD_NAME_CHANGED
 import helpers.suppliers.CollectionFieldApiUpdateRequestSupplier.Companion.DECIMAL_FIELD_TYPE_CHANGED
 import helpers.suppliers.CollectionFieldApiUpdateRequestSupplier.Companion.EXISTING_FIELD_NAME
@@ -15,11 +15,9 @@ import io.restassured.module.mockmvc.kotlin.extensions.Extract
 import io.restassured.module.mockmvc.kotlin.extensions.Given
 import io.restassured.module.mockmvc.kotlin.extensions.Then
 import io.restassured.module.mockmvc.kotlin.extensions.When
-import io.webcontify.backend.collections.models.apis.WebContifyCollectionFieldApiUpdateRequest
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.models.errors.ErrorResponse
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -27,7 +25,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 
-class UpdateFieldApiTest : ApiTestSetup() {
+class UpdateFieldApiIntegrationTest : ApiIntegrationTestSetup() {
 
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
@@ -179,21 +177,5 @@ class UpdateFieldApiTest : ApiTestSetup() {
     errorResponse.timestampNotNull()
     errorResponse.errors[0].equalsTo(
         ErrorCode.UNSUPPORTED_FIELD_OPERATION, ErrorCode.UNSUPPORTED_FIELD_OPERATION.message)
-  }
-
-  @Test
-  @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
-  fun `(UpdateField) should update name of mirror field`() {
-    val path = "$COLLECTIONS_PATH/1/fields/13"
-    Given {
-      mockMvc(mockMvc)
-      contentType(MediaType.APPLICATION_JSON)
-      body(
-          WebContifyCollectionFieldApiUpdateRequest(
-              "mirrorFieldChanged",
-              "Mirror Field Changed",
-              WebcontifyCollectionFieldType.RELATION_MIRROR,
-              false))
-    } When { put(path) } Then { status(HttpStatus.OK) }
   }
 }

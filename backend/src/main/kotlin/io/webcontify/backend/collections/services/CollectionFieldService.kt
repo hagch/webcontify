@@ -7,7 +7,6 @@ import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.repositories.CollectionFieldRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
 import io.webcontify.backend.collections.repositories.CollectionTableFieldRepository
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -45,9 +44,6 @@ class CollectionFieldService(
 
   @Transactional
   fun create(field: WebContifyCollectionFieldDto): WebContifyCollectionFieldDto {
-    if (field.type == WebcontifyCollectionFieldType.RELATION_MIRROR) {
-      throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
-    }
     val collection = collectionRepository.getById(field.collectionId)
     tableFieldRepository.create(collection, field)
     return repository.create(field)
@@ -65,9 +61,7 @@ class CollectionFieldService(
   fun update(id: Long, newField: WebContifyCollectionFieldDto): WebContifyCollectionFieldDto {
     val collection = collectionRepository.getById(newField.collectionId)
     val field = repository.update(newField, id)
-    if (collection.getFieldWithId(id)?.type != WebcontifyCollectionFieldType.RELATION_MIRROR) {
-      tableFieldRepository.update(collection, newField, id)
-    }
+    tableFieldRepository.update(collection, newField, id)
     return field
   }
 }

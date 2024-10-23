@@ -11,7 +11,6 @@ import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.services.field.handler.FieldHandlerStrategy
 import io.webcontify.backend.collections.utils.camelToSnakeCase
 import io.webcontify.backend.collections.utils.toKeyValueString
-import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.*
@@ -60,9 +59,9 @@ class CollectionItemRepository(
 
   @Transactional
   fun create(collection: WebContifyCollectionDto, item: Item): Item {
-    val createAbleItem = getCreateAbleItem(collection, item)
+    val createAbleItem = mapItemToStore(item, collection)
     val fields = createAbleItem.keys.map { field(it) }
-    val allFields = collection.queryAbleFields().map { field(it.name.camelToSnakeCase()) }
+    val allFields = collection.fields?.map { field(it.name.camelToSnakeCase()) }
     try {
       dslContext
           .insertInto(table(collection.name.camelToSnakeCase()), fields)
@@ -83,29 +82,6 @@ class CollectionItemRepository(
     }
     throw UnprocessableContentException(
         ErrorCode.UNABLE_TO_CREATE_ITEM, item.toKeyValueString(), collection.id.toString())
-  }
-
-  private fun getCreateAbleItem(collection: WebContifyCollectionDto, item: Item): Item {
-    val removeAblePrimaryKeys =
-        collection.fields
-            ?.filter {
-              it.isPrimaryKey &&
-                  (it.type == WebcontifyCollectionFieldType.NUMBER ||
-                      it.type == WebcontifyCollectionFieldType.UUID)
-            }
-            ?.map {
-              val isRemovable =
-                  if (it.type == WebcontifyCollectionFieldType.UUID) false
-                  else if (it.type == WebcontifyCollectionFieldType.NUMBER) true else false
-              return@map it.name to isRemovable
-            }
-            ?.toMap() ?: emptyMap()
-    val itemWithoutRemovablePrimaryKeys =
-        item.filter {
-          !(removeAblePrimaryKeys.contains(it.key) && removeAblePrimaryKeys[it.key] == true)
-        }
-    val mappedItem = mapItemToStore(itemWithoutRemovablePrimaryKeys, collection)
-    return mappedItem
   }
 
   @Transactional
@@ -155,12 +131,6 @@ class CollectionItemRepository(
   }
 
   private fun mapItemToStore(item: Item, collection: WebContifyCollectionDto): Item {
-    if (collection.fields
-        ?.filter { it.type == WebcontifyCollectionFieldType.RELATION_MIRROR }
-        ?.map { it.name }
-        ?.any { item.containsKey(it) } == true) {
-      throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
-    }
     return collection.fields?.let { fields ->
       val castedItem = fieldHandlerStrategy.castItemToJavaTypes(fields, item).toMap()
       return mapper.mapKeysToDataStore(castedItem)

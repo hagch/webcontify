@@ -1,6 +1,6 @@
 package io.webcontify.backend.collections.apis.relation
 
-import helpers.setups.api.ApiTestSetup
+import helpers.setups.api.ApiIntegrationTestSetup
 import helpers.suppliers.CollectionApiCreateRequestSupplier
 import helpers.suppliers.respones.WebContifyCollectionResponse
 import io.restassured.module.mockmvc.kotlin.extensions.Extract
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 
-class CreateRelationApiTest : ApiTestSetup() {
+class CreateRelationApiIntegrationTest : ApiIntegrationTestSetup() {
 
   @Test
   fun `(CreateRelation) endpoint should create one to one relation`() {
@@ -37,18 +37,18 @@ class CreateRelationApiTest : ApiTestSetup() {
             sourceCollectionMapping =
                 CollectionRelationMapping(
                     sourceCollectionId,
+                    "relation1",
                     setOf(
                         RelationFieldMapping(
-                            sourceCollectionPrimaryFieldId, relatedCollectionPrimaryFieldId)),
-                    setOf()),
+                            sourceCollectionPrimaryFieldId, relatedCollectionPrimaryFieldId))),
             mappingCollectionMapping = null,
             referencedCollectionMapping =
                 CollectionRelationMapping(
                     relatedCollectionId,
+                    "relation1",
                     setOf(
                         RelationFieldMapping(
-                            relatedCollectionPrimaryFieldId, sourceCollectionPrimaryFieldId)),
-                    setOf()),
+                            relatedCollectionPrimaryFieldId, sourceCollectionPrimaryFieldId))),
             type = WebcontifyCollectionRelationType.ONE_TO_ONE)
     val relationDto =
         Given {
@@ -69,11 +69,13 @@ class CreateRelationApiTest : ApiTestSetup() {
     assertEquals(
         MappingCollectionRelationMapping(
             id = relationRequest.sourceCollectionMapping.id,
+            "relation1",
             fieldsMapping = relationRequest.sourceCollectionMapping.fieldsMapping),
         relationDto.sourceCollectionMapping)
     assertEquals(
         MappingCollectionRelationMapping(
             id = relationRequest.referencedCollectionMapping.id,
+            "relation1",
             fieldsMapping = relationRequest.referencedCollectionMapping.fieldsMapping),
         relationDto.referencedCollectionMapping)
     assertNotNull(relationDto.id)
@@ -97,18 +99,18 @@ class CreateRelationApiTest : ApiTestSetup() {
             sourceCollectionMapping =
                 CollectionRelationMapping(
                     sourceCollectionId,
+                    "relation2",
                     setOf(
                         RelationFieldMapping(
-                            sourceCollectionPrimaryFieldId, relatedCollectionPrimaryFieldId)),
-                    setOf()),
+                            sourceCollectionPrimaryFieldId, relatedCollectionPrimaryFieldId))),
             mappingCollectionMapping = null,
             referencedCollectionMapping =
                 CollectionRelationMapping(
                     relatedCollectionId,
+                    "relation2",
                     setOf(
                         RelationFieldMapping(
-                            relatedCollectionPrimaryFieldId, sourceCollectionPrimaryFieldId)),
-                    setOf()),
+                            relatedCollectionPrimaryFieldId, sourceCollectionPrimaryFieldId))),
             type = WebcontifyCollectionRelationType.ONE_TO_MANY)
     val relationDto =
         Given {
@@ -129,11 +131,13 @@ class CreateRelationApiTest : ApiTestSetup() {
     assertEquals(
         MappingCollectionRelationMapping(
             id = relationRequest.sourceCollectionMapping.id,
+            "relation2",
             fieldsMapping = relationRequest.sourceCollectionMapping.fieldsMapping),
         relationDto.sourceCollectionMapping)
     assertEquals(
         MappingCollectionRelationMapping(
             id = relationRequest.referencedCollectionMapping.id,
+            "relation2",
             fieldsMapping = relationRequest.referencedCollectionMapping.fieldsMapping),
         relationDto.referencedCollectionMapping)
     assertNotNull(relationDto.id)
@@ -157,18 +161,18 @@ class CreateRelationApiTest : ApiTestSetup() {
             sourceCollectionMapping =
                 CollectionRelationMapping(
                     sourceCollectionId,
+                    "relation3",
                     setOf(
                         RelationFieldMapping(
-                            sourceCollectionPrimaryFieldId, relatedCollectionPrimaryFieldId)),
-                    setOf()),
+                            sourceCollectionPrimaryFieldId, relatedCollectionPrimaryFieldId))),
             mappingCollectionMapping = null,
             referencedCollectionMapping =
                 CollectionRelationMapping(
                     relatedCollectionId,
+                    "relation3",
                     setOf(
                         RelationFieldMapping(
-                            relatedCollectionPrimaryFieldId, sourceCollectionPrimaryFieldId)),
-                    setOf()),
+                            relatedCollectionPrimaryFieldId, sourceCollectionPrimaryFieldId))),
             type = WebcontifyCollectionRelationType.MANY_TO_ONE)
     val relationDto =
         Given {
@@ -189,11 +193,13 @@ class CreateRelationApiTest : ApiTestSetup() {
     assertEquals(
         MappingCollectionRelationMapping(
             id = relationRequest.sourceCollectionMapping.id,
+            "relation3",
             fieldsMapping = relationRequest.sourceCollectionMapping.fieldsMapping),
         relationDto.sourceCollectionMapping)
     assertEquals(
         MappingCollectionRelationMapping(
             id = relationRequest.referencedCollectionMapping.id,
+            "relation3",
             fieldsMapping = relationRequest.referencedCollectionMapping.fieldsMapping),
         relationDto.referencedCollectionMapping)
     assertNotNull(relationDto.id)
@@ -215,16 +221,17 @@ class CreateRelationApiTest : ApiTestSetup() {
     val relationRequest =
         CreateRelationRequest(
             sourceCollectionMapping =
-                CollectionRelationMapping(sourceCollectionId, setOf(), setOf()),
+                CollectionRelationMapping(sourceCollectionId, "relation4", setOf()),
             mappingCollectionMapping =
                 MappingCollectionRelationMapping(
                     id = null,
+                    "relation4",
                     fieldsMapping =
                         setOf(
                             RelationFieldMapping(
                                 sourceCollectionPrimaryFieldId, relatedCollectionPrimaryFieldId))),
             referencedCollectionMapping =
-                CollectionRelationMapping(relatedCollectionId, setOf(), setOf()),
+                CollectionRelationMapping(relatedCollectionId, "relation4", setOf()),
             type = WebcontifyCollectionRelationType.MANY_TO_MANY)
     val relationDto =
         Given {

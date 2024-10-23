@@ -1,6 +1,7 @@
 package helpers.setups.api
 
 import helpers.setups.TestContainerSetup
+import io.restassured.common.mapper.TypeRef
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.TestMethodOrder
 import org.junit.jupiter.api.extension.ExtendWith
@@ -16,7 +17,9 @@ import org.springframework.test.web.servlet.MockMvc
 @AutoConfigureMockMvc
 @ActiveProfiles(profiles = ["test"])
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-abstract class ApiTestSetup : TestContainerSetup() {
+abstract class ApiIntegrationTestSetup : TestContainerSetup() {
 
   @Autowired lateinit var mockMvc: MockMvc
+
+  protected final inline fun <reified T> typeReference() = object : TypeRef<T>() {}
 }

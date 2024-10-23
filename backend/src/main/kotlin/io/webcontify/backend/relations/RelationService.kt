@@ -6,8 +6,7 @@ import org.springframework.stereotype.Service
 @Service
 class RelationService(
     private val factory: RelationFactory,
-    private val relationRepository: RelationRepository,
-    private val mirrorFieldService: MirrorFieldService
+    private val relationRepository: RelationRepository
 ) {
 
   fun create(createRelationDto: CreateRelationDto): RelationDto {
@@ -18,6 +17,9 @@ class RelationService(
     val relation = relationRepository.findById(relationId)
     factory.delete(relation)
     relationRepository.delete(relationId)
-    mirrorFieldService.deleteForRelation(relationId)
+  }
+
+  fun isUsedAsMappingTable(collectionId: Long): Boolean {
+    return relationRepository.isCollectionUsedAsMappingTableInRelation(collectionId)
   }
 }

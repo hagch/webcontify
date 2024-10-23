@@ -1,6 +1,7 @@
 package io.webcontify.backend.relations
 
 import org.jooq.DSLContext
+import org.jooq.impl.DSL.name
 import org.springframework.stereotype.Repository
 
 @Repository
