@@ -4,7 +4,7 @@ import helpers.asserts.equalsTo
 import helpers.asserts.errorSizeEquals
 import helpers.asserts.instanceEquals
 import helpers.asserts.timestampNotNull
-import helpers.setups.api.ApiTestSetup
+import helpers.setups.api.ApiIntegrationTestSetup
 import helpers.suppliers.CollectionApiCreateRequestSupplier
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.DECIMAL_FIELD
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.NUMBER_RELATION_FIELD
@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 
-class CreateItemRelationApiTest : ApiTestSetup() {
+class CreateItemRelationApiIntegrationTest : ApiIntegrationTestSetup() {
 
   @Test
   fun `(CreateItemRelation) should throw error on relation with value which does not exist`() {
@@ -106,39 +106,6 @@ class CreateItemRelationApiTest : ApiTestSetup() {
         }
   }
 
-  @Test
-  fun `(CreateItemRelation) should throw exception on trying to set value over mirror field of relation`() {
-    val collection =
-        createCollection(CollectionApiCreateRequestSupplier.getCollectionRelationField())
-    val relatedCollection =
-        createCollection(
-            CollectionApiCreateRequestSupplier.getCollectionWithValidNameOnePrimaryField())
-    createOneToOneRelation(collection, relatedCollection)
-    val errorResponse =
-        Given {
-          mockMvc(mockMvc)
-          contentType(MediaType.APPLICATION_JSON_VALUE)
-          body(
-              mapOf(
-                  DECIMAL_FIELD.name to 1.0,
-                  "mirrorFieldFor${collection.fields!!.first { !it.isPrimaryKey }.id!!}" to 1))
-        } When
-            {
-              post("$COLLECTIONS_PATH/${relatedCollection.id}/items")
-            } Then
-            {
-              status(HttpStatus.BAD_REQUEST)
-            } Extract
-            {
-              body().`as`(ErrorResponse::class.java)
-            }
-    errorResponse.timestampNotNull()
-    errorResponse.instanceEquals("/$COLLECTIONS_PATH/${relatedCollection.id}/items")
-    errorResponse.errorSizeEquals(1)
-    errorResponse.errors[0].equalsTo(
-        ErrorCode.MIRROR_FIELD_INCLUDED, ErrorCode.MIRROR_FIELD_INCLUDED.message)
-  }
-
   private fun createOneToOneRelation(
       collection: WebContifyCollectionResponse,
       relatedCollection: WebContifyCollectionResponse
@@ -152,15 +119,14 @@ class CreateItemRelationApiTest : ApiTestSetup() {
             sourceCollectionMapping =
                 CollectionRelationMapping(
                     sourceCollectionId,
-                    setOf(RelationFieldMapping(relationField, relatedCollectionPrimaryFieldId)),
-                    setOf()),
+                    "oneToOneRelation",
+                    setOf(RelationFieldMapping(relationField, relatedCollectionPrimaryFieldId))),
             mappingCollectionMapping = null,
             referencedCollectionMapping =
                 CollectionRelationMapping(
                     relatedCollectionId,
-                    setOf(RelationFieldMapping(relatedCollectionPrimaryFieldId, relationField)),
-                    setOf(
-                        MirrorRelationFieldMapping("mirrorFieldFor$relationField", relationField))),
+                    "oneToOneRelation",
+                    setOf(RelationFieldMapping(relatedCollectionPrimaryFieldId, relationField))),
             type = WebcontifyCollectionRelationType.ONE_TO_ONE)
     val relationDto =
         Given {

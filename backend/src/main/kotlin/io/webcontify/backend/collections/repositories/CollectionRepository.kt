@@ -90,7 +90,7 @@ class CollectionRepository(val dslContext: DSLContext, val mapper: CollectionMap
     return mapper.mapCollectionToDto(collection, setOf())
   }
 
-  private fun SelectConnectByStep<Record>.collectToCollectionMap():
+  fun SelectConnectByStep<Record>.collectToCollectionMap():
       Map<WebcontifyCollectionRecord, Set<WebcontifyCollectionFieldRecord>> {
     return this.collect(
         Collectors.groupingBy(

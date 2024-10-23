@@ -12,14 +12,3 @@ fun secondSqlInsertedField(): WebContifyCollectionFieldDto {
   return WebContifyCollectionFieldDto(
       2, 1, "name2", "DisplayName", WebcontifyCollectionFieldType.NUMBER, true, null)
 }
-
-fun relationMirrorField(): WebContifyCollectionFieldDto {
-  return WebContifyCollectionFieldDto(
-      2,
-      1,
-      "relationMirror",
-      "DisplayName",
-      WebcontifyCollectionFieldType.RELATION_MIRROR,
-      true,
-      null)
-}

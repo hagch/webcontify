@@ -4,7 +4,7 @@ import helpers.asserts.equalsTo
 import helpers.asserts.errorSizeEquals
 import helpers.asserts.instanceEquals
 import helpers.asserts.timestampNotNull
-import helpers.setups.api.ApiTestSetup
+import helpers.setups.api.ApiIntegrationTestSetup
 import helpers.suppliers.CollectionApiCreateRequestSupplier
 import io.restassured.module.mockmvc.kotlin.extensions.Extract
 import io.restassured.module.mockmvc.kotlin.extensions.Given
@@ -23,7 +23,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 
 // TODO max size of field and table names cause constraint names cannot be endless long,
-class CreateCollectionApiTest : ApiTestSetup() {
+class CreateCollectionApiIntegrationTest : ApiIntegrationTestSetup() {
 
   @Test
   fun `(CreateCollection) endpoint should throw error field required on collection creation without fields`() {
@@ -111,18 +111,6 @@ class CreateCollectionApiTest : ApiTestSetup() {
         CollectionApiCreateRequestSupplier.getCollectionWithValidNameMultiplePrimaryFields()
 
     sendValidCollectionCreation(collection)
-  }
-
-  @Test
-  fun `(CreateCollection) endpoint should throw error if mirror field is included`() {
-    val errorResponse =
-        sendInvalidCollectionCreation(
-            CollectionApiCreateRequestSupplier.COLLECTION_WITH_MIRROR_FIELD)
-
-    generalErrorChecks(errorResponse)
-    errorResponse.errorSizeEquals(1)
-    errorResponse.errors[0].equalsTo(
-        ErrorCode.MIRROR_FIELD_INCLUDED, ErrorCode.MIRROR_FIELD_INCLUDED.message)
   }
 
   @Test

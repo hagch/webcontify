@@ -8,6 +8,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.repositories.CollectionItemRepository
+import io.webcontify.backend.relations.RelationService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 class CollectionItemServiceTest {
   @MockK lateinit var collectionService: CollectionService
   @MockK lateinit var collectionItemRepository: CollectionItemRepository
+  @MockK lateinit var relationService: RelationService
   @InjectMockKs lateinit var collectionItemService: CollectionItemService
 
   private val collection = collectionWithFields(listOf(Pair("test", true)))
@@ -91,11 +93,12 @@ class CollectionItemServiceTest {
 
   @Test
   fun `(create) should call create on repository`() {
+    every { relationService.isUsedAsMappingTable(any()) } returns false
     every { collectionService.getById(any()) } returns collection
     every { collectionItemRepository.create(any(), any()) } returns mapOf()
 
     collectionItemService.create(id, identifierMap)
 
-    verify(exactly = 1) { collectionItemRepository.create(collection, identifierMap) }
+    verify(exactly = 1) { collectionItemRepository.create(collection, emptyMap()) }
   }
 }

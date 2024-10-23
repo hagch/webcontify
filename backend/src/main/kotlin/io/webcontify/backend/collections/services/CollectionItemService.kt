@@ -4,18 +4,21 @@ import io.webcontify.backend.collections.exceptions.NotFoundException
 import io.webcontify.backend.collections.exceptions.UnprocessableContentException
 import io.webcontify.backend.collections.models.IdentifierMap
 import io.webcontify.backend.collections.models.Item
+import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
 import io.webcontify.backend.collections.models.errors.ErrorCode
 import io.webcontify.backend.collections.repositories.CollectionItemRepository
 import io.webcontify.backend.collections.utils.toKeyValueString
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionFieldType
+import io.webcontify.backend.relations.RelationService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class CollectionItemService(
     val collectionService: CollectionService,
-    val collectionItemRepository: CollectionItemRepository
+    val collectionItemRepository: CollectionItemRepository,
+    val relationService: RelationService
 ) {
 
   @Transactional(readOnly = true)
@@ -68,14 +71,12 @@ class CollectionItemService(
   @Transactional
   fun create(collectionId: Long, item: Item): Item {
     val collection = collectionService.getById(collectionId)
-    val mirrorFields =
-        collection.fields
-            ?.filter { it.type == WebcontifyCollectionFieldType.RELATION_MIRROR }
-            ?.mapNotNull { item[it.name] }
-    if (mirrorFields?.isNotEmpty() == true) {
-      throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
+    val shouldFilterOutPrimaryKeys = !relationService.isUsedAsMappingTable(collectionId)
+    var createAbleItem = item
+    if (shouldFilterOutPrimaryKeys) {
+      createAbleItem = filterOutNotCreatablePrimaryKeys(collection, item)
     }
-    return collectionItemRepository.create(collection, item)
+    return collectionItemRepository.create(collection, createAbleItem)
   }
 
   @Transactional
@@ -93,13 +94,6 @@ class CollectionItemService(
     if (updateAbleItem.isEmpty()) {
       throw UnprocessableContentException(
           ErrorCode.NO_FIELDS_TO_UPDATE, identifierMap.toKeyValueString(), collectionId.toString())
-    }
-    val mirrorFields =
-        collection.fields
-            .filter { it.type == WebcontifyCollectionFieldType.RELATION_MIRROR }
-            .mapNotNull { updateAbleItem[it.name] }
-    if (mirrorFields.isNotEmpty()) {
-      throw UnprocessableContentException(ErrorCode.MIRROR_FIELD_INCLUDED)
     }
     return collectionItemRepository.update(collection, identifierMap, updateAbleItem)
   }
@@ -119,6 +113,19 @@ class CollectionItemService(
     }
     return collectionItemRepository.update(
         collection, mapOf(Pair(primaryKey.name, itemId)), updateAbleItem)
+  }
+
+  private fun filterOutNotCreatablePrimaryKeys(
+      collection: WebContifyCollectionDto,
+      item: Item
+  ): Item {
+    val removeAblePrimaryKeys =
+        collection.fields
+            ?.filter { it.isPrimaryKey && it.type == WebcontifyCollectionFieldType.NUMBER }
+            ?.associate { it.name to true } ?: emptyMap()
+    val itemWithoutRemovablePrimaryKeys =
+        item.filter { !(removeAblePrimaryKeys.containsKey(it.key)) }
+    return itemWithoutRemovablePrimaryKeys
   }
 
   private fun validatePrimaryKeys(

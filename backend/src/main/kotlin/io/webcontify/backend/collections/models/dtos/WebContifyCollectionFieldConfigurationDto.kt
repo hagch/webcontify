@@ -6,18 +6,18 @@ import java.util.*
 
 open class WebContifyCollectionFieldConfigurationDto<out T>(
     open val nullable: Boolean?,
-    open val unique: Boolean?,
-    open val inValues: List<T?>?,
-    open val defaultValue: T?
+    open var unique: Boolean?,
+    open var inValues: List<@UnsafeVariance T?>?,
+    open var defaultValue: @UnsafeVariance T?
 )
 
 class WebContifyCollectionFieldNumberConfigurationDto(
     val greaterThan: Long?,
     val lowerThan: Long?,
     override val nullable: Boolean?,
-    override val unique: Boolean?,
-    override val inValues: List<Long?>?,
-    override val defaultValue: Long?
+    override var unique: Boolean?,
+    override var inValues: List<Long?>?,
+    override var defaultValue: Long?
 ) : WebContifyCollectionFieldConfigurationDto<Long>(nullable, unique, inValues, defaultValue)
 
 class WebContifyCollectionFieldTextConfigurationDto(
@@ -25,9 +25,9 @@ class WebContifyCollectionFieldTextConfigurationDto(
     val maxLength: Int?,
     val minLength: Int?,
     override val nullable: Boolean?,
-    override val unique: Boolean?,
-    override val inValues: List<String?>?,
-    override val defaultValue: String?
+    override var unique: Boolean?,
+    override var inValues: List<String?>?,
+    override var defaultValue: String?
 ) : WebContifyCollectionFieldConfigurationDto<String>(nullable, unique, inValues, defaultValue)
 
 class WebContifyCollectionFieldDecimalConfigurationDto(
@@ -35,41 +35,32 @@ class WebContifyCollectionFieldDecimalConfigurationDto(
     val lowerThan: BigDecimal?,
     val scale: Int?,
     override val nullable: Boolean?,
-    override val unique: Boolean?,
-    override val inValues: List<BigDecimal?>?,
-    override val defaultValue: BigDecimal?
+    override var unique: Boolean?,
+    override var inValues: List<BigDecimal?>?,
+    override var defaultValue: BigDecimal?
 ) : WebContifyCollectionFieldConfigurationDto<BigDecimal>(nullable, unique, inValues, defaultValue)
 
 class WebContifyCollectionFieldTimestampConfigurationDto(
     val greaterThan: LocalDateTime?,
     val lowerThan: LocalDateTime?,
     override val nullable: Boolean?,
-    override val unique: Boolean?,
-    override val inValues: List<LocalDateTime?>?,
-    override val defaultValue: LocalDateTime?
+    override var unique: Boolean?,
+    override var inValues: List<LocalDateTime?>?,
+    override var defaultValue: LocalDateTime?
 ) :
     WebContifyCollectionFieldConfigurationDto<LocalDateTime>(
         nullable, unique, inValues, defaultValue)
 
 class WebContifyCollectionFieldUuidConfigurationDto(
     override val nullable: Boolean?,
-    override val unique: Boolean?,
-    override val inValues: List<UUID?>?,
-    override val defaultValue: UUID?
+    override var unique: Boolean?,
+    override var inValues: List<UUID?>?,
+    override var defaultValue: UUID?
 ) : WebContifyCollectionFieldConfigurationDto<UUID>(nullable, unique, inValues, defaultValue)
 
 class WebContifyCollectionFieldBooleanConfigurationDto(
     override val nullable: Boolean?,
-    override val unique: Boolean?,
-    override val inValues: List<Boolean?>?,
-    override val defaultValue: Boolean?
+    override var unique: Boolean?,
+    override var inValues: List<Boolean?>?,
+    override var defaultValue: Boolean?
 ) : WebContifyCollectionFieldConfigurationDto<Boolean>(nullable, unique, inValues, defaultValue)
-
-class WebContifyCollectionFieldRelationMirrorConfigurationDto(
-    val relationId: Long,
-    val referencedField: Long,
-    override val nullable: Boolean?,
-    override val unique: Boolean?,
-    override val inValues: List<Any?>?,
-    override val defaultValue: Any?
-) : WebContifyCollectionFieldConfigurationDto<Any>(nullable, unique, inValues, defaultValue)

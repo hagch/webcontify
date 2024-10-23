@@ -69,7 +69,9 @@ interface FieldHandler<T> {
         .to(configuration)
   }
 
-  fun mapJSONBToConfiguration(configuration: JSONB?): WebContifyCollectionFieldConfigurationDto<T>?
+  fun mapJSONBToConfiguration(
+      configuration: JSONB?
+  ): WebContifyCollectionFieldConfigurationDto<Any?>?
 
   @Throws(ValidationException::class)
   fun validateField(value: T?, configuration: WebContifyCollectionFieldConfigurationDto<Any>?): T? {

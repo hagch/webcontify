@@ -34,10 +34,6 @@ data class WebContifyCollectionFieldApiCreateRequest(
             value = WebContifyCollectionFieldUuidConfigurationDto::class, name = UUID_FIELD_TYPE),
         JsonSubTypes.Type(
             value = WebContifyCollectionFieldBooleanConfigurationDto::class,
-            name = BOOLEAN_FIELD_TYPE),
-        JsonSubTypes.Type(
-            value = WebContifyCollectionFieldRelationMirrorConfigurationDto::class,
-            name = RELATION_MIRROR_FIELD_TYPE),
-    )
+            name = BOOLEAN_FIELD_TYPE))
     val configuration: WebContifyCollectionFieldConfigurationDto<Any>?
 )

@@ -1,7 +1,7 @@
 package io.webcontify.backend.collections.apis.item.constraints
 
 import helpers.asserts.*
-import helpers.setups.api.ApiTestSetup
+import helpers.setups.api.ApiIntegrationTestSetup
 import io.restassured.module.mockmvc.kotlin.extensions.Extract
 import io.restassured.module.mockmvc.kotlin.extensions.Given
 import io.restassured.module.mockmvc.kotlin.extensions.Then
@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 
-class BooleanConstraintsApiTest : ApiTestSetup() {
+class BooleanConstraintsApiIntegrationTest : ApiIntegrationTestSetup() {
 
   @Test
   @Sql("/cleanup.sql", "./../../boolean-constraints-collections.sql")

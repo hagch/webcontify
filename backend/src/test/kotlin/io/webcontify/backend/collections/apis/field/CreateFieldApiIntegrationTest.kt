@@ -4,7 +4,7 @@ import helpers.asserts.equalsTo
 import helpers.asserts.errorSizeEquals
 import helpers.asserts.instanceEquals
 import helpers.asserts.timestampNotNull
-import helpers.setups.api.ApiTestSetup
+import helpers.setups.api.ApiIntegrationTestSetup
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.DECIMAL_FIELD
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.FIELD_WITH_INVALID_NAME
 import helpers.suppliers.CollectionFieldApiCreateRequestSupplier.Companion.NEW_FIELD
@@ -22,7 +22,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 
-class CreateFieldApiTest : ApiTestSetup() {
+class CreateFieldApiIntegrationTest : ApiIntegrationTestSetup() {
 
   @Test
   @Sql("/cleanup.sql", "./../collections-with-all-field-types.sql")
