@@ -1,7 +1,8 @@
 package io.webcontify.backend.relations
 
+import io.webcontify.backend.relations.models.RelationCollectionDto
+import io.webcontify.backend.relations.models.TableRelationDto
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.name
 import org.springframework.stereotype.Repository
 
 @Repository

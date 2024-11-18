@@ -1,10 +1,13 @@
-package io.webcontify.backend.relations.handler
+package io.webcontify.backend.relations.handlers.impl
 
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.collections.repositories.CollectionFieldRepository
 import io.webcontify.backend.collections.repositories.CollectionRepository
 import io.webcontify.backend.collections.repositories.CollectionTableRepository
 import io.webcontify.backend.relations.*
+import io.webcontify.backend.relations.handlers.RelationHandler
+import io.webcontify.backend.relations.mappers.RelationMapper
+import io.webcontify.backend.relations.models.*
 import org.springframework.stereotype.Component
 
 @Component(MANY_TO_MANY)

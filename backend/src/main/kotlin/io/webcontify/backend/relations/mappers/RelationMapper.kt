@@ -1,6 +1,10 @@
-package io.webcontify.backend.relations
+package io.webcontify.backend.relations.mappers
 
 import io.webcontify.backend.collections.services.CollectionService
+import io.webcontify.backend.relations.models.CreateRelationDto
+import io.webcontify.backend.relations.models.CreateRelationRequest
+import io.webcontify.backend.relations.models.RelationDto
+import io.webcontify.backend.relations.models.RelationTable
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.springframework.beans.factory.annotation.Autowired

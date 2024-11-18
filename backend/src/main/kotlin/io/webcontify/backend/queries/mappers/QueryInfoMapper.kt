@@ -5,7 +5,7 @@ import io.webcontify.backend.jooq.tables.records.*
 import io.webcontify.backend.jooq.tables.references.*
 import io.webcontify.backend.queries.models.QueryInfo
 import io.webcontify.backend.queries.models.QueryRelationInfoTree
-import io.webcontify.backend.relations.RelationFieldMapping
+import io.webcontify.backend.relations.models.RelationFieldMapping
 import java.util.stream.Collectors
 import org.jooq.Record
 import org.jooq.SelectConditionStep

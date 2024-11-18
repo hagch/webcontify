@@ -14,7 +14,7 @@ import io.webcontify.backend.configurations.RELATIONS_PATH
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionRelationType
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_RELATION
-import io.webcontify.backend.relations.*
+import io.webcontify.backend.relations.models.*
 import org.hamcrest.Matchers.*
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.*

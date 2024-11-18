@@ -20,7 +20,10 @@ import io.webcontify.backend.collections.utils.toKeyValueString
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import io.webcontify.backend.configurations.RELATIONS_PATH
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionRelationType
-import io.webcontify.backend.relations.*
+import io.webcontify.backend.relations.models.CollectionRelationMapping
+import io.webcontify.backend.relations.models.CreateRelationRequest
+import io.webcontify.backend.relations.models.RelationDto
+import io.webcontify.backend.relations.models.RelationFieldMapping
 import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus

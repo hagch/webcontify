@@ -1,4 +1,4 @@
-package io.webcontify.backend.relations.handler
+package io.webcontify.backend.relations.handlers.impl
 
 const val ONE_TO_ONE = "ONE_TO_ONE"
 const val MANY_TO_ONE = "MANY_TO_ONE"

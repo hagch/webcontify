@@ -1,4 +1,4 @@
-package io.webcontify.backend.relations
+package io.webcontify.backend.relations.models
 
 data class CollectionRelationMapping(
     val id: Long,

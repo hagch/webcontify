@@ -16,7 +16,7 @@ import io.webcontify.backend.configurations.RELATIONS_PATH
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionRelationType
 import io.webcontify.backend.queries.models.QueryCreateRequestDto
 import io.webcontify.backend.queries.models.QueryRelationTreeRequestDto
-import io.webcontify.backend.relations.*
+import io.webcontify.backend.relations.models.*
 import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.CoreMatchers

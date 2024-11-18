@@ -1,9 +1,9 @@
-package io.webcontify.backend.relations.handler
+package io.webcontify.backend.relations.handlers
 
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionRelationType
-import io.webcontify.backend.relations.CreateRelationDto
-import io.webcontify.backend.relations.RelationCollectionDto
-import io.webcontify.backend.relations.RelationDto
+import io.webcontify.backend.relations.models.CreateRelationDto
+import io.webcontify.backend.relations.models.RelationCollectionDto
+import io.webcontify.backend.relations.models.RelationDto
 import org.springframework.stereotype.Component
 
 @Component

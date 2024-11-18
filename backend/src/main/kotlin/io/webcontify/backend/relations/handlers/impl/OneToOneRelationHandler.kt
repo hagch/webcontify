@@ -1,10 +1,16 @@
-package io.webcontify.backend.relations.handler
+package io.webcontify.backend.relations.handlers.impl
 
 import io.webcontify.backend.relations.*
+import io.webcontify.backend.relations.handlers.RelationHandler
+import io.webcontify.backend.relations.mappers.RelationMapper
+import io.webcontify.backend.relations.models.CreateRelationDto
+import io.webcontify.backend.relations.models.RelationCollectionDto
+import io.webcontify.backend.relations.models.RelationDto
+import io.webcontify.backend.relations.models.TableRelationDto
 import org.springframework.stereotype.Component
 
-@Component(MANY_TO_ONE)
-class ManyToOneRelationHandler(
+@Component(ONE_TO_ONE)
+class OneToOneRelationHandler(
     private val relationMapper: RelationMapper,
     private val tableRelationRepository: TableRelationRepository,
     private val relationRepository: RelationRepository

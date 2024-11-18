@@ -1,6 +1,8 @@
 package io.webcontify.backend.relations
 
-import io.webcontify.backend.relations.handler.RelationFactory
+import io.webcontify.backend.relations.handlers.RelationFactory
+import io.webcontify.backend.relations.models.CreateRelationDto
+import io.webcontify.backend.relations.models.RelationDto
 import org.springframework.stereotype.Service
 
 @Service

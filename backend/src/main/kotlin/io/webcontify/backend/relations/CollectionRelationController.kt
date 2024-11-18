@@ -1,6 +1,9 @@
 package io.webcontify.backend.relations
 
 import io.webcontify.backend.configurations.RELATIONS_PATH
+import io.webcontify.backend.relations.mappers.RelationMapper
+import io.webcontify.backend.relations.models.CreateRelationRequest
+import io.webcontify.backend.relations.models.RelationDto
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -13,7 +16,7 @@ class CollectionRelationController(
 ) {
 
   @DeleteMapping("$RELATIONS_PATH/{id}")
-  fun delete(@PathVariable("id") id: Long): ResponseEntity<Void> {
+  fun delete(@PathVariable("id") id: Long): ResponseEntity<Unit> {
     relationService.delete(id)
     return ResponseEntity.noContent().build()
   }

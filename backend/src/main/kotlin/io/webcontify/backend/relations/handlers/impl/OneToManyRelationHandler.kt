@@ -1,10 +1,16 @@
-package io.webcontify.backend.relations.handler
+package io.webcontify.backend.relations.handlers.impl
 
 import io.webcontify.backend.relations.*
+import io.webcontify.backend.relations.handlers.RelationHandler
+import io.webcontify.backend.relations.mappers.RelationMapper
+import io.webcontify.backend.relations.models.CreateRelationDto
+import io.webcontify.backend.relations.models.RelationCollectionDto
+import io.webcontify.backend.relations.models.RelationDto
+import io.webcontify.backend.relations.models.TableRelationDto
 import org.springframework.stereotype.Component
 
-@Component(ONE_TO_ONE)
-class OneToOneRelationHandler(
+@Component(ONE_TO_MANY)
+class OneToManyRelationHandler(
     private val relationMapper: RelationMapper,
     private val tableRelationRepository: TableRelationRepository,
     private val relationRepository: RelationRepository
@@ -30,11 +36,15 @@ class OneToOneRelationHandler(
     tableRelationRepository.create(
         TableRelationDto(
             relationId = relation.id,
-            sourceTable = sourceTableRelation,
-            referencedTable = referencedTableRelation))
+            sourceTable = referencedTableRelation,
+            referencedTable = sourceTableRelation))
   }
 
   override fun deleteRelation(relation: RelationCollectionDto) {
-    tableRelationRepository.delete(relation)
+    val relationDto =
+        relation.copy(
+            sourceCollection = relation.referencedCollection,
+            referencedCollection = relation.sourceCollection)
+    tableRelationRepository.delete(relationDto)
   }
 }

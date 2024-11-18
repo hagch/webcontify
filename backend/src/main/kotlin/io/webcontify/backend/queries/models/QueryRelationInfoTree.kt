@@ -3,7 +3,7 @@ package io.webcontify.backend.queries.models
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.jooq.enums.WebcontifyQueryAggregationType
 import io.webcontify.backend.jooq.tables.records.WebcontifyCollectionRelationRecord
-import io.webcontify.backend.relations.RelationFieldMapping
+import io.webcontify.backend.relations.models.RelationFieldMapping
 
 data class QueryRelationInfoTree(
     val collection: WebContifyCollectionDto,

@@ -1,4 +1,4 @@
-package io.webcontify.backend.relations
+package io.webcontify.backend.relations.models
 
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionFieldDto
 import io.webcontify.backend.collections.utils.camelToSnakeCase

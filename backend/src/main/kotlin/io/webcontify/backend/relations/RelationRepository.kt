@@ -13,6 +13,8 @@ import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_FIELD
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_RELATION
 import io.webcontify.backend.jooq.tables.references.WEBCONTIFY_COLLECTION_RELATION_FIELD
+import io.webcontify.backend.relations.mappers.RelationMapper
+import io.webcontify.backend.relations.models.*
 import java.util.stream.Collectors.*
 import org.jooq.DSLContext
 import org.jooq.Record
