@@ -14,9 +14,9 @@ import io.webcontify.backend.collections.models.apis.WebContifyCollectionApiCrea
 import io.webcontify.backend.configurations.COLLECTIONS_PATH
 import io.webcontify.backend.configurations.RELATIONS_PATH
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionRelationType
+import io.webcontify.backend.queries.models.QueryCreateRequestDto
+import io.webcontify.backend.queries.models.QueryRelationTreeRequestDto
 import io.webcontify.backend.relations.*
-import io.webcontify.backend.views.ViewCreateRequestDto
-import io.webcontify.backend.views.ViewRelationTreeRequestDto
 import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.CoreMatchers
@@ -193,18 +193,18 @@ class CreateViewApiIntegrationTest : ApiIntegrationTestSetup() {
           mockMvc(mockMvc)
           contentType(MediaType.APPLICATION_JSON_VALUE)
           body(
-              ViewCreateRequestDto(
+              QueryCreateRequestDto(
                   "user_view",
                   listOf(
-                      ViewRelationTreeRequestDto(
+                      QueryRelationTreeRequestDto(
                           userOrganizationRelationDto.id, organizationCollection.id, emptyList()),
-                      ViewRelationTreeRequestDto(
+                      QueryRelationTreeRequestDto(
                           userUserChildRelationDto.id, userChildCollection.id, emptyList()),
-                      ViewRelationTreeRequestDto(
+                      QueryRelationTreeRequestDto(
                           networkProviderRelationDto.id,
                           networkProviderRelationDto.mappingCollectionMapping!!.id!!,
                           listOf(
-                              ViewRelationTreeRequestDto(
+                              QueryRelationTreeRequestDto(
                                   networkProviderRelationDto.id,
                                   networkProviderCollection.id,
                                   emptyList())),
@@ -289,10 +289,10 @@ class CreateViewApiIntegrationTest : ApiIntegrationTestSetup() {
           mockMvc(mockMvc)
           contentType(MediaType.APPLICATION_JSON_VALUE)
           body(
-              ViewCreateRequestDto(
+              QueryCreateRequestDto(
                   "test_view",
                   listOf(
-                      ViewRelationTreeRequestDto(
+                      QueryRelationTreeRequestDto(
                           relationDto.id, relatedCollectionId, emptyList()))))
         } When
             {

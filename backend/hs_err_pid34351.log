@@ -38,9 +38,9 @@ j  org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.in
 j  org.springframework.aop.framework.ReflectiveMethodInvocation.proceed()Ljava/lang/Object;+181
 j  org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed()Ljava/lang/Object;+7
 j  org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(Ljava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;Lorg/springframework/cglib/proxy/MethodProxy;)Ljava/lang/Object;+205
-j  io.webcontify.backend.views.ViewRepository$$SpringCGLIB$$0.getAllViewItems(Lio/webcontify/backend/views/ViewRepository$ViewInfo;)Ljava/util/List;+53
-j  io.webcontify.backend.views.ViewService.getItems(J)Ljava/util/List;+28
-j  io.webcontify.backend.views.ViewController.getViewItems(J)Ljava/util/List;+12
+j  io.webcontify.backend.queries.ViewRepository$$SpringCGLIB$$0.getAllViewItems(Lio/webcontify/backend/views/ViewRepository$ViewInfo;)Ljava/util/List;+53
+j  io.webcontify.backend.queries.ViewService.getItems(J)Ljava/util/List;+28
+j  io.webcontify.backend.queries.ViewController.getViewItems(J)Ljava/util/List;+12
 j  java.lang.invoke.LambdaForm$DMH+0x0000007001ce3400.invokeVirtual(Ljava/lang/Object;Ljava/lang/Object;J)Ljava/lang/Object;+13 java.base@21.0.3
 j  java.lang.invoke.LambdaForm$MH+0x0000007001ce3c00.invoke(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;+52 java.base@21.0.3
 J 13361 c2 java.lang.reflect.Method.invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object; java.base@21.0.3 (108 bytes) @ 0x000000014022b928 [0x000000014022b300+0x0000000000000628]
@@ -155,7 +155,7 @@ x7 =0x0 is null
 x8 =0x000000016bedcb48 is pointing into the stack for thread: 0x000000010e808200
 x9 =0x0000000000000008 is an unknown value
 x10=0x000000701b614273 is an unknown value
-x11=4240995663 is a compressed pointer to object: io.webcontify.backend.views.ViewRepository$ViewRelationInfoTree 
+x11=4240995663 is a compressed pointer to object: io.webcontify.backend.queries.ViewRepository$ViewRelationInfoTree
 {0x00000007e643aa78} - klass: 'io/webcontify/backend/views/ViewRepository$ViewRelationInfoTree'
  - ---- fields (total size 4 words):
  - private final 'collection' 'Lio/webcontify/backend/collections/models/dtos/WebContifyCollectionDto;' @12  a 'io/webcontify/backend/collections/models/dtos/WebContifyCollectionDto'{0x00000007e642e9e0} (0xfcc85d3c)
@@ -266,12 +266,12 @@ stack at sp + 4 slots: 0x000000011e48cc20 is pointing into metadata
 stack at sp + 5 slots: 0x00000007e643b2b4 is pointing into object: [Ljava.lang.Object; 
 {0x00000007e643b2a0} - klass: 'java/lang/Object'[]
  - length: 3
-stack at sp + 6 slots: 0x00000007e6583718 is an oop: io.webcontify.backend.views.ViewRepository$ViewInfo 
+stack at sp + 6 slots: 0x00000007e6583718 is an oop: io.webcontify.backend.queries.ViewRepository$ViewInfo
 {0x00000007e6583718} - klass: 'io/webcontify/backend/views/ViewRepository$ViewInfo'
  - ---- fields (total size 3 words):
  - private final 'name' 'Ljava/lang/String;' @12  "user_view"{0x00000007e6690110} (0xfccd2022)
  - private final 'root' 'Lio/webcontify/backend/views/ViewRepository$ViewRelationInfoTree;' @16  a 'io/webcontify/backend/views/ViewRepository$ViewRelationInfoTree'{0x00000007e643aa78} (0xfcc8754f)
-stack at sp + 7 slots: 0x00000007e1c1a0b8 is an oop: io.webcontify.backend.views.ViewRepository 
+stack at sp + 7 slots: 0x00000007e1c1a0b8 is an oop: io.webcontify.backend.queries.ViewRepository
 {0x00000007e1c1a0b8} - klass: 'io/webcontify/backend/views/ViewRepository'
  - ---- fields (total size 5 words):
  - private final 'dslContext' 'Lorg/jooq/DSLContext;' @12  a 'org/jooq/impl/DefaultDSLContext'{0x00000007e23d3140} (0xfc47a628)

@@ -1,25 +1,29 @@
-package io.webcontify.backend.views
+package io.webcontify.backend.queries.mappers
 
 import io.webcontify.backend.collections.models.dtos.WebContifyCollectionDto
 import io.webcontify.backend.jooq.enums.WebcontifyCollectionRelationType
-import io.webcontify.backend.jooq.enums.WebcontifyViewAggregationType
+import io.webcontify.backend.jooq.enums.WebcontifyQueryAggregationType
+import io.webcontify.backend.queries.models.QueryCreateRequestDto
+import io.webcontify.backend.queries.models.QueryDto
+import io.webcontify.backend.queries.models.QueryRelationTree
+import io.webcontify.backend.queries.models.QueryRelationTreeRequestDto
 import io.webcontify.backend.relations.*
 import org.mapstruct.Mapper
 import org.springframework.beans.factory.annotation.Autowired
 
 @Mapper(componentModel = "spring")
-abstract class ViewMapper {
+abstract class QueryRequestMapper {
 
   @Autowired private lateinit var relationRepository: RelationRepository
 
-  fun mapApiToDto(request: ViewCreateRequestDto, sourceCollectionId: Long): ViewDto {
+  fun mapApiToDto(request: QueryCreateRequestDto, sourceCollectionId: Long): QueryDto {
     val relationInfos = relationRepository.getInfoByIds(request.getRelationIds())
     val relationInfo = relationInfos.first()
     val sourceCollection = getReferencedCollection(sourceCollectionId, relationInfo)
-    return ViewDto(
+    return QueryDto(
         null,
         request.name,
-        RelationTree(
+        QueryRelationTree(
             sourceCollection,
             referencedCollectionRelationName = "",
             null,
@@ -30,10 +34,10 @@ abstract class ViewMapper {
   }
 
   private fun buildTree(
-      relationTree: List<ViewRelationTreeRequestDto>,
+      relationTree: List<QueryRelationTreeRequestDto>,
       sourceCollectionId: Long,
       relations: List<RelationInfoDto>
-  ): List<RelationTree> {
+  ): List<QueryRelationTree> {
     return relationTree.map { relation ->
       val relationInfo = relations.first { it.id == relation.relationId }
       val sourceCollection = getReferencedCollection(sourceCollectionId, relationInfo)
@@ -57,7 +61,7 @@ abstract class ViewMapper {
               .toSet()
       val aggregationType =
           identifyRelationAggregationType(referencedCollection, relationInfo, sourceCollectionId)
-      return@map RelationTree(
+      return@map QueryRelationTree(
           referencedCollection,
           getReferencedCollectionName(relation.collectionId, relationInfo),
           relationInfo.id,
@@ -76,9 +80,9 @@ abstract class ViewMapper {
       if (isMappingTable(referencedCollection.id!!, relationInfo) ||
           isOneToManyJoin(relationInfo, sourceCollectionId) ||
           isReverseManyToOneJoin(relationInfo, sourceCollectionId)) {
-        WebcontifyViewAggregationType.LIST
+        WebcontifyQueryAggregationType.LIST
       } else {
-        WebcontifyViewAggregationType.OBJECT
+        WebcontifyQueryAggregationType.OBJECT
       }
 
   private fun isReverseManyToOneJoin(relationInfo: RelationInfoDto, sourceCollectionId: Long) =
