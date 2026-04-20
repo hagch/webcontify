@@ -1,6 +1,7 @@
 "use client";
 
 import { Control } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import {
   FormControl,
   FormField,
@@ -9,6 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ColorPicker } from "@/components/ui/color-picker";
 
 interface ColorPickerFieldProps {
   name: string;
@@ -18,6 +20,8 @@ interface ColorPickerFieldProps {
 }
 
 export function ColorPickerField({ name, label, control }: ColorPickerFieldProps) {
+  const t = useTranslations("config.branding");
+
   return (
     <FormField
       control={control}
@@ -36,14 +40,10 @@ export function ColorPickerField({ name, label, control }: ColorPickerFieldProps
                   field.onChange(e.target.value);
                 }}
               />
-              <input
-                type="color"
-                aria-label={`${label} Farbwähler`}
+              <ColorPicker
                 value={field.value || "#000000"}
-                onChange={(e) => {
-                  field.onChange(e.target.value);
-                }}
-                className="h-9 w-10 cursor-pointer rounded-md border border-input bg-transparent p-1"
+                onChange={(hex) => field.onChange(hex)}
+                aria-label={t("colorPickerLabel", { label })}
               />
             </div>
           </FormControl>

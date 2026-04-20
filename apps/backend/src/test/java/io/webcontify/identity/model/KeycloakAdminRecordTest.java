@@ -65,10 +65,11 @@ class KeycloakAdminRecordTest {
     @Test
     void testSendInviteEmailRequest() {
         UUID userId = UUID.randomUUID();
-        SendInviteEmailRequest request = new SendInviteEmailRequest("test-realm", userId);
+        SendInviteEmailRequest request = new SendInviteEmailRequest("test-realm", userId, "http://acme.localhost");
 
         assertEquals("test-realm", request.realmName());
         assertEquals(userId, request.userId());
+        assertEquals("http://acme.localhost", request.redirectUri());
     }
 
     @Test

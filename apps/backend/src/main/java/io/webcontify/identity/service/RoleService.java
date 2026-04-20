@@ -15,6 +15,7 @@ import io.webcontify.shared.security.TenantAwareAuthentication;
 import io.webcontify.shared.security.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,8 +33,7 @@ public class RoleService {
 
     private static final Map<String, List<String>> RESOURCE_ACTIONS = Map.of(
             "user_management", List.of("inviter", "editor", "deleter", "reader"),
-            "role_management", List.of("creator", "editor", "deleter", "reader"),
-            "tenant_config", List.of("editor", "reader")
+            "role_management", List.of("creator", "editor", "deleter", "reader")
     );
 
     private final TenantRoleRepository roleRepository;
@@ -41,18 +41,21 @@ public class RoleService {
     private final OpenFgaService openFgaService;
     private final TenantInfrastructureLookupService lookupService;
     private final RoleMapper roleMapper;
+    private final PermissionService permissionService;
 
     public RoleService(
             TenantRoleRepository roleRepository,
             TenantUserRepository userRepository,
             OpenFgaService openFgaService,
             TenantInfrastructureLookupService lookupService,
-            RoleMapper roleMapper) {
+            RoleMapper roleMapper,
+            PermissionService permissionService) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.openFgaService = openFgaService;
         this.lookupService = lookupService;
         this.roleMapper = roleMapper;
+        this.permissionService = permissionService;
     }
 
     @Transactional
@@ -138,21 +141,116 @@ public class RoleService {
         var infrastructure = lookupService.getInfrastructure(tenantInfo.tenantId());
         String userSubject = "role:" + roleId + "#assignee";
 
+        var checks = RESOURCE_ACTIONS.entrySet().stream()
+                .flatMap(entry -> entry.getValue().stream()
+                        .map(action -> new OpenFgaCheckRequest(
+                                infrastructure.openfgaStoreId(),
+                                null,
+                                action,
+                                entry.getKey(),
+                                tenantInfo.tenantId(),
+                                userSubject)))
+                .toList();
+
+        var batchResponse = openFgaService.batchCheck(
+                new OpenFgaBatchCheckRequest(infrastructure.openfgaStoreId(), checks));
+
         return RESOURCE_ACTIONS.entrySet().stream()
                 .map(entry -> {
                     String resourceType = entry.getKey();
                     List<String> grantedActions = entry.getValue().stream()
-                            .filter(action -> openFgaService.check(new OpenFgaCheckRequest(
-                                    infrastructure.openfgaStoreId(),
-                                    null,
-                                    action,
-                                    resourceType,
-                                    tenantInfo.tenantId(),
-                                    userSubject)))
+                            .filter(action -> Boolean.TRUE.equals(
+                                    batchResponse.results().get(action + ":" + resourceType)))
                             .toList();
                     return new RolePermissionPreview(resourceType, grantedActions);
                 })
                 .toList();
+    }
+
+    public void setPermissions(UUID roleId, List<RolePermissionEntry> permissions) {
+        var entity = roleRepository.findActiveById(roleId)
+                .orElseThrow(() -> new NotFoundException("role.not_found"));
+
+        if (entity.isSystemRole()) {
+            throw new BadRequestException("role.system_role_permissions_cannot_be_modified");
+        }
+
+        // Validierung: alle resourceTypes und Actions muessen bekannt sein
+        for (var entry : permissions) {
+            var allowedActions = RESOURCE_ACTIONS.get(entry.resourceType());
+            if (allowedActions == null) {
+                throw new BadRequestException("role.invalid_resource_type");
+            }
+            for (var action : entry.actions()) {
+                if (!allowedActions.contains(action)) {
+                    throw new BadRequestException("role.invalid_action");
+                }
+            }
+        }
+
+        var tenantInfo = TenantContext.getTenantInformation();
+        var infrastructure = lookupService.getInfrastructure(tenantInfo.tenantId());
+
+        // Privilege Escalation Guard (Platform Admins ueberspringen)
+        if (!tenantInfo.platformAdmin()) {
+            UUID currentUserId = resolveCurrentUserId();
+            for (var entry : permissions) {
+                for (var action : entry.actions()) {
+                    boolean hasPermission = permissionService.check(
+                            new CheckPermissionRequest(currentUserId, action, entry.resourceType(), tenantInfo.tenantId()));
+                    if (!hasPermission) {
+                        throw new AccessDeniedException("role.privilege_escalation");
+                    }
+                }
+            }
+        }
+
+        String roleSubject = "role:" + roleId + "#assignee";
+
+        // Aktuelle Tuples lesen
+        var currentTuples = readCurrentPermissionTuples(
+                infrastructure.openfgaStoreId(), roleSubject, tenantInfo.tenantId());
+
+        // Ziel-Tuples berechnen
+        var targetTuples = permissions.stream()
+                .flatMap(entry -> entry.actions().stream()
+                        .map(action -> new RelationshipTuple(
+                                roleSubject,
+                                action,
+                                entry.resourceType() + ":" + tenantInfo.tenantId())))
+                .collect(Collectors.toSet());
+
+        // Delta berechnen
+        var toAdd = new HashSet<>(targetTuples);
+        toAdd.removeAll(currentTuples);
+
+        var toRemove = new HashSet<>(currentTuples);
+        toRemove.removeAll(targetTuples);
+
+        // Erst schreiben, dann loeschen (sicherere Richtung)
+        if (!toAdd.isEmpty()) {
+            openFgaService.write(new OpenFgaWriteRequest(infrastructure.openfgaStoreId(), List.copyOf(toAdd)));
+        }
+        if (!toRemove.isEmpty()) {
+            openFgaService.delete(new OpenFgaDeleteRequest(infrastructure.openfgaStoreId(), List.copyOf(toRemove)));
+        }
+
+        log.info("Role permissions updated: roleId={}, added={}, removed={}", roleId, toAdd.size(), toRemove.size());
+    }
+
+    private Set<RelationshipTuple> readCurrentPermissionTuples(String storeId, String roleSubject, UUID tenantId) {
+        var tuples = new HashSet<RelationshipTuple>();
+        for (var resourceType : RESOURCE_ACTIONS.keySet()) {
+            var allowedActions = RESOURCE_ACTIONS.get(resourceType);
+            for (var action : allowedActions) {
+                var readResult = openFgaService.readTuples(new OpenFgaReadTuplesRequest(
+                        storeId, resourceType, tenantId.toString(), action));
+                readResult.stream()
+                        .filter(t -> t.user().equals(roleSubject))
+                        .forEach(tuples::add);
+            }
+        }
+        return tuples;
     }
 
     @Transactional
@@ -208,7 +306,20 @@ public class RoleService {
         entity.getAuditInfo().setDeletedBy(currentUserId);
         roleRepository.save(entity);
 
-        // OpenFGA Cleanup: best-effort
+        // OpenFGA Permission-Tuple Cleanup: best-effort
+        String roleSubject = "role:" + roleId + "#assignee";
+        var permissionTuples = readCurrentPermissionTuples(
+                infrastructure.openfgaStoreId(), roleSubject, tenantInfo.tenantId());
+        if (!permissionTuples.isEmpty()) {
+            try {
+                openFgaService.delete(new OpenFgaDeleteRequest(
+                        infrastructure.openfgaStoreId(), List.copyOf(permissionTuples)));
+            } catch (Exception e) {
+                log.warn("OpenFGA permission cleanup failed for role={}, continuing", roleId, e);
+            }
+        }
+
+        // OpenFGA Tenant-Tuple Cleanup: best-effort
         try {
             var tenantTuple = new RelationshipTuple(
                     "tenant:" + tenantInfo.tenantId(),
@@ -293,6 +404,23 @@ public class RoleService {
             }
         }
 
+        // Propagate tenant#admin tuples when Admin role assignees change
+        if (entity.isSystemRole() && ADMIN_ROLE_NAME.equals(entity.getName())) {
+            String storeId = infrastructure.openfgaStoreId();
+            if (!toAdd.isEmpty()) {
+                var adminTuples = toAdd.stream()
+                        .map(uid -> new RelationshipTuple("user:" + uid, "admin", "tenant:" + tenantInfo.tenantId()))
+                        .toList();
+                openFgaService.write(new OpenFgaWriteRequest(storeId, adminTuples));
+            }
+            if (!toRemove.isEmpty()) {
+                var adminTuples = toRemove.stream()
+                        .map(uid -> new RelationshipTuple("user:" + uid, "admin", "tenant:" + tenantInfo.tenantId()))
+                        .toList();
+                openFgaService.delete(new OpenFgaDeleteRequest(storeId, adminTuples));
+            }
+        }
+
         log.info("Role assignees updated: roleId={}, added={}, removed={}", roleId, toAdd.size(), toRemove.size());
     }
 
@@ -359,7 +487,26 @@ public class RoleService {
             openFgaService.delete(new OpenFgaDeleteRequest(infrastructure.openfgaStoreId(), removeTuples));
         }
 
+        // Propagate tenant#admin tuple when Admin role is assigned/removed
+        propagateAdminTupleForUser(userId, toAdd, toRemove, tenantInfo.tenantId(), infrastructure.openfgaStoreId());
+
         log.info("User roles updated: userId={}, added={}, removed={}", userId, toAdd.size(), toRemove.size());
+    }
+
+    private void propagateAdminTupleForUser(UUID userId, Set<UUID> addedRoleIds, Set<UUID> removedRoleIds,
+                                              UUID tenantId, String storeId) {
+        var adminRole = roleRepository.findActiveByName(ADMIN_ROLE_NAME);
+        if (adminRole.isEmpty()) return;
+
+        UUID adminRoleId = adminRole.get().getId();
+        if (addedRoleIds.contains(adminRoleId)) {
+            var tuple = new RelationshipTuple("user:" + userId, "admin", "tenant:" + tenantId);
+            openFgaService.write(new OpenFgaWriteRequest(storeId, List.of(tuple)));
+        }
+        if (removedRoleIds.contains(adminRoleId)) {
+            var tuple = new RelationshipTuple("user:" + userId, "admin", "tenant:" + tenantId);
+            openFgaService.delete(new OpenFgaDeleteRequest(storeId, List.of(tuple)));
+        }
     }
 
     private UUID resolveCurrentUserId() {

@@ -9,7 +9,13 @@ public record TenantConfig(
             String logoStorageKey,
             String faviconStorageKey,
             String primaryColor,
-            String secondaryColor) {}
+            String secondaryColor,
+            String accentColor,
+            String dangerColor,
+            String successColor,
+            String warningColor,
+            String fontFamily,
+            String borderRadius) {}
 
     public record EmailConfig(
             String smtpHost,

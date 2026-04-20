@@ -16,6 +16,7 @@ export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  testId: string;
 }
 
 export interface NavSection {
@@ -23,52 +24,74 @@ export interface NavSection {
   items: NavItem[];
 }
 
-export function getPlatformNavItems(): NavSection[] {
+export interface WorkspaceNavOptions {
+  canAccessUserManagement: boolean;
+  canAccessRoleManagement: boolean;
+  canAccessTenantConfig: boolean;
+}
+
+type TranslationFn = (key: string) => string;
+
+export function getPlatformNavItems(t: TranslationFn): NavSection[] {
   return [
     {
-      label: "Management",
+      label: t("sidebar.management"),
       items: [
-        { label: "Tenants", href: "/tenants", icon: Building2 },
-        { label: "Platform Admins", href: "/admins", icon: ShieldCheck },
+        { label: t("sidebar.tenants"), href: "/tenants", icon: Building2, testId: "nav-item-tenants" },
+        { label: t("sidebar.admins"), href: "/admins", icon: ShieldCheck, testId: "nav-item-admins" },
       ],
     },
     {
-      label: "System",
+      label: t("sidebar.system"),
       items: [
-        { label: "Settings", href: "/settings", icon: Settings },
+        { label: t("sidebar.settings"), href: "/settings", icon: Settings, testId: "nav-item-settings" },
       ],
     },
   ];
 }
 
-export function getWorkspaceNavItems(options: {
-  isAdmin: boolean;
-}): NavSection[] {
+export function getWorkspaceNavItems(
+  options: WorkspaceNavOptions,
+  t: TranslationFn
+): NavSection[] {
   const sections: NavSection[] = [
     {
-      label: "Overview",
+      label: t("sidebar.overview"),
       items: [
-        { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { label: "Apps", href: "/apps", icon: AppWindow },
+        { label: t("sidebar.dashboard"), href: "/dashboard", icon: LayoutDashboard, testId: "nav-item-dashboard" },
+        { label: t("sidebar.apps"), href: "/apps", icon: AppWindow, testId: "nav-item-apps" },
       ],
     },
   ];
 
-  if (options.isAdmin) {
-    sections.push({
-      label: "Management",
-      items: [
-        { label: "Users", href: "/users", icon: Users },
-        { label: "Roles", href: "/roles", icon: Shield },
-      ],
+  const managementItems: NavItem[] = [];
+  if (options.canAccessUserManagement) {
+    managementItems.push({
+      label: t("sidebar.users"),
+      href: "/users",
+      icon: Users,
+      testId: "nav-item-users",
     });
+  }
+  if (options.canAccessRoleManagement) {
+    managementItems.push({
+      label: t("sidebar.roles"),
+      href: "/roles",
+      icon: Shield,
+      testId: "nav-item-roles",
+    });
+  }
+  if (managementItems.length > 0) {
+    sections.push({ label: t("sidebar.management"), items: managementItems });
+  }
 
+  if (options.canAccessTenantConfig) {
     sections.push({
-      label: "Settings",
+      label: t("sidebar.settings"),
       items: [
-        { label: "Branding", href: "/settings/branding", icon: Palette },
-        { label: "Email", href: "/settings/email", icon: Mail },
-        { label: "Domain", href: "/settings/domain", icon: Globe },
+        { label: t("sidebar.branding"), href: "/settings/branding", icon: Palette, testId: "nav-item-branding" },
+        { label: t("sidebar.email"), href: "/settings/email", icon: Mail, testId: "nav-item-email" },
+        { label: t("sidebar.domain"), href: "/settings/domain", icon: Globe, testId: "nav-item-domain" },
       ],
     });
   }

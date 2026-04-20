@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ interface LogoUploadProps {
   onDelete?: () => void;
   accept?: string;
   maxSizeMb?: number;
+  hint?: string;
 }
 
 export function LogoUpload({
@@ -21,7 +23,9 @@ export function LogoUpload({
   onDelete,
   accept = "image/png, image/jpeg",
   maxSizeMb = 2,
+  hint,
 }: LogoUploadProps) {
+  const t = useTranslations("config.branding");
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +45,7 @@ export function LogoUpload({
 
     const maxBytes = maxSizeMb * 1024 * 1024;
     if (file.size > maxBytes) {
-      setError(`Maximale Dateigröße: ${maxSizeMb} MB`);
+      setError(t("fileSizeError", { maxSizeMb }));
       return;
     }
 
@@ -76,6 +80,7 @@ export function LogoUpload({
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium">{label}</span>
+      {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
       <Card className="w-full max-w-xs">
         <CardContent className="flex flex-col items-center gap-3 p-4">
           <div
@@ -92,7 +97,7 @@ export function LogoUpload({
                 className="max-h-20 max-w-full object-contain"
               />
             ) : (
-              <span className="text-xs text-muted-foreground">Kein Bild</span>
+              <span className="text-xs text-muted-foreground">{t("noImage")}</span>
             )}
           </div>
 
@@ -108,7 +113,7 @@ export function LogoUpload({
               className="flex-1"
               onClick={() => inputRef.current?.click()}
             >
-              Hochladen
+              {t("upload")}
             </Button>
             {hasImage && (
               <Button
@@ -117,7 +122,7 @@ export function LogoUpload({
                 size="sm"
                 onClick={handleDelete}
               >
-                Entfernen
+                {t("remove")}
               </Button>
             )}
           </div>
@@ -128,7 +133,7 @@ export function LogoUpload({
             accept={accept}
             className="hidden"
             onChange={handleFileChange}
-            aria-label={`${label} hochladen`}
+            aria-label={`${label} ${t("upload").toLowerCase()}`}
           />
         </CardContent>
       </Card>

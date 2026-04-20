@@ -8,6 +8,7 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.*;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.keycloak.representations.userprofile.config.UPConfig;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +38,12 @@ class KeycloakAdminServiceTest {
     @Test
     void createRealm_shouldCreateRealmWithCorrectSettings() {
         when(keycloak.realms()).thenReturn(realmsResource);
+        // Mock for enableUnmanagedAttributes called after realm creation
+        when(keycloak.realm("tenant-acme")).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        var userProfileResource = mock(UserProfileResource.class);
+        when(usersResource.userProfile()).thenReturn(userProfileResource);
+        when(userProfileResource.getConfiguration()).thenReturn(new UPConfig());
         var smtp = new SmtpConfig("localhost", 1025, "noreply@webcontify.io", "", "", false);
         var tenantId = UUID.randomUUID();
         var request = new CreateRealmRequest("acme", tenantId, "Acme Corp", smtp, null, null, null);
@@ -88,12 +96,53 @@ class KeycloakAdminServiceTest {
     }
 
     @Test
-    void sendInviteEmail_shouldTriggerExecuteActionsEmail() {
+    void sendInviteEmail_shouldTriggerExecuteActionsEmailWithRedirectUri() {
         var userId = UUID.randomUUID();
         when(keycloak.realm("tenant-acme")).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
         when(usersResource.get(userId.toString())).thenReturn(userResource);
-        keycloakAdminService.sendInviteEmail(new SendInviteEmailRequest("tenant-acme", userId));
-        verify(userResource).executeActionsEmail(List.of("UPDATE_PASSWORD"));
+        keycloakAdminService.sendInviteEmail(new SendInviteEmailRequest("tenant-acme", userId, "http://acme.localhost"));
+        verify(userResource).executeActionsEmail("tenant-ui", "http://acme.localhost", 86400, List.of("UPDATE_PASSWORD"));
+    }
+
+    @Test
+    void updateUserAttributes_shouldMergeAttributesWithExisting() {
+        var userId = UUID.randomUUID();
+        when(keycloak.realm("tenant-acme")).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.get(userId.toString())).thenReturn(userResource);
+
+        var existingUser = new UserRepresentation();
+        existingUser.setAttributes(new java.util.HashMap<>(Map.of("existing_key", List.of("existing_value"))));
+        when(userResource.toRepresentation()).thenReturn(existingUser);
+
+        keycloakAdminService.updateUserAttributes("tenant-acme", userId,
+                Map.of("avatar_key", List.of("files/profiles/avatar.jpg")));
+
+        var userCaptor = ArgumentCaptor.forClass(UserRepresentation.class);
+        verify(userResource).update(userCaptor.capture());
+        var savedUser = userCaptor.getValue();
+        assertThat(savedUser.getAttributes()).containsEntry("existing_key", List.of("existing_value"));
+        assertThat(savedUser.getAttributes()).containsEntry("avatar_key", List.of("files/profiles/avatar.jpg"));
+    }
+
+    @Test
+    void updateUserAttributes_shouldHandleNullExistingAttributes() {
+        var userId = UUID.randomUUID();
+        when(keycloak.realm("tenant-acme")).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.get(userId.toString())).thenReturn(userResource);
+
+        var existingUser = new UserRepresentation();
+        existingUser.setAttributes(null);
+        when(userResource.toRepresentation()).thenReturn(existingUser);
+
+        keycloakAdminService.updateUserAttributes("tenant-acme", userId,
+                Map.of("preferences_theme", List.of("dark")));
+
+        var userCaptor = ArgumentCaptor.forClass(UserRepresentation.class);
+        verify(userResource).update(userCaptor.capture());
+        assertThat(userCaptor.getValue().getAttributes())
+                .containsEntry("preferences_theme", List.of("dark"));
     }
 }

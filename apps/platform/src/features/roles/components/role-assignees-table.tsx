@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,6 +28,7 @@ import {
   getGetRoleQueryKey,
   type RoleAssigneeResponse,
 } from "@/generated/identity";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface RoleAssigneesTableProps {
   assignees: RoleAssigneeResponse[];
@@ -43,13 +45,17 @@ export function RoleAssigneesTable({
     useState<RoleAssigneeResponse | null>(null);
   const queryClient = useQueryClient();
   const setRoleAssignees = useSetRoleAssignees();
+  const t = useTranslations("roles");
+  const te = useTranslations("errors");
+  const { can } = usePermissions();
+  const canRemoveAssignees = can("role_management", "editor");
 
   if (assignees.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-        <p className="text-lg font-medium">Keine Benutzer zugewiesen</p>
+        <p className="text-lg font-medium">{t("assigneesTable.emptyTitle")}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Weise Benutzern diese Rolle zu, um ihre Berechtigungen zu verwalten.
+          {t("assigneesTable.emptyDescription")}
         </p>
       </div>
     );
@@ -68,7 +74,10 @@ export function RoleAssigneesTable({
       });
       if (response.status === 200) {
         toast.success(
-          `${assigneeToRemove.firstName} ${assigneeToRemove.lastName} wurde aus der Rolle entfernt.`
+          t("toasts.assigneesUpdated", {
+            firstName: assigneeToRemove.firstName,
+            lastName: assigneeToRemove.lastName,
+          })
         );
         setAssigneeToRemove(null);
         queryClient.invalidateQueries({ queryKey: getListRolesQueryKey() });
@@ -76,10 +85,9 @@ export function RoleAssigneesTable({
           queryKey: getGetRoleQueryKey(roleId),
         });
       }
-    } catch {
-      toast.error(
-        "Fehler beim Entfernen des Benutzers. Bitte versuche es erneut."
-      );
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      toast.error(te.has(err.code ?? "") ? te(err.code!) : te("generic"));
     }
   }
 
@@ -88,10 +96,10 @@ export function RoleAssigneesTable({
       <Table data-testid="role-assignees-table">
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>E-Mail</TableHead>
-            {!isSystemRole && (
-              <TableHead className="text-right">Aktionen</TableHead>
+            <TableHead>{t("assigneesTable.nameHeader")}</TableHead>
+            <TableHead>{t("assigneesTable.emailHeader")}</TableHead>
+            {!isSystemRole && canRemoveAssignees && (
+              <TableHead className="text-right">{t("assigneesTable.actionsHeader")}</TableHead>
             )}
           </TableRow>
         </TableHeader>
@@ -104,12 +112,14 @@ export function RoleAssigneesTable({
               <TableCell className="text-muted-foreground">
                 {assignee.email}
               </TableCell>
-              {!isSystemRole && (
+              {!isSystemRole && canRemoveAssignees && (
                 <TableCell className="text-right">
                   <Button
                     variant="ghost"
                     size="icon"
-                    aria-label={`${assignee.firstName} ${assignee.lastName} entfernen`}
+                    aria-label={t("assigneesTable.removeLabel", {
+                      name: `${assignee.firstName} ${assignee.lastName}`,
+                    })}
                     onClick={() => setAssigneeToRemove(assignee)}
                   >
                     <Trash2 className="size-4 text-destructive" />
@@ -129,13 +139,13 @@ export function RoleAssigneesTable({
       >
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>Benutzer entfernen</DialogTitle>
+            <DialogTitle>{t("assigneesTable.removeDialog.title")}</DialogTitle>
             <DialogDescription>
-              Moechtest du{" "}
-              <strong>
-                {assigneeToRemove?.firstName} {assigneeToRemove?.lastName}
-              </strong>{" "}
-              aus dieser Rolle entfernen?
+              {t("assigneesTable.removeDialog.description", {
+                name: assigneeToRemove
+                  ? `${assigneeToRemove.firstName} ${assigneeToRemove.lastName}`
+                  : "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -145,7 +155,7 @@ export function RoleAssigneesTable({
               onClick={() => setAssigneeToRemove(null)}
               disabled={setRoleAssignees.isPending}
             >
-              Abbrechen
+              {t("assigneesTable.removeDialog.cancel")}
             </Button>
             <Button
               type="button"
@@ -156,7 +166,7 @@ export function RoleAssigneesTable({
               {setRoleAssignees.isPending && (
                 <Loader2 className="mr-2 size-4 animate-spin" />
               )}
-              Entfernen
+              {t("assigneesTable.removeDialog.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -8,5 +8,12 @@ public record TenantBrandingUpdatedEvent(
     String keycloakRealmName,
     String primaryColor,
     String secondaryColor,
-    String logoPublicUrl
+    String accentColor,
+    String dangerColor,
+    String successColor,
+    String warningColor,
+    String fontFamily,
+    String borderRadius,
+    String logoPublicUrl,
+    String faviconPublicUrl
 ) {}

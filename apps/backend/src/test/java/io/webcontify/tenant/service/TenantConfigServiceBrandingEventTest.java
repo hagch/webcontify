@@ -48,7 +48,7 @@ class TenantConfigServiceBrandingEventTest {
         TenantEntity entity = createEntity(tenantId);
         entity.setKeycloakRealmName("tenant-acme");
         entity.setConfig(new TenantConfig(
-                new BrandingConfig("config/logo.png", null, "#ff0000", "#00ff00"),
+                new BrandingConfig("config/logo.png", null, "#ff0000", "#00ff00", null, null, null, null, null, null),
                 null, null));
 
         when(tenantRepository.findByIdAndAuditInfoDeletedAtIsNull(tenantId))
@@ -57,7 +57,7 @@ class TenantConfigServiceBrandingEventTest {
         when(tenantFileService.getFileUrl(tenantId, "config/logo.png"))
                 .thenReturn("https://s3.example.com/tenant-acme/config/logo.png");
 
-        BrandingConfig newBranding = new BrandingConfig("config/logo.png", null, "#112233", "#445566");
+        BrandingConfig newBranding = new BrandingConfig("config/logo.png", null, "#112233", "#445566", null, null, null, null, null, null);
         tenantConfigService.updateBranding(tenantId, newBranding);
 
         ArgumentCaptor<TenantBrandingUpdatedEvent> captor =
@@ -85,7 +85,7 @@ class TenantConfigServiceBrandingEventTest {
                 .thenReturn(Optional.of(entity));
         when(tenantRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        BrandingConfig newBranding = new BrandingConfig(null, null, "#112233", null);
+        BrandingConfig newBranding = new BrandingConfig(null, null, "#112233", null, null, null, null, null, null, null);
         tenantConfigService.updateBranding(tenantId, newBranding);
 
         ArgumentCaptor<TenantBrandingUpdatedEvent> captor =
@@ -108,7 +108,7 @@ class TenantConfigServiceBrandingEventTest {
                 .thenReturn(Optional.of(entity));
         when(tenantRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        BrandingConfig newBranding = new BrandingConfig(null, null, "#aabbcc", null);
+        BrandingConfig newBranding = new BrandingConfig(null, null, "#aabbcc", null, null, null, null, null, null, null);
         tenantConfigService.updateBranding(tenantId, newBranding);
 
         var inOrder = inOrder(tenantRepository, eventPublisher);

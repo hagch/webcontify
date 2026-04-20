@@ -93,7 +93,7 @@ export class ApiClient {
    * Polls GET /api/v1/admin/tenants/{id} until status is "ACTIVE".
    * Retries every 1 s, times out after 30 s by default.
    */
-  async waitForTenantProvisioning(tenantId: string, timeoutMs = 30_000): Promise<void> {
+  async waitForTenantProvisioning(tenantId: string, timeoutMs = 60_000): Promise<void> {
     const token = await this.getToken();
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
@@ -126,6 +126,98 @@ export class ApiClient {
     if (!response.ok && response.status !== 404) {
       throw new Error(`Failed to delete tenant: ${response.status}`);
     }
+  }
+
+  /**
+   * Lists all roles for the authenticated tenant user.
+   * Requires a tenant-scoped JWT and the tenant slug header.
+   */
+  async listRoles(token: string, tenantSlug: string): Promise<Array<{ id: string; name: string; systemRole: boolean }>> {
+    const response = await fetch(`${API_BASE}/tenant/roles`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Tenant-Slug": tenantSlug,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to list roles: ${response.status} ${await response.text()}`);
+    }
+    const data = await response.json();
+    return data.roles ?? data;
+  }
+
+  /**
+   * Creates a custom role for the tenant.
+   */
+  async createRole(
+    token: string,
+    tenantSlug: string,
+    body: { name: string; description?: string }
+  ): Promise<{ id: string; name: string; systemRole: boolean }> {
+    const response = await fetch(`${API_BASE}/tenant/roles`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-Tenant-Slug": tenantSlug,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to create role: ${response.status} ${await response.text()}`);
+    }
+    return response.json();
+  }
+
+  /**
+   * Sets permissions on a custom role via PUT /api/v1/tenant/roles/{roleId}/permissions.
+   * Only callable by users with role_management:editor permission.
+   */
+  async setRolePermissions(
+    token: string,
+    tenantSlug: string,
+    roleId: string,
+    body: {
+      permissions: Array<{ resourceType: string; actions: string[] }>;
+    }
+  ): Promise<void> {
+    const response = await fetch(`${API_BASE}/tenant/roles/${roleId}/permissions`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-Tenant-Slug": tenantSlug,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `Failed to set role permissions: ${response.status} ${await response.text()}`
+      );
+    }
+  }
+
+  /**
+   * Invites a user to the tenant.
+   */
+  async inviteUser(
+    token: string,
+    tenantSlug: string,
+    body: { email: string; firstName: string; lastName: string; roleIds: string[] }
+  ): Promise<{ id: string; email: string }> {
+    const response = await fetch(`${API_BASE}/tenant/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-Tenant-Slug": tenantSlug,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to invite user: ${response.status} ${await response.text()}`);
+    }
+    return response.json();
   }
 
   /**

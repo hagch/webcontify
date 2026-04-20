@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   useCreateRole,
@@ -13,6 +14,7 @@ import {
 
 export function useRoleActions() {
   const queryClient = useQueryClient();
+  const t = useTranslations("roles");
 
   const createRoleMutation = useCreateRole({
     mutation: {
@@ -20,7 +22,7 @@ export function useRoleActions() {
         queryClient.invalidateQueries({ queryKey: getListRolesQueryKey() });
       },
       onError: () => {
-        toast.error("Fehler beim Erstellen der Rolle. Bitte versuche es erneut.");
+        toast.error(t("toasts.createError"));
       },
     },
   });
@@ -29,7 +31,7 @@ export function useRoleActions() {
     mutation: {
       onSuccess: (response) => {
         if (response.status === 200) {
-          toast.success("Rolle wurde aktualisiert.");
+          toast.success(t("toasts.updated"));
           queryClient.invalidateQueries({ queryKey: getListRolesQueryKey() });
           queryClient.invalidateQueries({
             queryKey: getGetRoleQueryKey(response.data.id),
@@ -37,7 +39,7 @@ export function useRoleActions() {
         }
       },
       onError: () => {
-        toast.error("Fehler beim Aktualisieren der Rolle. Bitte versuche es erneut.");
+        toast.error(t("toasts.updateError"));
       },
     },
   });
@@ -45,11 +47,11 @@ export function useRoleActions() {
   const deleteRoleMutation = useDeleteRole({
     mutation: {
       onSuccess: () => {
-        toast.success("Rolle wurde geloescht.");
+        toast.success(t("toasts.deleted"));
         queryClient.invalidateQueries({ queryKey: getListRolesQueryKey() });
       },
       onError: () => {
-        toast.error("Fehler beim Loeschen der Rolle. Bitte versuche es erneut.");
+        toast.error(t("toasts.deleteError"));
       },
     },
   });
@@ -58,7 +60,7 @@ export function useRoleActions() {
     mutation: {
       onSuccess: (response, variables) => {
         if (response.status === 200) {
-          toast.success("Rollenmitglieder wurden aktualisiert.");
+          toast.success(t("toasts.assigneesSetSuccess"));
           queryClient.invalidateQueries({ queryKey: getListRolesQueryKey() });
           queryClient.invalidateQueries({
             queryKey: getGetRoleQueryKey(variables.roleId),
@@ -66,7 +68,7 @@ export function useRoleActions() {
         }
       },
       onError: () => {
-        toast.error("Fehler beim Aktualisieren der Rollenmitglieder. Bitte versuche es erneut.");
+        toast.error(t("toasts.assigneesSetError"));
       },
     },
   });

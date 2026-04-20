@@ -136,11 +136,47 @@ export interface TenantListResponse {
   pageInfo: PageInfo;
 }
 
+export type BrandingConfigResponseFontFamily = typeof BrandingConfigResponseFontFamily[keyof typeof BrandingConfigResponseFontFamily];
+
+
+export const BrandingConfigResponseFontFamily = {
+  system: 'system',
+  inter: 'inter',
+  geist: 'geist',
+  'plus-jakarta-sans': 'plus-jakarta-sans',
+  'dm-sans': 'dm-sans',
+  roboto: 'roboto',
+  'source-sans-3': 'source-sans-3',
+  'ibm-plex-sans': 'ibm-plex-sans',
+  'open-sans': 'open-sans',
+  lato: 'lato',
+  'nunito-sans': 'nunito-sans',
+  poppins: 'poppins',
+  merriweather: 'merriweather',
+} as const;
+
+export type BrandingConfigResponseBorderRadius = typeof BrandingConfigResponseBorderRadius[keyof typeof BrandingConfigResponseBorderRadius];
+
+
+export const BrandingConfigResponseBorderRadius = {
+  NUMBER_0: '0',
+  '025rem': '0.25rem',
+  '05rem': '0.5rem',
+  '075rem': '0.75rem',
+  '1rem': '1rem',
+} as const;
+
 export interface BrandingConfigResponse {
   logoStorageKey?: string;
   faviconStorageKey?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  accentColor?: string;
+  dangerColor?: string;
+  successColor?: string;
+  warningColor?: string;
+  fontFamily?: BrandingConfigResponseFontFamily;
+  borderRadius?: BrandingConfigResponseBorderRadius;
 }
 
 export interface EmailConfigResponse {
@@ -166,16 +202,58 @@ export interface DomainConfigResponse {
 }
 
 export interface TenantConfigResponse {
+  name?: string;
+  slug?: string;
   branding?: BrandingConfigResponse;
   email?: EmailConfigResponse;
   domain?: DomainConfigResponse;
 }
+
+export type UpdateBrandingConfigRequestFontFamily = typeof UpdateBrandingConfigRequestFontFamily[keyof typeof UpdateBrandingConfigRequestFontFamily];
+
+
+export const UpdateBrandingConfigRequestFontFamily = {
+  system: 'system',
+  inter: 'inter',
+  geist: 'geist',
+  'plus-jakarta-sans': 'plus-jakarta-sans',
+  'dm-sans': 'dm-sans',
+  roboto: 'roboto',
+  'source-sans-3': 'source-sans-3',
+  'ibm-plex-sans': 'ibm-plex-sans',
+  'open-sans': 'open-sans',
+  lato: 'lato',
+  'nunito-sans': 'nunito-sans',
+  poppins: 'poppins',
+  merriweather: 'merriweather',
+} as const;
+
+export type UpdateBrandingConfigRequestBorderRadius = typeof UpdateBrandingConfigRequestBorderRadius[keyof typeof UpdateBrandingConfigRequestBorderRadius];
+
+
+export const UpdateBrandingConfigRequestBorderRadius = {
+  NUMBER_0: '0',
+  '025rem': '0.25rem',
+  '05rem': '0.5rem',
+  '075rem': '0.75rem',
+  '1rem': '1rem',
+} as const;
 
 export interface UpdateBrandingConfigRequest {
   /** @pattern ^#[0-9a-fA-F]{6}$ */
   primaryColor?: string;
   /** @pattern ^#[0-9a-fA-F]{6}$ */
   secondaryColor?: string;
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  accentColor?: string;
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  dangerColor?: string;
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  successColor?: string;
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  warningColor?: string;
+  fontFamily?: UpdateBrandingConfigRequestFontFamily;
+  borderRadius?: UpdateBrandingConfigRequestBorderRadius;
   /** S3 storage key for the logo file */
   logoStorageKey?: string;
   /** S3 storage key for the favicon file */
@@ -253,8 +331,16 @@ export type UploadFileBody = {
   public?: boolean;
 };
 
+export type DeleteFileParams = {
+storageKey: string;
+};
+
 export type CheckTenantNameAvailabilityParams = {
 name: string;
+};
+
+export type GetFileParams = {
+storageKey: string;
 };
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -1647,6 +1733,102 @@ export const useUploadFile = <TError = ProblemDetail,
     }
     
 /**
+ * @summary Delete a file
+ */
+export type deleteFileResponse204 = {
+  data: void
+  status: 204
+}
+
+export type deleteFileResponse404 = {
+  data: ProblemDetail
+  status: 404
+}
+
+export type deleteFileResponseSuccess = (deleteFileResponse204) & {
+  headers: Headers;
+};
+export type deleteFileResponseError = (deleteFileResponse404) & {
+  headers: Headers;
+};
+
+export type deleteFileResponse = (deleteFileResponseSuccess | deleteFileResponseError)
+
+export const getDeleteFileUrl = (params: DeleteFileParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/tenant/files?${stringifiedParams}` : `/api/v1/tenant/files`
+}
+
+export const deleteFile = async (params: DeleteFileParams, options?: RequestInit): Promise<deleteFileResponse> => {
+  
+  return customInstance<deleteFileResponse>(getDeleteFileUrl(params),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+  
+
+
+
+export const getDeleteFileMutationOptions = <TError = ProblemDetail,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFile>>, TError,{params: DeleteFileParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteFile>>, TError,{params: DeleteFileParams}, TContext> => {
+
+const mutationKey = ['deleteFile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteFile>>, {params: DeleteFileParams}> = (props) => {
+          const {params} = props ?? {};
+
+          return  deleteFile(params,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteFileMutationResult = NonNullable<Awaited<ReturnType<typeof deleteFile>>>
+    
+    export type DeleteFileMutationError = ProblemDetail
+
+    /**
+ * @summary Delete a file
+ */
+export const useDeleteFile = <TError = ProblemDetail,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFile>>, TError,{params: DeleteFileParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteFile>>,
+        TError,
+        {params: DeleteFileParams},
+        TContext
+      > => {
+      return useMutation(getDeleteFileMutationOptions(options), queryClient);
+    }
+    
+/**
  * @summary Check if tenant name is available
  */
 export type checkTenantNameAvailabilityResponse200 = {
@@ -1880,17 +2062,24 @@ export type getFileResponseError = (getFileResponse404) & {
 
 export type getFileResponse = (getFileResponseSuccess | getFileResponseError)
 
-export const getGetFileUrl = (storageKey: string,) => {
+export const getGetFileUrl = (params: GetFileParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
-  
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/v1/tenant/files/${storageKey}`
+  return stringifiedParams.length > 0 ? `/api/v1/tenant/files/resolve?${stringifiedParams}` : `/api/v1/tenant/files/resolve`
 }
 
-export const getFile = async (storageKey: string, options?: RequestInit): Promise<getFileResponse> => {
+export const getFile = async (params: GetFileParams, options?: RequestInit): Promise<getFileResponse> => {
   
-  return customInstance<getFileResponse>(getGetFileUrl(storageKey),
+  return customInstance<getFileResponse>(getGetFileUrl(params),
   {      
     ...options,
     method: 'GET'
@@ -1903,29 +2092,29 @@ export const getFile = async (storageKey: string, options?: RequestInit): Promis
 
 
 
-export const getGetFileQueryKey = (storageKey: string,) => {
+export const getGetFileQueryKey = (params?: GetFileParams,) => {
     return [
-    `/api/v1/tenant/files/${storageKey}`
+    `/api/v1/tenant/files/resolve`, ...(params ? [params] : [])
     ] as const;
     }
 
     
-export const getGetFileQueryOptions = <TData = Awaited<ReturnType<typeof getFile>>, TError = ProblemDetail>(storageKey: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetFileQueryOptions = <TData = Awaited<ReturnType<typeof getFile>>, TError = ProblemDetail>(params: GetFileParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetFileQueryKey(storageKey);
+  const queryKey =  queryOptions?.queryKey ?? getGetFileQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFile>>> = ({ signal }) => getFile(storageKey, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFile>>> = ({ signal }) => getFile(params, { signal, ...requestOptions });
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(storageKey), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetFileQueryResult = NonNullable<Awaited<ReturnType<typeof getFile>>>
@@ -1933,7 +2122,7 @@ export type GetFileQueryError = ProblemDetail
 
 
 export function useGetFile<TData = Awaited<ReturnType<typeof getFile>>, TError = ProblemDetail>(
- storageKey: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData>> & Pick<
+ params: GetFileParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getFile>>,
           TError,
@@ -1943,7 +2132,7 @@ export function useGetFile<TData = Awaited<ReturnType<typeof getFile>>, TError =
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetFile<TData = Awaited<ReturnType<typeof getFile>>, TError = ProblemDetail>(
- storageKey: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData>> & Pick<
+ params: GetFileParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getFile>>,
           TError,
@@ -1953,7 +2142,7 @@ export function useGetFile<TData = Awaited<ReturnType<typeof getFile>>, TError =
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetFile<TData = Awaited<ReturnType<typeof getFile>>, TError = ProblemDetail>(
- storageKey: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ params: GetFileParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1961,106 +2150,13 @@ export function useGetFile<TData = Awaited<ReturnType<typeof getFile>>, TError =
  */
 
 export function useGetFile<TData = Awaited<ReturnType<typeof getFile>>, TError = ProblemDetail>(
- storageKey: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ params: GetFileParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFile>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetFileQueryOptions(storageKey,options)
+  const queryOptions = getGetFileQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
-
-/**
- * @summary Delete a file
- */
-export type deleteFileResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteFileResponse404 = {
-  data: ProblemDetail
-  status: 404
-}
-
-export type deleteFileResponseSuccess = (deleteFileResponse204) & {
-  headers: Headers;
-};
-export type deleteFileResponseError = (deleteFileResponse404) & {
-  headers: Headers;
-};
-
-export type deleteFileResponse = (deleteFileResponseSuccess | deleteFileResponseError)
-
-export const getDeleteFileUrl = (storageKey: string,) => {
-
-
-  
-
-  return `/api/v1/tenant/files/${storageKey}`
-}
-
-export const deleteFile = async (storageKey: string, options?: RequestInit): Promise<deleteFileResponse> => {
-  
-  return customInstance<deleteFileResponse>(getDeleteFileUrl(storageKey),
-  {      
-    ...options,
-    method: 'DELETE'
-    
-    
-  }
-);}
-  
-
-
-
-export const getDeleteFileMutationOptions = <TError = ProblemDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFile>>, TError,{storageKey: string}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteFile>>, TError,{storageKey: string}, TContext> => {
-
-const mutationKey = ['deleteFile'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteFile>>, {storageKey: string}> = (props) => {
-          const {storageKey} = props ?? {};
-
-          return  deleteFile(storageKey,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteFileMutationResult = NonNullable<Awaited<ReturnType<typeof deleteFile>>>
-    
-    export type DeleteFileMutationError = ProblemDetail
-
-    /**
- * @summary Delete a file
- */
-export const useDeleteFile = <TError = ProblemDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFile>>, TError,{storageKey: string}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteFile>>,
-        TError,
-        {storageKey: string},
-        TContext
-      > => {
-      return useMutation(getDeleteFileMutationOptions(options), queryClient);
-    }

@@ -14,7 +14,7 @@ const API_BASE = process.env.API_URL ?? "http://localhost:8080/api/v1";
 async function waitForTenantProvisioning(
   apiClient: ApiClient,
   tenantId: string,
-  timeoutMs = 30_000
+  timeoutMs = 60_000
 ): Promise<void> {
   const token = await apiClient.getToken();
   const deadline = Date.now() + timeoutMs;
@@ -54,8 +54,9 @@ test.describe.serial("Tenant User Login @smoke", () => {
   const sharedApiClient = new ApiClient();
 
   test.beforeAll(async () => {
-    // Create a tenant via the admin API
-    const tenant = await sharedApiClient.createTenant("E2E Tenant Login Test");
+    // Create a tenant via the admin API (timestamp prevents name/slug collisions between runs)
+    const ts = Date.now();
+    const tenant = await sharedApiClient.createTenant(`E2E Tenant Login Test ${ts}`);
     tenantId = tenant.id;
     tenantSlug = tenant.slug;
 

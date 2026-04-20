@@ -39,9 +39,9 @@ test.describe.serial("Tenant CRUD @smoke", () => {
 
     // Fill in required admin fields
     const adminEmail = `e2e+${Date.now()}@example.com`;
-    await dialog.getByLabel("E-Mail").fill(adminEmail);
-    await dialog.getByLabel("Vorname").fill("E2E");
-    await dialog.getByLabel("Nachname").fill("Test");
+    await dialog.getByTestId("admin-email-input").fill(adminEmail);
+    await dialog.getByTestId("admin-firstname-input").fill("E2E");
+    await dialog.getByTestId("admin-lastname-input").fill("Test");
 
     // Submit
     await platformAdminPage.getByTestId("create-tenant-submit").click();
@@ -80,13 +80,12 @@ test.describe.serial("Tenant CRUD @smoke", () => {
     await expect(detail).toBeVisible({ timeout: 10000 });
 
     // Either provisioning status card or the tenant info card should be visible —
-    // provisioning may still be running or may already be done
-    const provisioningStatus = platformAdminPage.getByTestId("provisioning-status");
-    const tenantHeading = platformAdminPage.getByRole("heading", {
-      name: tenantName,
-    });
+    // provisioning may still be running or may already be done.
+    // The tenant name appears in the CardTitle inside the tenant-detail container.
+    const provisioningStatus = detail.getByTestId("provisioning-status");
+    const tenantNameInCard = detail.getByText(tenantName);
 
-    await expect(provisioningStatus.or(tenantHeading)).toBeVisible({
+    await expect(provisioningStatus.or(tenantNameInCard)).toBeVisible({
       timeout: 10000,
     });
   });

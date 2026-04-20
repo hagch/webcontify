@@ -9,10 +9,16 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
     exclude: ["e2e/**", "node_modules/**"],
+    server: {
+      deps: {
+        inline: ["next"],
+      },
+    },
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "next/font/google": path.resolve(__dirname, "./src/__mocks__/next-font-google.ts"),
     },
   },
 });

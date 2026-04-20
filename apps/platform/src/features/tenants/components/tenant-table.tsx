@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { MoreHorizontal, ExternalLink } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,8 @@ export function TenantTable({
   isLoading,
   isRefetching,
 }: TenantTableProps) {
+  const t = useTranslations("tenants");
+
   if (isLoading) {
     return <TenantTableSkeleton />;
   }
@@ -39,9 +42,9 @@ export function TenantTable({
   if (tenants.length === 0) {
     return (
       <div data-testid="empty-state" className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-        <p className="text-lg font-medium">No tenants yet</p>
+        <p className="text-lg font-medium">{t("emptyState.title")}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Create your first tenant to get started.
+          {t("emptyState.description")}
         </p>
       </div>
     );
@@ -57,10 +60,10 @@ export function TenantTable({
       <Table data-testid="tenant-table">
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Slug</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t("name")}</TableHead>
+            <TableHead>{t("slug")}</TableHead>
+            <TableHead>{t("status")}</TableHead>
+            <TableHead className="text-right">{t("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -83,7 +86,7 @@ export function TenantTable({
                     tenant.status === "ACTIVE" ? "default" : "secondary"
                   }
                 >
-                  {tenant.status}
+                  {t(`statusValues.${tenant.status}`)}
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
@@ -93,7 +96,7 @@ export function TenantTable({
                       <Button
                         variant="ghost"
                         size="icon"
-                        aria-label={`Actions for ${tenant.name}`}
+                        aria-label={t("actionsMenu.label", { name: tenant.name })}
                       />
                     }
                   >
@@ -104,7 +107,7 @@ export function TenantTable({
                       render={<Link href={`/tenants/${tenant.id}`} />}
                     >
                       <ExternalLink className="mr-2 size-4" />
-                      View details
+                      {t("actionsMenu.viewDetails")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

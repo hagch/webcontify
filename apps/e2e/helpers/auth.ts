@@ -130,19 +130,23 @@ export async function loginAsTenantUser(
   // Navigate to the tenant subdomain — triggers auth redirect
   await page.goto(tenantBaseUrl + "/dashboard");
 
-  // Wait briefly for potential redirects
-  await page.waitForLoadState("domcontentloaded");
+  // NextAuth uses a client-side redirect chain:
+  //   /dashboard → /signin → /api/auth/signin/keycloak → auth.localhost
+  // We must wait for the final Keycloak URL before filling in credentials.
+  // If the URL never reaches auth.localhost the user is already authenticated.
+  const reachedKeycloak = await page
+    .waitForURL((url) => url.href.includes("auth.localhost"), { timeout: 15000 })
+    .then(() => true)
+    .catch(() => false);
 
-  const currentUrl = page.url();
-
-  // Already logged in: no Keycloak redirect
-  if (!currentUrl.includes("auth.localhost")) {
+  // Already logged in: no Keycloak redirect happened
+  if (!reachedKeycloak) {
     await page.waitForLoadState("networkidle");
     return;
   }
 
   // Fill in Keycloak login form
-  await expect(page.locator("#username")).toBeVisible({ timeout: 15000 });
+  await expect(page.locator("#username")).toBeVisible({ timeout: 10000 });
   await page.locator("#username").fill(username);
   await page.locator("#password").fill(password);
 

@@ -54,13 +54,15 @@ class TenantConfigServiceTest {
         when(tenantRepository.findByIdAndAuditInfoDeletedAtIsNull(tenantId))
                 .thenReturn(Optional.of(entity));
 
-        TenantConfig result = tenantConfigService.getConfig(tenantId);
+        var result = tenantConfigService.getConfig(tenantId);
 
         assertThat(result).isNotNull();
-        assertThat(result.branding().primaryColor()).isEqualTo("#ff0000");
-        assertThat(result.email().smtpHost()).isEqualTo("smtp.example.com");
-        assertThat(result.email().smtpPassword()).isNull();
-        assertThat(result.domain().customDomain()).isEqualTo("example.com");
+        assertThat(result.name()).isEqualTo("Test");
+        assertThat(result.slug()).isEqualTo("test");
+        assertThat(result.config().branding().primaryColor()).isEqualTo("#ff0000");
+        assertThat(result.config().email().smtpHost()).isEqualTo("smtp.example.com");
+        assertThat(result.config().email().smtpPassword()).isNull();
+        assertThat(result.config().domain().customDomain()).isEqualTo("example.com");
     }
 
     @Test
@@ -71,12 +73,12 @@ class TenantConfigServiceTest {
         when(tenantRepository.findByIdAndAuditInfoDeletedAtIsNull(tenantId))
                 .thenReturn(Optional.of(entity));
 
-        TenantConfig result = tenantConfigService.getConfig(tenantId);
+        var result = tenantConfigService.getConfig(tenantId);
 
         assertThat(result).isNotNull();
-        assertThat(result.branding()).isNull();
-        assertThat(result.email()).isNull();
-        assertThat(result.domain()).isNull();
+        assertThat(result.config().branding()).isNull();
+        assertThat(result.config().email()).isNull();
+        assertThat(result.config().domain()).isNull();
     }
 
     @Test
@@ -98,15 +100,15 @@ class TenantConfigServiceTest {
                 .thenReturn(Optional.of(entity));
         when(tenantRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        BrandingConfig newBranding = new BrandingConfig(null, null, "#00ff00", "#0000ff");
+        BrandingConfig newBranding = new BrandingConfig(null, null, "#00ff00", "#0000ff", null, null, null, null, null, null);
 
-        TenantConfig result = tenantConfigService.updateBranding(tenantId, newBranding);
+        var result = tenantConfigService.updateBranding(tenantId, newBranding);
 
-        assertThat(result.branding().primaryColor()).isEqualTo("#00ff00");
-        assertThat(result.branding().secondaryColor()).isEqualTo("#0000ff");
-        assertThat(result.email().smtpHost()).isEqualTo("smtp.example.com");
-        assertThat(result.email().smtpPassword()).isNull();
-        assertThat(result.domain().customDomain()).isEqualTo("example.com");
+        assertThat(result.config().branding().primaryColor()).isEqualTo("#00ff00");
+        assertThat(result.config().branding().secondaryColor()).isEqualTo("#0000ff");
+        assertThat(result.config().email().smtpHost()).isEqualTo("smtp.example.com");
+        assertThat(result.config().email().smtpPassword()).isNull();
+        assertThat(result.config().domain().customDomain()).isEqualTo("example.com");
     }
 
     @Test
@@ -121,10 +123,10 @@ class TenantConfigServiceTest {
         EmailConfig newEmail = new EmailConfig(
                 "smtp.new.com", 587, "user", "my-secret", "from@new.com", "New Sender");
 
-        TenantConfig result = tenantConfigService.updateEmail(tenantId, newEmail);
+        var result = tenantConfigService.updateEmail(tenantId, newEmail);
 
-        assertThat(result.email().smtpHost()).isEqualTo("smtp.new.com");
-        assertThat(result.email().smtpPassword()).isNull();
+        assertThat(result.config().email().smtpHost()).isEqualTo("smtp.new.com");
+        assertThat(result.config().email().smtpPassword()).isNull();
         verify(encryptionService).encrypt("my-secret");
 
         verify(tenantRepository).save(argThat(savedEntity -> {
@@ -162,13 +164,13 @@ class TenantConfigServiceTest {
 
         DomainConfig newDomain = new DomainConfig("new-domain.com", "PENDING");
 
-        TenantConfig result = tenantConfigService.updateDomain(tenantId, newDomain);
+        var result = tenantConfigService.updateDomain(tenantId, newDomain);
 
-        assertThat(result.domain().customDomain()).isEqualTo("new-domain.com");
-        assertThat(result.domain().sslStatus()).isEqualTo("PENDING");
-        assertThat(result.branding().primaryColor()).isEqualTo("#ff0000");
-        assertThat(result.email().smtpHost()).isEqualTo("smtp.example.com");
-        assertThat(result.email().smtpPassword()).isNull();
+        assertThat(result.config().domain().customDomain()).isEqualTo("new-domain.com");
+        assertThat(result.config().domain().sslStatus()).isEqualTo("PENDING");
+        assertThat(result.config().branding().primaryColor()).isEqualTo("#ff0000");
+        assertThat(result.config().email().smtpHost()).isEqualTo("smtp.example.com");
+        assertThat(result.config().email().smtpPassword()).isNull();
     }
 
     @Test
@@ -178,7 +180,7 @@ class TenantConfigServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> tenantConfigService.updateBranding(
-                        tenantId, new BrandingConfig(null, null, "#ff0000", null)))
+                        tenantId, new BrandingConfig(null, null, "#ff0000", null, null, null, null, null, null, null)))
                 .isInstanceOf(NotFoundException.class);
     }
 
@@ -224,7 +226,7 @@ class TenantConfigServiceTest {
     private TenantEntity createEntityWithConfig(UUID tenantId) {
         TenantEntity entity = createEntity(tenantId);
 
-        BrandingConfig branding = new BrandingConfig("logos/logo.png", "logos/favicon.png", "#ff0000", "#00ff00");
+        BrandingConfig branding = new BrandingConfig("logos/logo.png", "logos/favicon.png", "#ff0000", "#00ff00", null, null, null, null, null, null);
         EmailConfig email = new EmailConfig("smtp.example.com", 587, "user", "encrypted-pwd", "from@example.com", "Test Sender");
         DomainConfig domain = new DomainConfig("example.com", "ACTIVE");
 

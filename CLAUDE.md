@@ -1,6 +1,56 @@
-# CLAUDE.md — Webcontify
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 Codebase instructions for Claude Code. These OVERRIDE default behavior.
+
+---
+
+## Befehle
+
+### Gesamtes Projekt starten
+```bash
+pnpm dev                          # Docker + Backend + Frontend
+nx infra:up                       # Nur Docker-Services
+nx infra:down                     # Docker stoppen
+```
+
+### Backend (Java 21 + Spring Boot 4 + Gradle)
+```bash
+JAVA_HOME=$(/usr/libexec/java_home -v 21)   # MUSS gesetzt sein
+nx serve backend                             # Spring Boot starten
+nx test backend                              # Alle Tests
+cd apps/backend && ./gradlew test --tests io.webcontify.tenant.service.TenantServiceTest          # Einzelne Testklasse
+cd apps/backend && ./gradlew test --tests io.webcontify.tenant.service.TenantServiceTest.methode  # Einzelne Methode
+cd apps/backend && ./gradlew openApiGenerate # OpenAPI Code-Generierung (läuft auch bei compile)
+```
+
+### Frontend (Next.js 16 + React 19)
+```bash
+nx serve platform                 # Next.js Dev Server
+nx build platform                 # Production Build
+nx lint platform                  # ESLint
+cd apps/platform && pnpm generate # Orval Code-Generierung (OpenAPI → React Query Hooks + Zod)
+cd apps/platform && pnpm vitest run                    # Alle Tests
+cd apps/platform && pnpm vitest src/features/tenants   # Tests für ein Feature
+```
+
+### E2E Tests (Playwright)
+```bash
+cd apps/e2e && npx playwright test                    # Alle Tests
+cd apps/e2e && npx playwright test tests/auth.spec.ts # Einzelne Datei
+cd apps/e2e && npx playwright test --ui               # Interaktiver UI-Modus
+```
+
+### Lokale URLs
+| Service | URL |
+|---------|-----|
+| Platform UI | `platform.localhost` |
+| Backend API | `api.localhost` |
+| Keycloak | `auth.localhost` (admin/admin) |
+| OpenFGA | `fga.localhost` |
+| MinIO Console | `s3.localhost` (minioadmin/minioadmin) |
+| Mailpit | `mail.localhost` |
 
 ---
 
@@ -60,15 +110,15 @@ Conventional Commits: `feat:`, `fix:`, `test:`, `refactor:`, `docs:`, `chore:`, 
 - Performance-bewusst (N+1, Connection Pools)
 
 ### Senior Frontend Dev
-- Next.js, shadcn, Orval, Facades
-- **MUSS** shadcn/ui aus `@webcontify/ui` verwenden — kein raw `<button>`, `<input>`, `<table>`
+- Next.js, shadcn, Orval
+- **MUSS** shadcn/ui aus `components/ui/` verwenden — kein raw `<button>`, `<input>`, `<table>`
 - Kein `style={{}}` mit CSS Variables — Tailwind utility classes + `cn()`
+- **i18n Pflicht:** ALLE UI-Texte MÜSSEN über `useTranslations()` (next-intl) laufen — keine hardcoded Strings im UI. Keys in `en.json` + `de.json` pflegen.
 - UX-Flows durchdenken bevor Code geschrieben wird (Loading/Error/Empty States, a11y, Responsive)
 
 #### shadcn/ui Komponenten
-- IMMER: `import { Button, Dialog, ... } from "@webcontify/ui"`
-- Neue Basis-Komponenten: `packages/ui/src/components/` + Export in `index.ts`
-- Storybook Story pflichtmäßig für jede neue Komponente in `packages/ui`
+- IMMER: `import { Button, Dialog, ... } from "@/components/ui/..."`
+- Neue Basis-Komponenten: `apps/platform/src/components/ui/`
 
 #### Forms: React Hook Form + Zod
 - IMMER React Hook Form + `zodResolver` + shadcn `<Form>` / `<FormField>`
@@ -81,30 +131,28 @@ Conventional Commits: `feat:`, `fix:`, `test:`, `refactor:`, `docs:`, `chore:`, 
 | Was? | Womit? |
 |---|---|
 | Server State (API-Daten) | React Query (via Orval Hooks) |
-| Globaler Client State | Zustand Store |
 | Form State | React Hook Form |
 | Lokaler Component State | useState |
+| Globaler Client State (selten) | Zustand Store |
 
-**Zustand:** Stores in `src/stores/`, `use[Name]Store`, kein Server State in Zustand.
-
-#### Facade Pattern
-- Facades in `src/facades/`, `use[Domain][List|Detail]Facade`
-- Kapseln React Query + Mutations + Invalidierung
-- Pages bleiben dünn — nur Layout + Facade + UI-Komposition
+React Query Hooks direkt verwenden, Custom Hooks nur bei echtem Bedarf. Kein Facade-Layer.
 
 #### Dateistruktur Frontend
 ```
-src/app/(platform)/[domain]/
-├── page.tsx                    ← Dünn, nutzt Facade
-├── [id]/page.tsx
-└── _components/
-    ├── create-[domain]-dialog.tsx
-    ├── [domain]-table.tsx
-    └── edit-[domain]-form.tsx
-src/facades/                    ← Custom Hooks (Facade Pattern)
-src/stores/                     ← Zustand Stores
-src/generated/                  ← Orval Output (NICHT editieren)
-src/lib/schemas/                ← Manuelle Zod Schemas
+src/app/(platform)/[domain]/        ← Dünne Pages (Layout + UI-Komposition)
+src/app/(workspace)/[domain]/       ← Tenant-scoped Pages
+src/features/[domain]/
+├── components/
+│   ├── __tests__/
+│   ├── create-[domain]-dialog.tsx
+│   ├── [domain]-table.tsx
+│   └── edit-[domain]-form.tsx
+├── hooks/                          ← Domain-spezifische Custom Hooks
+└── schemas/                        ← Zod Schemas
+src/components/                     ← Shared UI-Komponenten
+src/generated/                      ← Orval Output (NICHT editieren)
+src/hooks/                          ← Globale Custom Hooks (useAuth, usePermissions)
+src/messages/                       ← i18n (en.json, de.json)
 ```
 
 ### DBA
@@ -122,15 +170,16 @@ src/lib/schemas/                ← Manuelle Zod Schemas
 - **TDD:** Red → Green → Refactor — Test ZUERST
 - Backend Unit: JUnit 5 + Mockito
 - Backend Integration: Testcontainers + Spring Boot Test
-- Frontend Unit: Vitest (Facade Hooks)
+- Frontend Unit: Vitest
 - Frontend Component: Storybook + Testing Library
-- E2E: Playwright für kritische Flows
+- E2E: Playwright für kritische Flows (`data-testid` Selektoren, nur Englisch)
 
 ---
 
 ## Architektur-Regeln (nicht verhandelbar)
 
 - Contract-First: OpenAPI → generierte Controller Interfaces + DTOs
+- OpenAPI Specs in `openapi/` (4 Specs: tenant, identity, platform-admin, auth)
 - JPA für statische Schemas, jOOQ für dynamische EAV Queries
 - Kein Lombok, getrennte Domain- und JPA-Klassen, MapStruct für Mapping
 - Classic Layered: `api/service/mapper/model/repository`
@@ -145,6 +194,7 @@ src/lib/schemas/                ← Manuelle Zod Schemas
 ## Kommunikation
 
 - Sprache: **Deutsch**
+- Code-Sprache: **English**
 - Keine Emojis
 - Kurze, präzise Antworten
 - Datei-Referenzen mit Zeilennummer: `path/to/file.ts:42`

@@ -19,10 +19,17 @@ export const customInstance = async <T>(
     ? { Authorization: `Bearer ${clientAccessToken}` }
     : {};
 
+  // Don't set Content-Type for FormData — browser sets it automatically
+  // with the correct multipart/form-data boundary
+  const isFormData = options?.body instanceof FormData;
+  const contentTypeHeaders: Record<string, string> = isFormData
+    ? {}
+    : { "Content-Type": "application/json" };
+
   const response = await fetch(`${BASE_URL}${url}`, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...contentTypeHeaders,
       ...authHeaders,
       ...options?.headers,
     },

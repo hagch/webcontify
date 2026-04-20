@@ -14,16 +14,30 @@ import {
   SidebarMenuItem, SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { useBranding } from "@/providers/branding-provider";
+import { useGetFile } from "@/generated/tenant";
 import { NavUser } from "./nav-user";
 import type { NavSection } from "./nav-config";
+
 
 interface AppSidebarProps {
   sections: NavSection[];
   headerSlot?: React.ReactNode;
+  isLoading?: boolean;
 }
 
-export function AppSidebar({ sections, headerSlot }: AppSidebarProps) {
+export function AppSidebar({ sections, headerSlot, isLoading }: AppSidebarProps) {
   const pathname = usePathname();
+  const branding = useBranding();
+
+  const tenantName = branding.tenantName || "Webcontify";
+  const tenantInitial = tenantName.charAt(0).toUpperCase();
+  // Use server-resolved logo URL, fall back to client-side resolution
+  const { data: logoFileData } = useGetFile(
+    { storageKey: branding.logoStorageKey ?? "" },
+    { query: { enabled: !!branding.logoStorageKey && !branding.resolvedLogoUrl } }
+  );
+  const logoUrl = branding.resolvedLogoUrl || (logoFileData?.status === 200 ? logoFileData.data.url : null);
 
   return (
     <Sidebar collapsible="icon">
@@ -34,12 +48,25 @@ export function AppSidebar({ sections, headerSlot }: AppSidebarProps) {
               size="lg"
               render={<Link href="/" />}
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <span className="text-sm font-bold">W</span>
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">Webcontify</span>
-              </div>
+              {logoUrl ? (
+                <div className="flex w-full items-center justify-center py-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logoUrl}
+                    alt={tenantName}
+                    className="max-h-8 max-w-full object-contain"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                    <span className="text-sm font-bold">{tenantInitial}</span>
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">{tenantName}</span>
+                  </div>
+                </>
+              )}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -57,7 +84,7 @@ export function AppSidebar({ sections, headerSlot }: AppSidebarProps) {
                   return (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton
-                        render={<Link href={item.href} />}
+                        render={<Link href={item.href} data-testid={item.testId} />}
                         isActive={isActive}
                         tooltip={item.label}
                       >

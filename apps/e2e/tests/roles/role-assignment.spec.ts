@@ -109,6 +109,12 @@ test.describe.serial("Role Assignment", () => {
       await inviteDialog
         .getByTestId("user-lastname-input")
         .fill(INVITED_USER_LASTNAME);
+
+      // Select at least one role (roleIds is mandatory)
+      const firstRoleCheckbox = inviteDialog.locator('[data-testid^="role-checkbox-"]').first();
+      await expect(firstRoleCheckbox).toBeVisible({ timeout: 10000 });
+      await firstRoleCheckbox.check();
+
       await inviteDialog.getByTestId("invite-user-submit").click();
       await expect(inviteDialog).not.toBeVisible({ timeout: 10000 });
 
@@ -165,9 +171,9 @@ test.describe.serial("Role Assignment", () => {
     await expect(userEntry).toBeVisible({ timeout: 10000 });
     await userEntry.click();
 
-    // Confirm the selection
+    // Confirm the selection (button text: "N Benutzer hinzufuegen" or "Hinzufuegen")
     await addDialog
-      .getByRole("button", { name: /hinzufügen|add|bestätigen|confirm/i })
+      .getByRole("button", { name: /hinzuf(?:ue|[uü])gen|add|best[aä]tigen|confirm/i })
       .click();
     await expect(addDialog).not.toBeVisible({ timeout: 10000 });
 
@@ -204,33 +210,28 @@ test.describe.serial("Role Assignment", () => {
       timeout: 10000,
     });
 
-    // Find the row for the invited user and open its actions menu
-    const rows = assigneesTable.getByTestId("role-table-row");
-    const rowCount = await rows.count();
+    // Find the row for the invited user and click the remove button
+    const userRows = assigneesTable.locator("tr");
+    const rowCount = await userRows.count();
 
     for (let i = 0; i < rowCount; i++) {
-      const row = rows.nth(i);
+      const row = userRows.nth(i);
       if ((await row.getByText(invitedEmail).count()) > 0) {
-        const menuTrigger = row.locator("[data-testid^='actions-menu-']");
-        await menuTrigger.click();
+        // Remove button has aria-label containing "entfernen"
+        const removeBtn = row.getByRole("button", { name: /entfernen|remove/i });
+        await removeBtn.click();
         break;
       }
     }
 
-    // Click remove / entfernen
-    await page
-      .getByRole("menuitem", { name: /entfernen|remove/i })
-      .click();
-
-    // Confirm if a confirmation dialog appears
-    const confirmButton = page.getByRole("button", {
-      name: /bestätigen|confirm|entfernen|remove/i,
+    // Confirm in the confirmation dialog (destructive confirm button)
+    const confirmDialog = page.getByRole("dialog");
+    await expect(confirmDialog).toBeVisible({ timeout: 5000 });
+    const confirmButton = confirmDialog.getByRole("button", {
+      name: /entfernen|remove/i,
     });
-    if (
-      await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)
-    ) {
-      await confirmButton.click();
-    }
+    await expect(confirmButton).toBeVisible({ timeout: 5000 });
+    await confirmButton.click();
 
     // User should no longer appear in the assignees table
     await expect(assigneesTable.getByText(invitedEmail)).not.toBeVisible({
@@ -273,36 +274,11 @@ test.describe.serial("Role Assignment", () => {
     const assigneesTable = page.getByTestId("role-assignees-table");
     await expect(assigneesTable).toBeVisible({ timeout: 10000 });
 
-    // There should be exactly one admin (the initial admin we created)
-    const assigneeRows = assigneesTable.getByTestId("role-table-row");
-    const assigneeCount = await assigneeRows.count();
-    expect(assigneeCount).toBeGreaterThanOrEqual(1);
-
-    // Open actions menu for the first (only) admin row
-    const firstRow = assigneeRows.first();
-    const menuTrigger = firstRow.locator("[data-testid^='actions-menu-']");
-
-    if (await menuTrigger.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await menuTrigger.click();
-
-      // Remove action should be absent or disabled
-      const removeAction = page.getByRole("menuitem", {
-        name: /entfernen|remove/i,
-      });
-      const isVisible = await removeAction
-        .isVisible({ timeout: 3000 })
-        .catch(() => false);
-      if (isVisible) {
-        await removeAction.click();
-
-        // Expect an error toast or inline message — backend should reject
-        const errorIndicator = page.locator(
-          "[data-sonner-toast], [role='alert'], [data-testid='error-message']"
-        );
-        await expect(errorIndicator).toBeVisible({ timeout: 10000 });
-      }
-      // If the remove action is absent, the requirement is met
-    }
-    // If no menu trigger exists for the last admin, the protection is UI-level
+    // Admin is a system role — no remove buttons should be present at all
+    const removeButtons = assigneesTable.getByRole("button", {
+      name: /entfernen|remove/i,
+    });
+    // System roles have isSystemRole=true so no action column is rendered
+    await expect(removeButtons).toHaveCount(0);
   });
 });

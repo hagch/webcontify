@@ -5,21 +5,435 @@
   },
   "nav": {
     "tenants": "Mandanten",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "users": "Benutzer",
+    "roles": "Rollen",
+    "admins": "Administratoren",
+    "profile": "Profil",
+    "changePassword": "Passwort ändern",
+    "signOut": "Abmelden",
+    "theme": "Theme",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "themeSystem": "System",
+    "sidebar": {
+      "management": "Verwaltung",
+      "system": "System",
+      "overview": "Übersicht",
+      "tenants": "Mandanten",
+      "admins": "Plattform-Admins",
+      "settings": "Einstellungen",
+      "dashboard": "Dashboard",
+      "apps": "Apps",
+      "users": "Benutzer",
+      "roles": "Rollen",
+      "branding": "Branding",
+      "email": "E-Mail",
+      "domain": "Domain"
+    }
   },
   "header": {
     "platform": "Plattform-Verwaltung",
     "logout": "Abmelden"
   },
+  "common": {
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "search": "Suchen",
+    "loading": "Laden...",
+    "confirm": "Bestätigen",
+    "actions": "Aktionen",
+    "name": "Name",
+    "description": "Beschreibung",
+    "email": "E-Mail",
+    "status": "Status",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "invite": "Einladen",
+    "remove": "Entfernen",
+    "add": "Hinzufügen",
+    "back": "Zurück",
+    "noDescription": "Keine Beschreibung",
+    "required": "Pflichtfeld",
+    "optional": "Optional",
+    "createdAt": "Erstellt"
+  },
+  "roles": {
+    "title": "Rollen",
+    "create": "Rolle erstellen",
+    "tableHeaders": {
+      "name": "Name",
+      "description": "Beschreibung",
+      "type": "Typ",
+      "members": "Mitglieder",
+      "actions": "Aktionen"
+    },
+    "typeLabels": {
+      "system": "System",
+      "custom": "Benutzerdefiniert"
+    },
+    "emptyState": {
+      "title": "Noch keine Rollen erstellt",
+      "description": "Erstelle eine Rolle, um Benutzerberechtigungen zu verwalten."
+    },
+    "noDescription": "Keine Beschreibung",
+    "actionsMenu": {
+      "label": "Aktionen für {name}",
+      "edit": "Bearbeiten",
+      "delete": "Löschen"
+    },
+    "deleteDialog": {
+      "title": "Rolle löschen",
+      "description": "Möchtest du die Rolle {name} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "cancel": "Abbrechen",
+      "confirm": "Löschen"
+    },
+    "createDialog": {
+      "title": "Rolle erstellen",
+      "description": "Erstelle eine neue Rolle, um Benutzerberechtigungen zu gruppieren.",
+      "nameLabel": "Name",
+      "namePlaceholder": "z.B. Redakteur",
+      "descriptionLabel": "Beschreibung",
+      "descriptionPlaceholder": "Optionale Beschreibung der Rolle",
+      "cancel": "Abbrechen",
+      "submit": "Erstellen"
+    },
+    "editForm": {
+      "nameLabel": "Name",
+      "namePlaceholder": "z.B. Redakteur",
+      "descriptionLabel": "Beschreibung",
+      "descriptionPlaceholder": "Optionale Beschreibung der Rolle",
+      "submit": "Speichern"
+    },
+    "detailPage": {
+      "breadcrumbList": "Rollen",
+      "breadcrumbLoading": "Laden...",
+      "breadcrumbNotFound": "Nicht gefunden",
+      "breadcrumbDetail": "Details",
+      "backLabel": "Zurück zu Rollen",
+      "editSection": "Rolle bearbeiten",
+      "tabAssignees": "Zugewiesene Benutzer ({count})",
+      "tabPermissions": "Berechtigungen",
+      "addUsers": "Benutzer hinzufügen",
+      "notFoundTitle": "Rolle nicht gefunden",
+      "notFoundDescription": "Die gesuchte Rolle existiert nicht oder wurde gelöscht.",
+      "backToRoles": "Zurück zu Rollen"
+    },
+    "assigneesTable": {
+      "nameHeader": "Name",
+      "emailHeader": "E-Mail",
+      "actionsHeader": "Aktionen",
+      "removeLabel": "{name} entfernen",
+      "emptyTitle": "Keine Benutzer zugewiesen",
+      "emptyDescription": "Weise Benutzern diese Rolle zu, um ihre Berechtigungen zu verwalten.",
+      "removeDialog": {
+        "title": "Benutzer entfernen",
+        "description": "Möchtest du {name} aus dieser Rolle entfernen?",
+        "cancel": "Abbrechen",
+        "confirm": "Entfernen"
+      }
+    },
+    "addAssigneesDialog": {
+      "title": "Benutzer hinzufügen",
+      "description": "Wähle Benutzer aus, die dieser Rolle zugewiesen werden sollen.",
+      "nameHeader": "Name",
+      "emailHeader": "E-Mail",
+      "selectLabel": "{name} auswählen",
+      "allAssignedTitle": "Alle Benutzer zugewiesen",
+      "allAssignedDescription": "Es gibt keine weiteren Benutzer, die hinzugefügt werden können.",
+      "cancel": "Abbrechen",
+      "addCount": "{count} Benutzer hinzufügen",
+      "add": "Hinzufügen"
+    },
+    "permissions": {
+      "title": "Berechtigungen",
+      "readonlyNotice": "Berechtigungen können aktuell nicht bearbeitet werden.",
+      "systemRoleNotice": "Berechtigungen für System-Rollen können nicht geändert werden.",
+      "escalationTooltip": "Du hast diese Berechtigung selbst nicht",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "saveSuccess": "Berechtigungen aktualisiert",
+      "saveError": "Berechtigungen konnten nicht aktualisiert werden",
+      "emptyTitle": "Keine Berechtigungen",
+      "emptyDescription": "Dieser Rolle sind keine Berechtigungen zugewiesen.",
+      "resourceTypes": {
+        "user_management": "Benutzerverwaltung",
+        "role_management": "Rollenverwaltung",
+        "tenant_config": "Tenant-Konfiguration"
+      },
+      "actions": {
+        "reader": "Lesen",
+        "editor": "Bearbeiten",
+        "creator": "Erstellen",
+        "deleter": "Löschen",
+        "inviter": "Einladen"
+      }
+    },
+    "toasts": {
+      "created": "Rolle \"{name}\" wurde erstellt.",
+      "updated": "Rolle wurde aktualisiert.",
+      "deleted": "Rolle wurde gelöscht.",
+      "createError": "Fehler beim Erstellen der Rolle. Bitte versuche es erneut.",
+      "updateError": "Fehler beim Aktualisieren der Rolle. Bitte versuche es erneut.",
+      "deleteError": "Fehler beim Löschen der Rolle. Bitte versuche es erneut.",
+      "assigneesUpdated": "{firstName} {lastName} wurde aus der Rolle entfernt.",
+      "assigneesAdded": "{count} Benutzer wurden der Rolle zugewiesen.",
+      "assigneeRemoveError": "Fehler beim Entfernen des Benutzers. Bitte versuche es erneut.",
+      "assigneeAddError": "Fehler beim Hinzufügen der Benutzer. Bitte versuche es erneut.",
+      "assigneesSetSuccess": "Rollenmitglieder wurden aktualisiert.",
+      "assigneesSetError": "Fehler beim Aktualisieren der Rollenmitglieder. Bitte versuche es erneut.",
+      "nameAlreadyExists": "Eine Rolle mit diesem Namen existiert bereits."
+    }
+  },
+  "users": {
+    "title": "Benutzer",
+    "invite": "Einladen",
+    "detailPage": {
+      "breadcrumb": "Benutzer",
+      "fallbackName": "Benutzer",
+      "backLabel": "Zurück zu Benutzer",
+      "profileSection": "Profil",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "status": "Status",
+      "createdAt": "Erstellt am",
+      "updatedAt": "Aktualisiert am",
+      "invitedBy": "Eingeladen von",
+      "actionsSection": "Aktionen",
+      "resendInvite": "Einladung erneut senden",
+      "deactivate": "Deaktivieren",
+      "activate": "Aktivieren",
+      "delete": "Löschen",
+      "rolesSection": "Rollen",
+      "noRoles": "Keine Rollen zugewiesen.",
+      "notFoundTitle": "Benutzer nicht gefunden",
+      "notFoundDescription": "Der Benutzer existiert nicht oder wurde gelöscht.",
+      "backToOverview": "Zurück zur Übersicht",
+      "deleteDialogTitle": "Benutzer löschen",
+      "deleteDialogDescription": "Möchtest du <strong>{name}</strong> wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "deleteDialogCancel": "Abbrechen",
+      "deleteDialogConfirm": "Löschen"
+    },
+    "tableHeaders": {
+      "name": "Name",
+      "email": "E-Mail",
+      "status": "Status",
+      "invitedAt": "Eingeladen am",
+      "actions": "Aktionen"
+    },
+    "emptyState": {
+      "title": "Noch keine Benutzer",
+      "description": "Lade Benutzer ein, um mit der Zusammenarbeit zu beginnen."
+    },
+    "statusValues": {
+      "INVITED": "Eingeladen",
+      "ACTIVE": "Aktiv",
+      "DEACTIVATED": "Deaktiviert"
+    },
+    "actionsMenu": {
+      "label": "Aktionen für {name}",
+      "resendInvite": "Einladung erneut senden",
+      "deactivate": "Deaktivieren",
+      "activate": "Aktivieren",
+      "cloneRoles": "Mit gleichen Rollen einladen",
+      "delete": "Löschen"
+    },
+    "deleteDialog": {
+      "title": "Benutzer löschen",
+      "description": "Möchtest du {name} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "cancel": "Abbrechen",
+      "confirm": "Löschen"
+    },
+    "inviteDialog": {
+      "title": "Benutzer einladen",
+      "description": "Lade einen neuen Benutzer zu deinem Workspace ein.",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "max@beispiel.de",
+      "firstNameLabel": "Vorname",
+      "firstNamePlaceholder": "Max",
+      "lastNameLabel": "Nachname",
+      "lastNamePlaceholder": "Mustermann",
+      "rolesLabel": "Rollen",
+      "rolesEmptyState": "Keine Rollen verfügbar.",
+      "copyRolesLabel": "Rollen vorausfüllen von",
+      "copyRolesPlaceholder": "Benutzer auswählen (optional)",
+      "copyRolesNone": "Keinen auswählen",
+      "cancel": "Abbrechen",
+      "submit": "Einladen"
+    },
+    "toasts": {
+      "invited": "{name} wurde eingeladen.",
+      "inviteError": "Fehler beim Einladen des Benutzers. Bitte versuche es erneut.",
+      "deleted": "Benutzer wurde gelöscht.",
+      "deleteError": "Fehler beim Löschen des Benutzers. Bitte versuche es erneut.",
+      "activated": "Benutzer wurde aktiviert.",
+      "deactivated": "Benutzer wurde deaktiviert.",
+      "statusError": "Fehler beim Aktualisieren des Benutzerstatus. Bitte versuche es erneut.",
+      "inviteResent": "Einladung wurde erneut gesendet.",
+      "resendError": "Fehler beim erneuten Senden der Einladung. Bitte versuche es erneut.",
+      "emailAlreadyExists": "Diese E-Mail-Adresse ist bereits vergeben."
+    }
+  },
+  "admins": {
+    "title": "Administratoren",
+    "invite": "Admin einladen",
+    "tableHeaders": {
+      "name": "Name",
+      "email": "E-Mail",
+      "status": "Status",
+      "createdAt": "Erstellt am",
+      "actions": "Aktionen"
+    },
+    "statusValues": {
+      "active": "Aktiv",
+      "deactivated": "Deaktiviert"
+    },
+    "emptyState": {
+      "title": "Noch keine Administratoren",
+      "description": "Lade einen Administrator ein, um die Plattform gemeinsam zu verwalten."
+    },
+    "actionsMenu": {
+      "label": "Aktionen für {name}",
+      "deactivate": "Deaktivieren",
+      "activate": "Aktivieren",
+      "resetPassword": "Passwort-Reset erzwingen",
+      "delete": "Entfernen"
+    },
+    "deleteDialog": {
+      "title": "Administrator entfernen",
+      "description": "Möchtest du {name} wirklich als Administrator entfernen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "cancel": "Abbrechen",
+      "confirm": "Entfernen"
+    },
+    "inviteDialog": {
+      "title": "Administrator einladen",
+      "description": "Lade eine Person als Platform Administrator ein. Sie erhält eine E-Mail mit einem Einladungslink.",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "name@beispiel.de",
+      "firstNameLabel": "Vorname",
+      "firstNamePlaceholder": "Max",
+      "lastNameLabel": "Nachname",
+      "lastNamePlaceholder": "Mustermann",
+      "cancel": "Abbrechen",
+      "submit": "Einladen"
+    },
+    "toasts": {
+      "invited": "Administrator \"{name}\" wurde eingeladen.",
+      "inviteError": "Fehler beim Einladen des Administrators. Bitte versuche es erneut.",
+      "deleted": "Administrator wurde entfernt.",
+      "deleteError": "Fehler beim Entfernen des Administrators. Bitte versuche es erneut.",
+      "activated": "Administrator wurde aktiviert.",
+      "deactivated": "Administrator wurde deaktiviert.",
+      "statusError": "Fehler beim Aktualisieren des Administratorstatus. Bitte versuche es erneut.",
+      "passwordReset": "Passwort-Reset wurde ausgelöst.",
+      "passwordResetError": "Fehler beim Auslösen des Passwort-Resets. Bitte versuche es erneut.",
+      "emailAlreadyExists": "Ein Administrator mit dieser E-Mail-Adresse existiert bereits."
+    }
+  },
+  "errors": {
+    "forbidden": "Keine Berechtigung für diese Aktion",
+    "noAccess": "Kein Zugriff auf diesen Bereich",
+    "tenant": {
+      "not_found": "Mandant nicht gefunden.",
+      "name_already_exists": "Ein Mandant mit diesem Namen existiert bereits.",
+      "slug_already_exists": "Ein Mandant mit diesem Slug existiert bereits."
+    },
+    "user": {
+      "not_found": "Benutzer nicht gefunden.",
+      "email_already_exists": "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.",
+      "invalid_status_transition": "Dieser Statuswechsel ist nicht erlaubt.",
+      "cannot_deactivate_self": "Du kannst deinen eigenen Account nicht deaktivieren.",
+      "cannot_delete_self": "Du kannst deinen eigenen Account nicht löschen.",
+      "not_invited": "Dieser Benutzer wurde noch nicht eingeladen.",
+      "last_admin_cannot_be_removed": "Der letzte Administrator kann nicht entfernt werden."
+    },
+    "role": {
+      "not_found": "Rolle nicht gefunden.",
+      "name_already_exists": "Eine Rolle mit diesem Namen existiert bereits.",
+      "system_role_cannot_be_modified": "Systemrollen können nicht bearbeitet werden.",
+      "system_role_cannot_be_deleted": "Systemrollen können nicht gelöscht werden.",
+      "has_assignees": "Diese Rolle hat noch zugewiesene Benutzer.",
+      "assignee_not_found": "Ein oder mehrere Benutzer wurden nicht gefunden.",
+      "last_admin_cannot_be_removed": "Der letzte Administrator kann nicht aus der Admin-Rolle entfernt werden."
+    },
+    "admin": {
+      "not_found": "Administrator nicht gefunden.",
+      "email_already_exists": "Ein Administrator mit dieser E-Mail-Adresse existiert bereits.",
+      "cannot_modify_self": "Du kannst deinen eigenen Account nicht bearbeiten.",
+      "cannot_delete_self": "Du kannst deinen eigenen Account nicht löschen.",
+      "last_admin_cannot_be_deactivated": "Der letzte Administrator kann nicht deaktiviert werden.",
+      "last_admin_cannot_be_deleted": "Der letzte Administrator kann nicht gelöscht werden.",
+      "use_account_console_for_own_password": "Bitte nutze die Account-Konsole, um dein eigenes Passwort zu ändern."
+    },
+    "invite": {
+      "source_user_not_found": "Der Quell-Benutzer zum Kopieren der Rollen wurde nicht gefunden."
+    },
+    "generic": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut."
+  },
+  "profile": {
+    "title": "Profil",
+    "avatar": {
+      "title": "Profilbild",
+      "upload": "Hochladen",
+      "delete": "Entfernen",
+      "maxSize": "Max. 2 MB, JPEG oder PNG",
+      "uploadSuccess": "Profilbild aktualisiert",
+      "deleteSuccess": "Profilbild entfernt",
+      "error": "Profilbild konnte nicht hochgeladen werden",
+      "tooLarge": "Datei ist zu groß (max. 2 MB)",
+      "invalidType": "Nur JPEG- und PNG-Dateien sind erlaubt"
+    },
+    "name": {
+      "title": "Anzeigename",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "save": "Speichern",
+      "saved": "Name aktualisiert",
+      "error": "Name konnte nicht aktualisiert werden"
+    },
+    "password": {
+      "title": "Passwort",
+      "change": "Passwort ändern",
+      "description": "Du wirst zum Login-Anbieter weitergeleitet, um dein Passwort zu ändern."
+    },
+    "preferences": {
+      "title": "Einstellungen",
+      "language": "Sprache",
+      "theme": "Theme",
+      "saved": "Einstellungen gespeichert"
+    },
+    "languages": {
+      "de": "Deutsch",
+      "en": "English"
+    },
+    "themes": {
+      "light": "Hell",
+      "dark": "Dunkel",
+      "system": "System"
+    }
+  },
   "tenants": {
     "title": "Mandanten",
     "create": "Mandant erstellen",
+    "description": "Alle Mandanten der Plattform verwalten.",
     "name": "Name",
     "slug": "Slug",
     "status": "Status",
     "createdAt": "Erstellt",
     "actions": "Aktionen",
     "noTenants": "Keine Mandanten gefunden",
+    "emptyState": {
+      "title": "Noch keine Mandanten",
+      "description": "Erstelle deinen ersten Mandanten, um loszulegen."
+    },
+    "actionsMenu": {
+      "label": "Aktionen für {name}",
+      "viewDetails": "Details anzeigen"
+    },
     "createDialog": {
       "title": "Mandant erstellen",
       "description": "Einen neuen Mandanten für die Plattform erstellen.",
@@ -28,8 +442,18 @@
       "slugLabel": "Slug",
       "slugPlaceholder": "mein-mandant",
       "slugHint": "Nur Kleinbuchstaben, Zahlen und Bindestriche",
+      "adminSection": "Initialer Administrator",
+      "adminEmailLabel": "E-Mail",
+      "adminEmailPlaceholder": "admin@acme.com",
+      "adminFirstNameLabel": "Vorname",
+      "adminFirstNamePlaceholder": "Max",
+      "adminLastNameLabel": "Nachname",
+      "adminLastNamePlaceholder": "Mustermann",
       "cancel": "Abbrechen",
-      "submit": "Erstellen"
+      "submit": "Erstellen",
+      "nameAlreadyExists": "Dieser Name ist bereits vergeben. Bitte wähle einen anderen.",
+      "creatingToast": "Mandant wird erstellt...",
+      "createError": "Fehler beim Erstellen des Mandanten. Bitte versuche es erneut."
     },
     "detail": {
       "title": "Mandanten-Details",
@@ -42,53 +466,139 @@
       "activate": "Aktivieren",
       "suspend": "Sperren",
       "deactivate": "Deaktivieren",
-      "config": "Konfiguration"
+      "config": "Konfiguration",
+      "slugLabel": "Slug",
+      "idLabel": "ID"
     },
     "statusValues": {
       "ACTIVE": "Aktiv",
       "INACTIVE": "Inaktiv",
       "SUSPENDED": "Gesperrt"
+    },
+    "provisioning": {
+      "title": "Mandant wird eingerichtet",
+      "spinnerLabel": "Einrichtung läuft",
+      "progress": "{completed} von {total} Schritten abgeschlossen",
+      "retry": "Erneut versuchen",
+      "stepLabels": {
+        "S3_BUCKET": "Speicher",
+        "KEYCLOAK_REALM": "Authentifizierung",
+        "OPENFGA_STORE": "Berechtigungssystem",
+        "INITIAL_ADMIN": "Initialer Admin"
+      },
+      "statusText": {
+        "COMPLETED": "Abgeschlossen",
+        "IN_PROGRESS": "Wird eingerichtet...",
+        "FAILED": "Fehlgeschlagen",
+        "PENDING": "Ausstehend"
+      }
     }
   },
   "settings": {
     "title": "Einstellungen",
     "branding": {
-      "title": "Branding"
+      "title": "Branding",
+      "description": "Passe das Erscheinungsbild deines Workspaces an."
     }
   },
   "config": {
     "title": "Konfiguration",
     "branding": {
       "title": "Branding",
-      "primaryColor": "Primaerfarbe",
+      "primaryColor": "Primärfarbe",
       "primaryColorHint": "Hex-Farbcode (z.B. #3b82f6)",
-      "secondaryColor": "Sekundaerfarbe",
+      "secondaryColor": "Sekundärfarbe",
       "secondaryColorHint": "Hex-Farbcode (z.B. #64748b)",
+      "accentColor": "Akzentfarbe",
+      "accentColorHint": "Hex-Farbcode (z.B. #10B981)",
+      "colorPickerLabel": "{label} Farbwähler",
       "save": "Branding speichern",
       "saved": "Branding gespeichert",
-      "error": "Branding konnte nicht gespeichert werden"
+      "error": "Branding konnte nicht gespeichert werden",
+      "advanced": "Erweitert",
+      "advancedDescription": "Zusätzliche Anpassungsoptionen",
+      "fontFamily": "Schriftart",
+      "fontCategoryModern": "Modern",
+      "fontCategoryClassic": "Klassisch",
+      "fontCategoryFriendly": "Freundlich",
+      "fontCategorySerif": "Serif",
+      "fontFamilyOptions": {
+        "system": "System-Standard",
+        "inter": "Inter",
+        "geist": "Geist",
+        "plus-jakarta-sans": "Plus Jakarta Sans",
+        "dm-sans": "DM Sans",
+        "roboto": "Roboto",
+        "source-sans-3": "Source Sans 3",
+        "ibm-plex-sans": "IBM Plex Sans",
+        "open-sans": "Open Sans",
+        "lato": "Lato",
+        "nunito-sans": "Nunito Sans",
+        "poppins": "Poppins",
+        "merriweather": "Merriweather"
+      },
+      "borderRadius": "Eckenradius",
+      "borderRadiusOptions": {
+        "0": "Eckig (0)",
+        "0_25rem": "Dezent (0.25rem)",
+        "0_5rem": "Standard (0.5rem)",
+        "0_75rem": "Rund (0.75rem)",
+        "1rem": "Sehr rund (1rem)"
+      },
+      "resetDefaults": "Auf Standard zurücksetzen",
+      "resetConfirm": "Branding auf Standard zurückgesetzt",
+      "preview": "Vorschau",
+      "previewButton": "Button",
+      "previewSecondaryButton": "Sekundär",
+      "previewBadge": "Badge",
+      "previewCard": "Beispielkarte",
+      "previewCardDescription": "So wird dein Inhalt aussehen.",
+      "dangerColor": "Fehlerfarbe",
+      "dangerColorHint": "Hex-Farbcode (z.B. #EF4444)",
+      "successColor": "Erfolgsfarbe",
+      "successColorHint": "Hex-Farbcode (z.B. #059669)",
+      "warningColor": "Warnfarbe",
+      "warningColorHint": "Hex-Farbcode (z.B. #F59E0B)",
+      "severityColors": "Status-Farben",
+      "previewDanger": "Fehler",
+      "previewSuccess": "Erfolg",
+      "previewWarning": "Warnung",
+      "logoSvgOnly": "Nur SVG-Dateien werden unterstuetzt",
+      "logoHint": "SVG, PNG oder JPEG. Max. 2 MB.",
+      "logo": "Logo",
+      "favicon": "Favicon",
+      "upload": "Hochladen",
+      "remove": "Entfernen",
+      "noImage": "Kein Bild",
+      "fileSizeError": "Maximale Dateigröße: {maxSizeMb} MB",
+      "tabLogoIdentity": "Logo & Identität",
+      "tabColors": "Farben",
+      "tabTypography": "Typografie",
+      "previewFont": "Schriftvorschau"
     },
     "email": {
       "title": "E-Mail",
+      "comingSoon": "E-Mail-Konfiguration demnächst verfügbar.",
       "smtpHost": "SMTP Host",
       "smtpPort": "SMTP Port",
       "smtpUser": "SMTP Benutzer",
       "smtpPassword": "SMTP Passwort",
-      "smtpPasswordHint": "Leer lassen um aktuelles Passwort beizubehalten",
+      "smtpPasswordHint": "Leer lassen, um aktuelles Passwort beizubehalten",
       "fromAddress": "Absender-Adresse",
       "fromName": "Absender-Name",
       "save": "E-Mail speichern",
       "saved": "E-Mail-Konfiguration gespeichert",
       "error": "E-Mail-Konfiguration konnte nicht gespeichert werden",
       "testTitle": "Test-E-Mail",
-      "testDescription": "Senden Sie eine Test-E-Mail um die Konfiguration zu pruefen.",
-      "recipientEmail": "Empfaenger-E-Mail",
+      "testDescription": "Senden Sie eine Test-E-Mail, um die Konfiguration zu prüfen.",
+      "recipientEmail": "Empfänger-E-Mail",
       "sendTest": "Test-E-Mail senden",
       "testSent": "Test-E-Mail gesendet",
       "testError": "Test-E-Mail konnte nicht gesendet werden"
     },
     "domain": {
       "title": "Domain",
+      "comingSoon": "Domain-Konfiguration demnächst verfügbar.",
       "customDomain": "Eigene Domain",
       "customDomainHint": "z.B. app.example.com",
       "sslStatus": "SSL-Status",

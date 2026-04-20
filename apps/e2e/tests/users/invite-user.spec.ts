@@ -90,6 +90,11 @@ test.describe.serial("User Invitation Flow @smoke", () => {
     await dialog.getByTestId("user-firstname-input").fill("Test");
     await dialog.getByTestId("user-lastname-input").fill("User");
 
+    // Select at least one role (roleIds is mandatory)
+    const firstRoleCheckbox = dialog.locator('[data-testid^="role-checkbox-"]').first();
+    await expect(firstRoleCheckbox).toBeVisible({ timeout: 10000 });
+    await firstRoleCheckbox.check();
+
     // Submit
     await dialog.getByTestId("invite-user-submit").click();
 

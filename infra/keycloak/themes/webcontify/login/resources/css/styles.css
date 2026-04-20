@@ -1,28 +1,406 @@
-/* Webcontify Custom Login Theme
- * Ueberschreibt PatternFly v5 Klassen mit Tenant-Branding via CSS Variables.
- * Variables werden durch template.ftl aus Realm-Attributes gesetzt.
- * Fallbacks: --wc-primary: #6366F1 (Indigo), --wc-secondary: #10B981 (Emerald)
+/* Webcontify Keycloak Login Theme
+ * Design system tokens replace PatternFly piecemeal overrides.
+ * Variables are injected by template.ftl from Realm Attributes.
+ *
+ * Token fallbacks:
+ *   --wc-primary:       #6366F1  (Indigo 500)
+ *   --wc-primary-hover: #4F46E5  (Indigo 600)
+ *   --wc-radius:        0.5rem
+ *   --wc-font:          system-ui, -apple-system, sans-serif
+ *   --wc-bg:            #FAFAF9  (Stone 50)
+ *   --wc-card:          #FFFFFF
+ *   --wc-card-border:   #E7E5E4  (Stone 200)
+ *   --wc-text:          #1C1917  (Stone 900)
+ *   --wc-text-muted:    #78716C  (Stone 500)
+ *   --wc-input-border:  #D6D3D1  (Stone 300)
+ *   --wc-input-bg:      #FFFFFF
+ *   --wc-focus-ring:    #6366F1  (Indigo 500)
+ *   --wc-link:          #6366F1
+ *   --wc-error:         #DC2626  (Red 600)
  */
 
 /* ------------------------------------------------------------------ */
-/* Primary Button                                                       */
+/* Reset & Base                                                         */
 /* ------------------------------------------------------------------ */
 
-.pf-v5-c-button.pf-m-primary {
-    background-color: var(--wc-primary);
-    border-color: var(--wc-primary);
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body,
+.login-pf,
+.login-pf body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: var(--wc-font, system-ui, -apple-system, sans-serif);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--wc-text, #1C1917);
+    background-color: var(--wc-bg, #FAFAF9);
+    background-image: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Page Layout — centered card                                          */
+/* ------------------------------------------------------------------ */
+
+.pf-v5-c-login {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background-color: var(--wc-bg, #FAFAF9);
+    background-image: none;
+}
+
+.pf-v5-c-login__container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 420px;
+    background-color: var(--wc-card, #FFFFFF);
+    border: 1px solid var(--wc-card-border, #E7E5E4);
+    border-radius: calc(var(--wc-radius, 0.5rem) * 1.5);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+    padding: 2rem;
+}
+
+/* Override PatternFly grid layout — force single-column card */
+.pf-v5-c-login__container > * {
+    grid-column: 1 / -1;
+}
+
+.pf-v5-c-login__header {
+    padding: 0 0 1.5rem 0;
+    text-align: center;
+    background: none;
+    margin-block-start: 0 !important;
+}
+
+.pf-v5-c-login__main {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    padding: 0;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin-block-end: 0 !important;
+}
+
+.pf-v5-c-login__main-header {
+    width: 100%;
+    padding: 0;
+}
+
+.pf-v5-c-login__main-body {
+    width: 100%;
+    padding: 0;
+    padding-block-end: 0 !important;
+}
+
+.pf-v5-c-login__main-footer {
+    margin-top: 0;
+    padding: 0;
+}
+
+.pf-v5-c-login__footer {
+    padding: 1rem 0 0 0;
+    text-align: center;
+    background: none;
+}
+
+/* Info section (password reset instruction text, account updated) */
+#kc-info {
+    margin-top: 0.75rem;
+    padding: 0;
+    font-size: 0.875rem;
+    color: var(--wc-text-muted, #78716C);
+}
+
+#kc-info-wrapper {
+    padding: 0;
+}
+
+#kc-info-message {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--wc-text-muted, #78716C);
+}
+
+#kc-info-message .instruction {
+    margin-bottom: 0.75rem;
+}
+
+#kc-info-message a {
+    font-weight: 500;
+}
+
+/* ------------------------------------------------------------------ */
+/* Header / Branding                                                    */
+/* ------------------------------------------------------------------ */
+
+/* Hide PatternFly's own logo element */
+div.kc-logo-text {
+    display: none;
+}
+
+#kc-header {
+    background: none;
+    padding: 0;
+}
+
+#kc-header-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0 0.5rem 0;
+}
+
+/* Logo image */
+.wc-brand-logo {
+    max-height: 48px;
+    max-width: 200px;
+    object-fit: contain;
+    display: block;
+}
+
+/* Text fallback when no logo is configured */
+.wc-brand-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--wc-text, #1C1917);
+}
+
+/* Page title below header */
+#kc-page-title,
+.pf-v5-c-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--wc-text, #1C1917);
+    text-align: center;
+    margin: 0 0 1.5rem 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Form Controls                                                        */
+/* ------------------------------------------------------------------ */
+
+.pf-v5-c-form__label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--wc-text, #1C1917);
+    display: block;
+}
+
+.pf-v5-c-form__label-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--wc-text, #1C1917);
+}
+
+/* Form-control is a <span> wrapper around <input> in PF5 */
+.pf-v5-c-form-control {
+    display: block;
+    width: 100%;
+    background-color: var(--wc-input-bg, #FFFFFF);
+    border: 1px solid var(--wc-input-border, #D6D3D1);
+    border-radius: var(--wc-radius, 0.5rem);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    /* Reset PatternFly pseudo-element border trick */
+    --pf-v5-c-form-control--after--BorderBottomWidth: 0;
+}
+
+.pf-v5-c-form-control input,
+.pf-v5-c-form-control select,
+.pf-v5-c-form-control textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9375rem;
+    font-family: inherit;
+    color: var(--wc-text, #1C1917);
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+.pf-v5-c-form-control:focus-within {
+    border-color: var(--wc-focus-ring, #6366F1);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--wc-focus-ring, #6366F1) 25%, transparent);
+    --pf-v5-c-form-control--after--BorderBottomColor: transparent;
+}
+
+/* Input group (password field + reveal button) */
+.pf-v5-c-input-group {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+}
+
+.pf-v5-c-input-group__item {
+    display: flex;
+}
+
+.pf-v5-c-input-group__item.pf-m-fill {
+    flex: 1;
+    min-width: 0;
+}
+
+.pf-v5-c-input-group .pf-v5-c-form-control {
+    border-right: none;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.pf-v5-c-input-group__item:last-child .pf-v5-c-button {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border: 1px solid var(--wc-input-border, #D6D3D1);
+    border-left: none;
+    background-color: var(--wc-input-bg, #FFFFFF);
+    color: var(--wc-text-muted, #78716C);
+    padding: 0.5rem 0.75rem;
+}
+
+.pf-v5-c-input-group__item:last-child .pf-v5-c-button:hover {
+    background-color: var(--wc-bg, #FAFAF9);
+    color: var(--wc-text, #1C1917);
+}
+
+/* Checkbox */
+.pf-v5-c-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pf-v5-c-check__input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--wc-primary, #6366F1);
+    border-radius: calc(var(--wc-radius, 0.5rem) * 0.5);
+    cursor: pointer;
+    margin: 0;
+}
+
+.pf-v5-c-check__label {
+    font-size: 0.875rem;
+    color: var(--wc-text, #1C1917);
+    cursor: pointer;
+}
+
+/* Form group spacing & layout */
+.pf-v5-c-form__group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+.pf-v5-c-form__group-label {
+    margin-bottom: 0.375rem;
+}
+
+/* Form options row (remember me + forgot password) */
+.wc-form-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.wc-forgot-password {
+    margin-left: auto;
+    font-size: 0.875rem;
+}
+
+/* Helper text (error messages) */
+.pf-v5-c-helper-text {
+    margin-top: 0.25rem;
+}
+
+.pf-v5-c-helper-text__item.pf-m-error .pf-v5-c-helper-text__item-text,
+.pf-v5-c-helper-text__item-text.pf-m-error {
+    color: var(--wc-error, #DC2626);
+    font-size: 0.8125rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Buttons                                                              */
+/* ------------------------------------------------------------------ */
+
+.pf-v5-c-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--wc-radius, 0.5rem);
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+
+/* Primary button — full width */
+.pf-v5-c-button.pf-m-primary,
+#kc-login,
+#kc-register,
+input[type="submit"].pf-m-primary {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    background-color: var(--wc-primary, #6366F1);
+    border-color: var(--wc-primary, #6366F1);
     color: #ffffff;
+    font-weight: 600;
 }
 
 .pf-v5-c-button.pf-m-primary:hover,
-.pf-v5-c-button.pf-m-primary:focus {
-    background-color: var(--wc-primary-hover);
-    border-color: var(--wc-primary-hover);
+#kc-login:hover,
+#kc-register:hover {
+    background-color: var(--wc-primary-hover, #4F46E5);
+    border-color: var(--wc-primary-hover, #4F46E5);
 }
 
 .pf-v5-c-button.pf-m-primary:active {
-    background-color: var(--wc-primary-hover);
-    border-color: var(--wc-primary-hover);
+    background-color: var(--wc-primary-hover, #4F46E5);
+    border-color: var(--wc-primary-hover, #4F46E5);
+    transform: translateY(1px);
+}
+
+.pf-v5-c-button.pf-m-primary:focus-visible {
+    outline: 2px solid var(--wc-focus-ring, #6366F1);
+    outline-offset: 2px;
+}
+
+/* Secondary / plain buttons */
+.pf-v5-c-button.pf-m-secondary {
+    background-color: transparent;
+    border-color: var(--wc-input-border, #D6D3D1);
+    color: var(--wc-text, #1C1917);
+    padding: 0.5rem 1rem;
+}
+
+.pf-v5-c-button.pf-m-secondary:hover {
+    background-color: var(--wc-bg, #FAFAF9);
+}
+
+.pf-v5-c-button.pf-m-plain {
+    background: none;
+    border: none;
+    color: var(--wc-text-muted, #78716C);
+    padding: 0.5rem;
+}
+
+.pf-v5-c-button.pf-m-plain:hover {
+    color: var(--wc-text, #1C1917);
 }
 
 /* ------------------------------------------------------------------ */
@@ -31,64 +409,479 @@
 
 a,
 a:visited {
-    color: var(--wc-primary);
+    color: var(--wc-link, #6366F1);
+    text-decoration: none;
 }
 
-a:hover,
-a:focus {
-    color: var(--wc-primary-hover);
+a:hover {
+    color: var(--wc-primary-hover, #4F46E5);
+    text-decoration: underline;
+}
+
+a:focus-visible {
+    outline: 2px solid var(--wc-focus-ring, #6366F1);
+    outline-offset: 2px;
+    border-radius: 2px;
 }
 
 /* ------------------------------------------------------------------ */
-/* Focus Ring                                                           */
+/* Alerts & Messages                                                    */
 /* ------------------------------------------------------------------ */
 
-.pf-v5-c-form-control:focus-within {
-    --pf-v5-c-form-control--after--BorderBottomColor: var(--wc-primary);
+.pf-v5-c-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--wc-radius, 0.5rem);
+    border: 1px solid transparent;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+/* Error / Danger */
+.pf-v5-c-alert.pf-m-danger,
+#kc-error-message {
+    background-color: #FEF2F2;
+    border-color: #FECACA;
+    color: #991B1B;
+}
+
+.pf-v5-c-alert.pf-m-danger .pf-v5-c-alert__icon,
+.pf-v5-c-alert.pf-m-danger .pf-v5-c-alert__title {
+    color: var(--wc-error, #DC2626);
+}
+
+/* Warning */
+.pf-v5-c-alert.pf-m-warning {
+    background-color: #FFFBEB;
+    border-color: #FDE68A;
+    color: #92400E;
+}
+
+.pf-v5-c-alert.pf-m-warning .pf-v5-c-alert__icon,
+.pf-v5-c-alert.pf-m-warning .pf-v5-c-alert__title {
+    color: #D97706;
+}
+
+/* Success */
+.pf-v5-c-alert.pf-m-success {
+    background-color: #ECFDF5;
+    border-color: #A7F3D0;
+    color: #065F46;
+}
+
+.pf-v5-c-alert.pf-m-success .pf-v5-c-alert__icon,
+.pf-v5-c-alert.pf-m-success .pf-v5-c-alert__title {
+    color: #059669;
+}
+
+/* Info */
+.pf-v5-c-alert.pf-m-info {
+    background-color: #EFF6FF;
+    border-color: #BFDBFE;
+    color: #1E3A5F;
+}
+
+.pf-v5-c-alert.pf-m-info .pf-v5-c-alert__icon,
+.pf-v5-c-alert.pf-m-info .pf-v5-c-alert__title {
+    color: #2563EB;
+}
+
+/* Inline field-level errors */
+.pf-v5-c-form__helper-text.pf-m-error,
+#input-error,
+.kc-feedback-text {
+    color: var(--wc-error, #DC2626);
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+    display: block;
 }
 
 /* ------------------------------------------------------------------ */
-/* Header / Branding                                                    */
+/* Social / Identity Provider buttons                                  */
 /* ------------------------------------------------------------------ */
 
-/* Keycloak-eigenes Logo-Div ausblenden — wir rendern unser Branding */
-div.kc-logo-text {
-    display: none;
+#kc-social-providers {
+    margin-top: 1.25rem;
 }
 
-#kc-header-wrapper {
+.pf-v5-c-login__main-footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pf-v5-c-login__main-footer-links-item a {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem 0;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--wc-input-border, #D6D3D1);
+    border-radius: var(--wc-radius, 0.5rem);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--wc-text, #1C1917);
+    background-color: var(--wc-card, #FFFFFF);
+    transition: background-color 0.15s ease;
+    text-decoration: none;
 }
 
-/* Logo-Bild */
-.wc-brand-logo {
-    max-height: 48px;
-    max-width: 240px;
-    object-fit: contain;
+.pf-v5-c-login__main-footer-links-item a:hover {
+    background-color: var(--wc-bg, #FAFAF9);
+    text-decoration: none;
 }
 
-/* Text-Fallback wenn kein Logo gesetzt */
-.wc-brand-name {
-    font-size: 1.75rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    color: var(--pf-v5-global--Color--light-100, #ffffff);
-    text-transform: uppercase;
+/* OR divider */
+.pf-v5-c-login__main-footer-band {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1rem 0;
+    color: var(--wc-text-muted, #78716C);
+    font-size: 0.8125rem;
+}
+
+.pf-v5-c-login__main-footer-band::before,
+.pf-v5-c-login__main-footer-band::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--wc-card-border, #E7E5E4);
 }
 
 /* ------------------------------------------------------------------ */
-/* Hintergrund                                                          */
+/* Language Switcher                                                    */
 /* ------------------------------------------------------------------ */
 
-.login-pf body {
-    background: linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--wc-primary) 90%, black) 0%,
-        color-mix(in srgb, var(--wc-primary) 70%, black) 100%
-    );
-    background-size: cover;
-    height: 100%;
+#kc-locale {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+#kc-locale-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+#kc-locale-dropdown {
+    position: relative;
+}
+
+#kc-current-locale-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--wc-text-muted, #78716C);
+    border: 1px solid var(--wc-card-border, #E7E5E4);
+    border-radius: var(--wc-radius, 0.5rem);
+    background-color: var(--wc-card, #FFFFFF);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+#kc-current-locale-link:hover {
+    color: var(--wc-text, #1C1917);
+    border-color: var(--wc-input-border, #D6D3D1);
+    text-decoration: none;
+}
+
+.pf-v5-c-dropdown__menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    min-width: 140px;
+    background-color: var(--wc-card, #FFFFFF);
+    border: 1px solid var(--wc-card-border, #E7E5E4);
+    border-radius: var(--wc-radius, 0.5rem);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+    list-style: none;
+    padding: 0.25rem;
+    margin: 0;
+    z-index: 100;
+}
+
+.pf-v5-c-dropdown__menu-item {
+    padding: 0.375rem 0.625rem;
+    border-radius: calc(var(--wc-radius, 0.5rem) * 0.75);
+    font-size: 0.8125rem;
+    color: var(--wc-text, #1C1917);
+    cursor: pointer;
+}
+
+.pf-v5-c-dropdown__menu-item:hover {
+    background-color: var(--wc-bg, #FAFAF9);
+}
+
+/* ------------------------------------------------------------------ */
+/* Footer links (register / forgot password)                           */
+/* ------------------------------------------------------------------ */
+
+#kc-registration,
+.login-pf-page-accounts {
+    font-size: 0.875rem;
+    color: var(--wc-text-muted, #78716C);
+    text-align: center;
+    margin-top: 1rem;
+}
+
+#kc-registration a,
+.login-pf-page-accounts a {
+    font-weight: 500;
+}
+
+/* ------------------------------------------------------------------ */
+/* Noscript fallback (invite flow)                                      */
+/* ------------------------------------------------------------------ */
+
+.wc-noscript-card {
+    width: 100%;
+    max-width: 420px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: var(--wc-card, #FFFFFF);
+    border: 1px solid var(--wc-card-border, #E7E5E4);
+    border-radius: calc(var(--wc-radius, 0.5rem) * 1.5);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
+    text-align: center;
+    font-family: var(--wc-font, system-ui, -apple-system, sans-serif);
+    color: var(--wc-text, #1C1917);
+}
+
+.wc-noscript-card p {
+    font-size: 0.9375rem;
+    color: var(--wc-text-muted, #78716C);
+    margin-bottom: 1.5rem;
+}
+
+.wc-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.5rem;
+    background-color: var(--wc-primary, #6366F1);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--wc-radius, 0.5rem);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.wc-btn-primary:hover {
+    background-color: var(--wc-primary-hover, #4F46E5);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.wc-btn-primary:focus-visible {
+    outline: 2px solid var(--wc-focus-ring, #6366F1);
+    outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive                                                           */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 639px) {
+    .pf-v5-c-login {
+        padding: 0;
+        justify-content: flex-start;
+    }
+
+    .pf-v5-c-login__container {
+        max-width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        box-shadow: none;
+    }
+
+    #kc-locale {
+        position: static;
+        text-align: right;
+        margin-bottom: 1rem;
+    }
+}
+
+@media (min-width: 640px) {
+    .pf-v5-c-login__container {
+        max-width: 420px;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* Dark Mode                                                            */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-color-scheme: dark) {
+    html,
+    body,
+    .login-pf,
+    .login-pf body {
+        background-color: var(--wc-bg, #1C1917);
+        color: var(--wc-text, #FAFAF9);
+    }
+
+    .pf-v5-c-login {
+        background-color: var(--wc-bg, #1C1917);
+    }
+
+    .pf-v5-c-login__container {
+        background-color: var(--wc-card, #292524);
+        border-color: var(--wc-card-border, #44403C);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    #kc-page-title,
+    .pf-v5-c-title,
+    .wc-brand-name,
+    .pf-v5-c-form__label,
+    .pf-v5-c-form__label-text,
+    .pf-v5-c-check__label {
+        color: var(--wc-text, #FAFAF9);
+    }
+
+    .pf-v5-c-form-control {
+        background-color: var(--wc-input-bg, #1C1917);
+        border-color: var(--wc-input-border, #57534E);
+    }
+
+    .pf-v5-c-form-control input,
+    .pf-v5-c-form-control select,
+    .pf-v5-c-form-control textarea {
+        color: var(--wc-text, #FAFAF9);
+    }
+
+    .pf-v5-c-form-control:focus-within {
+        border-color: var(--wc-focus-ring, #6366F1);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--wc-focus-ring, #6366F1) 30%, transparent);
+    }
+
+    .pf-v5-c-button.pf-m-secondary {
+        background-color: transparent;
+        border-color: var(--wc-input-border, #57534E);
+        color: var(--wc-text, #FAFAF9);
+    }
+
+    .pf-v5-c-button.pf-m-secondary:hover {
+        background-color: var(--wc-bg, #1C1917);
+    }
+
+    .pf-v5-c-input-group__item:last-child .pf-v5-c-button {
+        background-color: var(--wc-input-bg, #1C1917);
+        border-color: var(--wc-input-border, #57534E);
+        color: var(--wc-text-muted, #A8A29E);
+    }
+
+    .pf-v5-c-input-group__item:last-child .pf-v5-c-button:hover {
+        background-color: #292524;
+    }
+
+    .pf-v5-c-login__main-footer-links-item a {
+        background-color: var(--wc-card, #292524);
+        border-color: var(--wc-card-border, #44403C);
+        color: var(--wc-text, #FAFAF9);
+    }
+
+    .pf-v5-c-login__main-footer-links-item a:hover {
+        background-color: #1C1917;
+    }
+
+    .pf-v5-c-login__main-footer-band {
+        color: var(--wc-text-muted, #A8A29E);
+    }
+
+    .pf-v5-c-login__main-footer-band::before,
+    .pf-v5-c-login__main-footer-band::after {
+        background-color: var(--wc-card-border, #44403C);
+    }
+
+    #kc-registration,
+    .login-pf-page-accounts {
+        color: var(--wc-text-muted, #A8A29E);
+    }
+
+    #kc-current-locale-link {
+        background-color: var(--wc-card, #292524);
+        border-color: var(--wc-card-border, #44403C);
+        color: var(--wc-text-muted, #A8A29E);
+    }
+
+    #kc-current-locale-link:hover {
+        color: var(--wc-text, #FAFAF9);
+        border-color: var(--wc-input-border, #57534E);
+    }
+
+    .pf-v5-c-dropdown__menu {
+        background-color: var(--wc-card, #292524);
+        border-color: var(--wc-card-border, #44403C);
+    }
+
+    .pf-v5-c-dropdown__menu-item {
+        color: var(--wc-text, #FAFAF9);
+    }
+
+    .pf-v5-c-dropdown__menu-item:hover {
+        background-color: #1C1917;
+    }
+
+    /* Alert adjustments for dark mode */
+    .pf-v5-c-alert.pf-m-danger,
+    #kc-error-message {
+        background-color: rgba(220, 38, 38, 0.12);
+        border-color: rgba(220, 38, 38, 0.3);
+        color: #FCA5A5;
+    }
+
+    .pf-v5-c-alert.pf-m-warning {
+        background-color: rgba(217, 119, 6, 0.12);
+        border-color: rgba(217, 119, 6, 0.3);
+        color: #FCD34D;
+    }
+
+    .pf-v5-c-alert.pf-m-success {
+        background-color: rgba(5, 150, 105, 0.12);
+        border-color: rgba(5, 150, 105, 0.3);
+        color: #6EE7B7;
+    }
+
+    .pf-v5-c-alert.pf-m-info {
+        background-color: rgba(37, 99, 235, 0.12);
+        border-color: rgba(37, 99, 235, 0.3);
+        color: #93C5FD;
+    }
+
+    .wc-noscript-card {
+        background-color: var(--wc-card, #292524);
+        border-color: var(--wc-card-border, #44403C);
+        color: var(--wc-text, #FAFAF9);
+    }
+
+    .wc-noscript-card p {
+        color: var(--wc-text-muted, #A8A29E);
+    }
+}
+
+/* Welcome subtitle for invite/update-password flow */
+.wc-subtitle {
+    margin-top: -0.25rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.875rem;
+    color: var(--wc-text-muted, #78716C);
 }

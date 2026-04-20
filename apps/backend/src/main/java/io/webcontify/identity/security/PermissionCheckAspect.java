@@ -41,9 +41,12 @@ public class PermissionCheckAspect {
                 SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) authentication.getPrincipal());
 
-        UUID resourceId = null;
+        UUID resourceId;
         if (!requiresPermission.resourceId().isEmpty()) {
             resourceId = evaluateSpel(joinPoint, requiresPermission.resourceId());
+        } else {
+            // Default to tenantId so singleton resources like user_management:{tenantId} resolve correctly
+            resourceId = tenantInfo.tenantId();
         }
 
         var request = new CheckPermissionRequest(

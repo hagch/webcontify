@@ -13,6 +13,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
@@ -84,8 +85,10 @@ public class PlatformAdminController implements PlatformAdminsApi {
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
         response.setEnabled(user.isEnabled());
-        response.setCreatedAt(Instant.ofEpochMilli(user.getCreatedTimestamp())
-                .atOffset(ZoneOffset.UTC));
+        Long createdTimestamp = user.getCreatedTimestamp();
+        response.setCreatedAt(createdTimestamp != null
+                ? Instant.ofEpochMilli(createdTimestamp).atOffset(ZoneOffset.UTC)
+                : OffsetDateTime.now(ZoneOffset.UTC));
         return response;
     }
 }

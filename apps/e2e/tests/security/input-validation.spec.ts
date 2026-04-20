@@ -23,6 +23,7 @@ import {
   findKeycloakUserByEmail,
   setUserPassword,
   clearRequiredActions,
+  enableDirectAccessGrants,
 } from "../../helpers/keycloak-admin";
 import { getTenantUserToken } from "../../helpers/auth";
 
@@ -58,6 +59,7 @@ test.describe.serial("Input Validation @security", () => {
     }
     await setUserPassword(kcToken, tenantRealm, kcUser.id, ADMIN_PASSWORD);
     await clearRequiredActions(kcToken, tenantRealm, kcUser.id);
+    await enableDirectAccessGrants(kcToken, tenantRealm);
 
     tenantAdminToken = await getTenantUserToken(
       tenantRealm,

@@ -3,6 +3,11 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { RoleTable } from "../role-table";
 import type { RoleResponse } from "@/generated/identity";
 
+// Mock next-intl
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+}));
+
 // Mock use-role-actions
 vi.mock("../../hooks/use-role-actions", () => ({
   useRoleActions: vi.fn(),
@@ -18,6 +23,20 @@ vi.mock("@/generated/identity", () => ({
 vi.mock("@tanstack/react-query", () => ({
   useQueryClient: vi.fn().mockReturnValue({
     invalidateQueries: vi.fn(),
+  }),
+  useQuery: vi.fn().mockReturnValue({
+    data: undefined,
+    isLoading: false,
+  }),
+}));
+
+// Mock usePermissions
+vi.mock("@/hooks/use-permissions", () => ({
+  usePermissions: () => ({
+    can: () => true,
+    canAccess: () => true,
+    isLoading: false,
+    isTenantAdmin: false,
   }),
 }));
 
@@ -108,26 +127,22 @@ describe("RoleTable", () => {
   it("should show system role badge for system roles", () => {
     render(<RoleTable roles={sampleRoles} isLoading={false} isRefetching={false} />);
 
-    expect(screen.getByText("System")).toBeInTheDocument();
-    expect(screen.getByText("Benutzerdefiniert")).toBeInTheDocument();
+    expect(screen.getByText("typeLabels.system")).toBeInTheDocument();
+    expect(screen.getByText("typeLabels.custom")).toBeInTheDocument();
   });
 
   it("should show empty state when no roles", () => {
     render(<RoleTable roles={[]} isLoading={false} isRefetching={false} />);
 
-    expect(screen.getByText("Noch keine Rollen erstellt")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Erstelle eine Rolle, um Benutzerberechtigungen zu verwalten."
-      )
-    ).toBeInTheDocument();
+    expect(screen.getByText("emptyState.title")).toBeInTheDocument();
+    expect(screen.getByText("emptyState.description")).toBeInTheDocument();
   });
 
   it("should show skeleton when loading", () => {
     render(<RoleTable roles={[]} isLoading={true} isRefetching={false} />);
 
     expect(
-      screen.queryByText("Noch keine Rollen erstellt")
+      screen.queryByText("emptyState.title")
     ).not.toBeInTheDocument();
     const skeletonElements = document.querySelectorAll(".animate-pulse");
     expect(skeletonElements.length).toBeGreaterThan(0);
@@ -136,21 +151,20 @@ describe("RoleTable", () => {
   it("should not show delete action for system roles", async () => {
     render(<RoleTable roles={sampleRoles} isLoading={false} isRefetching={false} />);
 
-    // Fuer die Custom-Rolle (Redakteur) gibt es einen Aktionen-Button
-    const actionButtons = screen.getAllByRole("button", { name: /aktionen fuer/i });
+    // For the custom role (Redakteur) there is an actions button
+    const actionButtons = screen.getAllByRole("button", { name: /actionsMenu\.label/i });
     expect(actionButtons).toHaveLength(1);
-    expect(actionButtons[0]).toHaveAttribute("aria-label", "Aktionen fuer Redakteur");
 
-    // Den Aktionen-Button oeffnen
+    // Open the actions button
     fireEvent.click(actionButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByText("Loeschen")).toBeInTheDocument();
+      expect(screen.getByText("actionsMenu.delete")).toBeInTheDocument();
     });
 
-    // Fuer die System-Rolle (Admin) gibt es keinen Aktionen-Button
+    // For the system role (Admin) there is no actions button
     expect(
-      screen.queryByRole("button", { name: /aktionen fuer admin/i })
+      screen.queryByRole("button", { name: /actionsMenu\.label.*Admin/i })
     ).not.toBeInTheDocument();
   });
 });

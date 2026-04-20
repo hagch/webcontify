@@ -170,27 +170,24 @@ test.describe.serial("Role CRUD", () => {
         (await row.getByText("Admin").count()) > 0 &&
         (await row.getByTestId("system-role-badge").count()) > 0
       ) {
-        // Find the actions menu for this row and open it
+        // System roles should have no actions menu button at all
         const actionsMenu = row.getByRole("button", { name: /aktionen|actions/i });
-        if (await actionsMenu.isVisible({ timeout: 2000 }).catch(() => false)) {
-          await actionsMenu.click();
-        } else {
-          // Try data-testid pattern — id may vary, look for any menu trigger in the row
-          const menuTrigger = row.locator("[data-testid^='actions-menu-']");
-          await menuTrigger.click();
-        }
+        const hasActionsMenu = await actionsMenu.isVisible({ timeout: 2000 }).catch(() => false);
 
-        // Delete action should not be present or should be disabled
-        const deleteAction = page.getByRole("menuitem", {
-          name: /löschen|delete/i,
-        });
-        const isVisible = await deleteAction
-          .isVisible({ timeout: 3000 })
-          .catch(() => false);
-        if (isVisible) {
-          await expect(deleteAction).toBeDisabled();
+        if (hasActionsMenu) {
+          await actionsMenu.click();
+          // If menu opened, delete action must not be present or must be disabled
+          const deleteAction = page.getByRole("menuitem", {
+            name: /l[oö]schen|loeschen|delete/i,
+          });
+          const isVisible = await deleteAction
+            .isVisible({ timeout: 3000 })
+            .catch(() => false);
+          if (isVisible) {
+            await expect(deleteAction).toBeDisabled();
+          }
         }
-        // else: delete action is simply absent — that satisfies the requirement
+        // No actions menu = system role is protected — requirement satisfied
         break;
       }
     }
@@ -206,8 +203,8 @@ test.describe.serial("Role CRUD", () => {
     for (let i = 0; i < rowCount; i++) {
       const row = rows.nth(i);
       if ((await row.getByText("Senior Redakteur").count()) > 0) {
-        // Open actions menu via data-testid or role
-        const menuTrigger = row.locator("[data-testid^='actions-menu-']");
+        // Open actions menu via aria-label
+        const menuTrigger = row.getByRole("button", { name: /aktionen|actions/i });
         await menuTrigger.click();
         break;
       }
@@ -215,12 +212,12 @@ test.describe.serial("Role CRUD", () => {
 
     // Click delete in the dropdown
     await page
-      .getByRole("menuitem", { name: /löschen|delete/i })
+      .getByRole("menuitem", { name: /l[oö]schen|loeschen|delete/i })
       .click();
 
     // Confirm in the confirmation dialog
     const confirmButton = page.getByRole("button", {
-      name: /bestätigen|confirm|löschen|delete/i,
+      name: /best[aä]tigen|bestaetigen|confirm|l[oö]schen|loeschen|delete/i,
     });
     await expect(confirmButton).toBeVisible({ timeout: 10000 });
     await confirmButton.click();

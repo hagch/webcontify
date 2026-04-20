@@ -11,6 +11,7 @@ import io.webcontify.identity.repository.TenantUserRepository;
 import io.webcontify.identity.service.KeycloakAdminService;
 import io.webcontify.identity.service.OpenFgaService;
 import io.webcontify.identity.service.PermissionService;
+import io.webcontify.identity.service.RoleService;
 import io.webcontify.identity.service.TenantInfrastructureLookupService;
 import io.webcontify.shared.filestorage.FileStorageService;
 import io.webcontify.shared.model.AuditInfo;
@@ -48,6 +49,7 @@ class UserControllerIntegrationTest {
     @MockitoBean KeycloakAdminService keycloakAdminService;
     @MockitoBean OpenFgaService openFgaService;
     @MockitoBean PermissionService permissionService;
+    @MockitoBean RoleService roleService;
     @MockitoBean FileStorageService fileStorageService;
     @MockitoBean TenantInfrastructureLookupService lookupService;
 
@@ -101,7 +103,8 @@ class UserControllerIntegrationTest {
                 {
                     "email": "invited@test.com",
                     "firstName": "Max",
-                    "lastName": "Muster"
+                    "lastName": "Muster",
+                    "roleIds": ["00000000-0000-0000-0000-000000000010"]
                 }
                 """;
 

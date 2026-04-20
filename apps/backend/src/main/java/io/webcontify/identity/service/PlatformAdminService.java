@@ -49,7 +49,7 @@ public class PlatformAdminService {
         }
 
         keycloakAdminService.assignRealmRole(platformRealmName, userId, PLATFORM_ADMIN_ROLE);
-        keycloakAdminService.sendInviteEmail(new SendInviteEmailRequest(platformRealmName, userId));
+        keycloakAdminService.sendInviteEmail(new SendInviteEmailRequest(platformRealmName, userId, "http://platform.localhost"));
 
         log.info("Platform admin invited: id={}, email={}", userId, email);
         return userId;
@@ -104,12 +104,21 @@ public class PlatformAdminService {
             throw new BadRequestException("admin.cannot_delete_self");
         }
 
-        var enabledAdmins = keycloakAdminService.listUsersWithRole(platformRealmName, PLATFORM_ADMIN_ROLE)
-                .stream()
-                .filter(UserRepresentation::isEnabled)
-                .toList();
-        if (enabledAdmins.size() <= 1) {
-            throw new ConflictException("admin.last_admin_cannot_be_deleted");
+        var allAdmins = keycloakAdminService.listUsersWithRole(platformRealmName, PLATFORM_ADMIN_ROLE);
+        var adminToDelete = allAdmins.stream()
+                .filter(u -> adminId.toString().equals(u.getId()))
+                .findFirst()
+                .orElse(null);
+
+        // Only enforce the last-admin guard when deleting an enabled admin
+        boolean isDeletingEnabledAdmin = adminToDelete == null || adminToDelete.isEnabled();
+        if (isDeletingEnabledAdmin) {
+            var enabledAdmins = allAdmins.stream()
+                    .filter(UserRepresentation::isEnabled)
+                    .toList();
+            if (enabledAdmins.size() <= 1) {
+                throw new ConflictException("admin.last_admin_cannot_be_deleted");
+            }
         }
 
         keycloakAdminService.deleteUser(new DeleteKeycloakUserRequest(platformRealmName, adminId));

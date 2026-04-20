@@ -31,7 +31,7 @@ public class TenantFileController implements TenantFilesApi {
     private static final Logger log = LoggerFactory.getLogger(TenantFileController.class);
 
     private static final Set<String> ALLOWED_IMAGE_TYPES =
-            Set.of("image/png", "image/jpeg", "image/x-icon");
+            Set.of("image/png", "image/jpeg", "image/x-icon", "image/svg+xml");
     private static final long MAX_FILE_SIZE = 2L * 1024 * 1024; // 2MB
 
     private final TenantFileService tenantFileService;

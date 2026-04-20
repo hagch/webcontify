@@ -42,14 +42,14 @@ class TenantFileControllerValidationTest {
             UUID.fromString("00000000-0000-0000-0000-000000000003");
 
     @Test
-    void rejectsSvgUpload() throws Exception {
+    void acceptsSvgUpload() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "logo.svg", "image/svg+xml", "<svg/>".getBytes());
 
         mockMvc.perform(multipart("/api/v1/tenant/files")
                         .file(file)
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isCreated());
     }
 
     @Test

@@ -5,8 +5,8 @@ spring:
     url: jdbc:postgresql://localhost:5432/webcontify
   datasource:
     url: jdbc:postgresql://localhost:5432/webcontify
-    username: webcontify
-    password: webcontify
+    username: webcontify_app
+    password: webcontify_app
 
   mail:
     host: localhost
@@ -33,6 +33,7 @@ webcontify:
     key: bQdR9ppwkZBVvkN1B4Z/GTJv8Yg45qL7ZSVYLgFHiZA=
   s3:
     endpoint: http://localhost:9000
+    public-endpoint: http://s3-api.localhost
     region: us-east-1
     access-key: minioadmin
     secret-key: minioadmin

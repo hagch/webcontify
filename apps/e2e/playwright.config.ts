@@ -11,6 +11,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: process.env.CI ? "github" : "html",
+  timeout: 120000,
   use: {
     baseURL: process.env.BASE_URL ?? "http://platform.localhost",
     trace: "on-first-retry",
@@ -19,7 +20,13 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // Force IPv4 — Traefik listens on 0.0.0.0:80 but not on [::]:80
+        launchOptions: {
+          args: ["--disable-ipv6"],
+        },
+      },
     },
   ],
 });

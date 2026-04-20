@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -45,6 +46,7 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const createTenant = useCreateTenant();
+  const t = useTranslations("tenants");
 
   const form = useForm<CreateTenantFormValues>({
     resolver: zodResolver(createTenantSchema),
@@ -57,12 +59,11 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
   });
 
   async function onSubmit(values: CreateTenantFormValues) {
-    // Name-Eindeutigkeitsprüfung vor dem Erstellen
     try {
       const nameCheck = await checkTenantNameAvailability({ name: values.name });
       if (!nameCheck.data.available) {
         form.setError("name", {
-          message: "Dieser Name ist bereits vergeben. Bitte wähle einen anderen.",
+          message: t("createDialog.nameAlreadyExists"),
         });
         return;
       }
@@ -73,7 +74,7 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
     try {
       const response = await createTenant.mutateAsync({ data: values });
       if (response.status === 201) {
-        toast.success("Tenant wird erstellt...");
+        toast.success(t("createDialog.creatingToast"));
         setOpen(false);
         form.reset();
         router.push(`/tenants/${response.data.id}`);
@@ -93,11 +94,11 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
       }
       if (err.status === 409) {
         form.setError("name", {
-          message: "Dieser Name ist bereits vergeben. Bitte wähle einen anderen.",
+          message: t("createDialog.nameAlreadyExists"),
         });
         return;
       }
-      toast.error("Fehler beim Erstellen des Tenants. Bitte versuche es erneut.");
+      toast.error(t("createDialog.createError"));
     }
   }
 
@@ -106,9 +107,9 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
       <DialogTrigger render={children as React.ReactElement} />
       <DialogContent data-testid="create-tenant-dialog" className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Tenant erstellen</DialogTitle>
+          <DialogTitle>{t("createDialog.title")}</DialogTitle>
           <DialogDescription>
-            Erstelle einen neuen Tenant auf der Plattform.
+            {t("createDialog.description")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -120,7 +121,7 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Name <span className="text-destructive">*</span>
+                    {t("createDialog.nameLabel")} <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input data-testid="tenant-name-input" placeholder="Acme Corp" {...field} />
@@ -132,7 +133,7 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
 
             <Separator />
             <p className="text-sm font-medium text-muted-foreground">
-              Initialer Administrator
+              {t("createDialog.adminSection")}
             </p>
 
             {/* Sektion 2: Administrator */}
@@ -142,10 +143,10 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    E-Mail <span className="text-destructive">*</span>
+                    {t("createDialog.adminEmailLabel")} <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="admin@acme.com" {...field} />
+                    <Input data-testid="admin-email-input" type="email" placeholder={t("createDialog.adminEmailPlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -157,10 +158,10 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Vorname <span className="text-destructive">*</span>
+                    {t("createDialog.adminFirstNameLabel")} <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Max" {...field} />
+                    <Input data-testid="admin-firstname-input" placeholder={t("createDialog.adminFirstNamePlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -172,10 +173,10 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Nachname <span className="text-destructive">*</span>
+                    {t("createDialog.adminLastNameLabel")} <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Mustermann" {...field} />
+                    <Input data-testid="admin-lastname-input" placeholder={t("createDialog.adminLastNamePlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -188,13 +189,13 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
                 variant="outline"
                 onClick={() => setOpen(false)}
               >
-                Abbrechen
+                {t("createDialog.cancel")}
               </Button>
               <Button data-testid="create-tenant-submit" type="submit" aria-busy={createTenant.isPending}>
                 {createTenant.isPending && (
                   <Loader2 className="mr-2 size-4 animate-spin" />
                 )}
-                Erstellen
+                {t("createDialog.submit")}
               </Button>
             </DialogFooter>
           </form>

@@ -32,3 +32,9 @@ type role_management
     define editor: [user, role#assignee] or admin from tenant
     define deleter: [user, role#assignee] or admin from tenant
     define reader: [user, role#assignee] or editor or creator or deleter or admin from tenant
+
+type tenant_config
+  relations
+    define tenant: [tenant]
+    define editor: [user, role#assignee] or admin from tenant
+    define reader: [user, role#assignee] or editor or admin from tenant

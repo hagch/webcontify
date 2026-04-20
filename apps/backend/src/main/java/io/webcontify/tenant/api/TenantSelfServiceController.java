@@ -5,8 +5,8 @@ import io.webcontify.generated.model.TenantConfigResponse;
 import io.webcontify.generated.model.UpdateBrandingConfigRequest;
 import io.webcontify.shared.security.TenantAwareAuthentication;
 import io.webcontify.tenant.mapper.TenantConfigMapper;
-import io.webcontify.tenant.model.TenantConfig;
 import io.webcontify.tenant.service.TenantConfigService;
+import io.webcontify.tenant.service.TenantConfigService.TenantConfigWithInfo;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +42,8 @@ public class TenantSelfServiceController implements TenantSelfServiceApi {
             log.warn("Platform admin attempted to call self-service endpoint GET /api/v1/tenant/config");
             return ResponseEntity.status(403).build();
         }
-        TenantConfig config = tenantConfigService.getConfig(tenantId);
-        return ResponseEntity.ok(tenantConfigMapper.toResponse(config));
+        TenantConfigWithInfo result = tenantConfigService.getConfig(tenantId);
+        return ResponseEntity.ok(tenantConfigMapper.toResponse(result.config(), result.name(), result.slug()));
     }
 
     @Override
@@ -54,9 +54,9 @@ public class TenantSelfServiceController implements TenantSelfServiceApi {
             log.warn("Platform admin attempted to call self-service endpoint PUT /api/v1/tenant/config/branding");
             return ResponseEntity.status(403).build();
         }
-        TenantConfig config = tenantConfigService.updateBranding(
+        TenantConfigWithInfo result = tenantConfigService.updateBranding(
                 tenantId, tenantConfigMapper.toDomain(updateBrandingConfigRequest));
-        return ResponseEntity.ok(tenantConfigMapper.toResponse(config));
+        return ResponseEntity.ok(tenantConfigMapper.toResponse(result.config(), result.name(), result.slug()));
     }
 
     /**

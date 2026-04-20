@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,15 +41,16 @@ function formatDate(dateString: string): string {
 }
 
 function AdminTableSkeleton() {
+  const t = useTranslations("admins");
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>E-Mail</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Erstellt am</TableHead>
-          <TableHead className="text-right">Aktionen</TableHead>
+          <TableHead>{t("tableHeaders.name")}</TableHead>
+          <TableHead>{t("tableHeaders.email")}</TableHead>
+          <TableHead>{t("tableHeaders.status")}</TableHead>
+          <TableHead>{t("tableHeaders.createdAt")}</TableHead>
+          <TableHead className="text-right">{t("tableHeaders.actions")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -79,6 +81,7 @@ function AdminTableSkeleton() {
 export function AdminTable({ admins, isLoading, isRefetching }: AdminTableProps) {
   const [adminToDelete, setAdminToDelete] = useState<PlatformAdminResponse | null>(null);
   const { deleteAdmin, isDeletingAdmin } = useAdminActions();
+  const t = useTranslations("admins");
 
   if (isLoading) {
     return <AdminTableSkeleton />;
@@ -87,9 +90,9 @@ export function AdminTable({ admins, isLoading, isRefetching }: AdminTableProps)
   if (admins.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-        <p className="text-lg font-medium">Noch keine Administratoren</p>
+        <p className="text-lg font-medium">{t("emptyState.title")}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Lade einen Administrator ein, um die Plattform gemeinsam zu verwalten.
+          {t("emptyState.description")}
         </p>
       </div>
     );
@@ -113,11 +116,11 @@ export function AdminTable({ admins, isLoading, isRefetching }: AdminTableProps)
         <Table data-testid="admin-table">
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>E-Mail</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Erstellt am</TableHead>
-              <TableHead className="text-right">Aktionen</TableHead>
+              <TableHead>{t("tableHeaders.name")}</TableHead>
+              <TableHead>{t("tableHeaders.email")}</TableHead>
+              <TableHead>{t("tableHeaders.status")}</TableHead>
+              <TableHead>{t("tableHeaders.createdAt")}</TableHead>
+              <TableHead className="text-right">{t("tableHeaders.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -135,14 +138,14 @@ export function AdminTable({ admins, isLoading, isRefetching }: AdminTableProps)
                       variant="outline"
                       className="bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800"
                     >
-                      Aktiv
+                      {t("statusValues.active")}
                     </Badge>
                   ) : (
                     <Badge
                       variant="outline"
                       className="bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800"
                     >
-                      Deaktiviert
+                      {t("statusValues.deactivated")}
                     </Badge>
                   )}
                 </TableCell>
@@ -169,14 +172,13 @@ export function AdminTable({ admins, isLoading, isRefetching }: AdminTableProps)
       >
         <DialogContent data-testid="delete-admin-dialog" showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>Administrator entfernen</DialogTitle>
+            <DialogTitle>{t("deleteDialog.title")}</DialogTitle>
             <DialogDescription>
-              Moechtest du{" "}
-              <strong>
-                {adminToDelete?.firstName} {adminToDelete?.lastName}
-              </strong>{" "}
-              wirklich als Administrator entfernen? Diese Aktion kann nicht
-              rueckgaengig gemacht werden.
+              {t("deleteDialog.description", {
+                name: adminToDelete
+                  ? `${adminToDelete.firstName} ${adminToDelete.lastName}`
+                  : "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -187,7 +189,7 @@ export function AdminTable({ admins, isLoading, isRefetching }: AdminTableProps)
               onClick={() => setAdminToDelete(null)}
               disabled={isDeletingAdmin}
             >
-              Abbrechen
+              {t("deleteDialog.cancel")}
             </Button>
             <Button
               data-testid="delete-admin-confirm"
@@ -199,7 +201,7 @@ export function AdminTable({ admins, isLoading, isRefetching }: AdminTableProps)
               {isDeletingAdmin && (
                 <Loader2 className="mr-2 size-4 animate-spin" />
               )}
-              Entfernen
+              {t("deleteDialog.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

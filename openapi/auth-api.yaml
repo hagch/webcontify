@@ -47,6 +47,160 @@ paths:
         '401':
           description: Unauthorized
 
+  /api/v1/auth/profile:
+    put:
+      operationId: updateProfile
+      summary: Update own display name
+      description: Updates the first name and last name of the currently authenticated user in Keycloak.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyProfileResponse'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+
+  /api/v1/auth/profile/avatar:
+    post:
+      operationId: uploadAvatar
+      summary: Upload profile avatar
+      description: Uploads a JPEG or PNG avatar image (max 2 MB) for the authenticated user.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Avatar uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvatarUploadResponse'
+        '400':
+          description: Validation error (file too large or unsupported format)
+        '401':
+          description: Unauthorized
+
+    delete:
+      operationId: deleteAvatar
+      summary: Delete profile avatar
+      description: Deletes the avatar of the authenticated user. If no avatar exists the operation is a no-op.
+      tags:
+        - Auth
+      responses:
+        '204':
+          description: Avatar deleted (or no avatar existed)
+        '401':
+          description: Unauthorized
+
+    get:
+      operationId: getAvatar
+      summary: Get avatar pre-signed URL
+      description: Returns a 15-minute pre-signed URL for the avatar image.
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Avatar pre-signed URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvatarUploadResponse'
+        '404':
+          description: No avatar set
+        '401':
+          description: Unauthorized
+
+  /api/v1/auth/effective-permissions:
+    get:
+      operationId: getEffectivePermissions
+      tags:
+        - Auth
+      summary: Effective permissions of current user
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+            default: navigation
+      responses:
+        '200':
+          description: Effective permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EffectivePermissionsResponse'
+        '400':
+          description: Invalid scope
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+
+  /api/v1/auth/preferences:
+    get:
+      operationId: getPreferences
+      summary: Get user preferences
+      description: Returns the theme and locale preferences of the authenticated user.
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: User preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferencesResponse'
+        '401':
+          description: Unauthorized
+
+    put:
+      operationId: updatePreferences
+      summary: Update user preferences
+      description: Updates the theme and/or locale preferences of the authenticated user.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserPreferencesRequest'
+      responses:
+        '200':
+          description: Updated preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferencesResponse'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+
 components:
   schemas:
     MyProfileResponse:
@@ -56,6 +210,7 @@ components:
         - email
         - firstName
         - lastName
+        - hasAvatar
       properties:
         id:
           type: string
@@ -66,6 +221,10 @@ components:
           type: string
         lastName:
           type: string
+        hasAvatar:
+          type: boolean
+        preferences:
+          $ref: '#/components/schemas/UserPreferencesResponse'
 
     AccountUrlResponse:
       type: object
@@ -74,3 +233,72 @@ components:
       properties:
         url:
           type: string
+
+    UpdateProfileRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 255
+
+    UserPreferencesResponse:
+      type: object
+      properties:
+        theme:
+          type: string
+          enum:
+            - light
+            - dark
+            - system
+        locale:
+          type: string
+          enum:
+            - de
+            - en
+
+    UpdateUserPreferencesRequest:
+      type: object
+      properties:
+        theme:
+          type: string
+          enum:
+            - light
+            - dark
+            - system
+        locale:
+          type: string
+          enum:
+            - de
+            - en
+
+    AvatarUploadResponse:
+      type: object
+      required:
+        - avatarUrl
+      properties:
+        avatarUrl:
+          type: string
+
+    EffectivePermissionsResponse:
+      type: object
+      required:
+        - permissions
+        - isTenantAdmin
+      properties:
+        permissions:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Map of resourceType to list of granted actions
+        isTenantAdmin:
+          type: boolean

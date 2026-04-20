@@ -57,11 +57,11 @@ test.describe("Platform Admin Login @smoke", () => {
     // Click "Sign out"
     await platformAdminPage.getByTestId("nav-sign-out").click();
 
-    // Should redirect to Keycloak login or internal signin page
+    // Should redirect to signin page or Keycloak login
     await platformAdminPage.waitForURL(
       (url) =>
         url.href.includes("auth.localhost") ||
-        url.href.includes("/api/auth/signin"),
+        url.href.includes("/signin"),
       { timeout: 15000 }
     );
   });

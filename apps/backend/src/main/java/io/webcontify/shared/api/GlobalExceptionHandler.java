@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -50,6 +51,11 @@ public class GlobalExceptionHandler {
                         .map(e -> new FieldError(e.getField(), e.getDefaultMessage()))
                         .toList());
         return detail;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail handleAccessDeniedException(AccessDeniedException ex) {
+        return createProblemDetail(HttpStatus.FORBIDDEN, "access.denied");
     }
 
     @ExceptionHandler(Exception.class)

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -123,6 +124,38 @@ public class OpenFgaService {
                     .toList();
         } catch (Exception e) {
             throw new RuntimeException("OpenFGA readTuples failed", e);
+        }
+    }
+
+    public OpenFgaBatchCheckResponse batchCheck(OpenFgaBatchCheckRequest request) {
+        try {
+            var checks = request.checks().stream()
+                    .map(check -> {
+                        var subject = check.userSubject() != null ? check.userSubject() : "user:" + check.userId();
+                        var object = buildObject(check.resourceType(), check.resourceId());
+                        return new ClientCheckRequest()
+                                .user(subject)
+                                .relation(check.action())
+                                ._object(object);
+                    })
+                    .toList();
+
+            client.setStoreId(request.storeId());
+            var responses = client.batchCheck(checks, new ClientBatchCheckOptions()).get();
+
+            var results = new HashMap<String, Boolean>();
+            for (var response : responses) {
+                var req = response.getRequest();
+                var objectParts = req.getObject().split(":");
+                var key = req.getRelation() + ":" + objectParts[0];
+                results.put(key, Boolean.TRUE.equals(response.getAllowed()));
+            }
+
+            log.debug("OpenFGA batchCheck storeId={} checks={} results={}",
+                    request.storeId(), checks.size(), results.size());
+            return new OpenFgaBatchCheckResponse(results);
+        } catch (Exception e) {
+            throw new RuntimeException("OpenFGA batchCheck failed", e);
         }
     }
 

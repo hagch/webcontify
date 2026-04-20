@@ -35,7 +35,14 @@ class TenantBrandingSyncListenerTest {
                 "tenant-acme",
                 "#112233",
                 "#445566",
-                "https://s3.example.com/tenant-acme/config/logo.png");
+                "#10B981",
+                "#EF4444",
+                "#059669",
+                "#F59E0B",
+                "inter",
+                "0.5rem",
+                "https://s3.example.com/tenant-acme/config/logo.png",
+                null);
 
         listener.onBrandingUpdated(event);
 
@@ -50,6 +57,12 @@ class TenantBrandingSyncListenerTest {
         assertThat(request.brandingAttributes()).containsEntry("brandSecondaryColor", "#445566");
         assertThat(request.brandingAttributes()).containsEntry("brandLogo",
                 "https://s3.example.com/tenant-acme/config/logo.png");
+        assertThat(request.brandingAttributes()).containsEntry("brandAccentColor", "#10B981");
+        assertThat(request.brandingAttributes()).containsEntry("brandDangerColor", "#EF4444");
+        assertThat(request.brandingAttributes()).containsEntry("brandSuccessColor", "#059669");
+        assertThat(request.brandingAttributes()).containsEntry("brandWarningColor", "#F59E0B");
+        assertThat(request.brandingAttributes()).containsEntry("brandFontFamily", "'Inter', sans-serif");
+        assertThat(request.brandingAttributes()).containsEntry("brandBorderRadius", "0.5rem");
     }
 
     @Test
@@ -60,6 +73,8 @@ class TenantBrandingSyncListenerTest {
                 "tenant-acme",
                 "not-a-hex",
                 "#445566",
+                null, null, null, null, null, null,
+                null,
                 null);
 
         listener.onBrandingUpdated(event);
@@ -80,8 +95,9 @@ class TenantBrandingSyncListenerTest {
                 "Acme Corp",
                 "tenant-acme",
                 "#112233",
-                null,
-                "javascript:alert(1)");
+                null, null, null, null, null, null, null,
+                "javascript:alert(1)",
+                null);
 
         listener.onBrandingUpdated(event);
 
@@ -94,12 +110,94 @@ class TenantBrandingSyncListenerTest {
     }
 
     @Test
+    void skipsInvalidFontFamily() {
+        var event = new TenantBrandingUpdatedEvent(
+                UUID.randomUUID(),
+                "Acme Corp",
+                "tenant-acme",
+                "#112233",
+                null, null, null, null, null,
+                "comic-sans",
+                null,
+                null,
+                null);
+
+        var attributes = listener.buildAttributes(event);
+        assertThat(attributes).doesNotContainKey("brandFontFamily");
+    }
+
+    @Test
+    void skipsInvalidBorderRadius() {
+        var event = new TenantBrandingUpdatedEvent(
+                UUID.randomUUID(),
+                "Acme Corp",
+                "tenant-acme",
+                "#112233",
+                null, null, null, null, null, null,
+                "99px",
+                null,
+                null);
+
+        var attributes = listener.buildAttributes(event);
+        assertThat(attributes).doesNotContainKey("brandBorderRadius");
+    }
+
+    @Test
+    void mapsRobotoFontToCss() {
+        var event = new TenantBrandingUpdatedEvent(
+                UUID.randomUUID(),
+                "Acme Corp",
+                "tenant-acme",
+                null, null, null, null, null, null,
+                "roboto",
+                null,
+                null,
+                null);
+
+        var attributes = listener.buildAttributes(event);
+        assertThat(attributes).containsEntry("brandFontFamily", "'Roboto', sans-serif");
+    }
+
+    @Test
+    void mapsMerriweatherFontToCssWithSerifStack() {
+        var event = new TenantBrandingUpdatedEvent(
+                UUID.randomUUID(),
+                "Acme Corp",
+                "tenant-acme",
+                null, null, null, null, null, null,
+                "merriweather",
+                null,
+                null,
+                null);
+
+        var attributes = listener.buildAttributes(event);
+        assertThat(attributes).containsEntry("brandFontFamily", "'Merriweather', serif");
+    }
+
+    @Test
+    void unknownFontFallsBackToSystemUi() {
+        var event = new TenantBrandingUpdatedEvent(
+                UUID.randomUUID(),
+                "Acme Corp",
+                "tenant-acme",
+                null, null, null, null, null, null,
+                "system",
+                null,
+                null,
+                null);
+
+        var attributes = listener.buildAttributes(event);
+        assertThat(attributes).containsEntry("brandFontFamily", "system-ui, sans-serif");
+    }
+
+    @Test
     void handlesKeycloakFailureGracefully() {
         var event = new TenantBrandingUpdatedEvent(
                 UUID.randomUUID(),
                 "Acme Corp",
                 "tenant-acme",
                 "#112233",
+                null, null, null, null, null, null, null,
                 null,
                 null);
 

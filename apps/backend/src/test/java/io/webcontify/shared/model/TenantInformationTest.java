@@ -26,12 +26,14 @@ class TenantInformationTest {
     }
 
     @Test
-    void shouldRejectPlatformAdminWithTenantId() {
+    void shouldAllowPlatformAdminWithTenantId() {
         UUID tenantId = UUID.randomUUID();
 
-        assertThatThrownBy(() -> new TenantInformation(tenantId, true))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Platform admin must not have a tenant ID");
+        // Platform admins can have a tenantId when operating on a tenant subdomain
+        TenantInformation info = new TenantInformation(tenantId, true);
+
+        assertThat(info.tenantId()).isEqualTo(tenantId);
+        assertThat(info.platformAdmin()).isTrue();
     }
 
     @Test

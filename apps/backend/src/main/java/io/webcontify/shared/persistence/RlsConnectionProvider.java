@@ -34,7 +34,7 @@ public class RlsConnectionProvider implements MultiTenantConnectionProvider<Stri
         Connection connection = dataSource.getConnection();
         if (!PLATFORM_TENANT_CONTEXT.equals(tenantId)) {
             try (PreparedStatement ps = connection.prepareStatement(
-                    "SELECT set_config('app.tenant_id', ?, true)")) {
+                    "SELECT set_config('app.tenant_id', ?, false)")) {
                 ps.setString(1, tenantId);
                 ps.execute();
             }

@@ -94,7 +94,8 @@ class PlatformAdminServiceTest {
             verify(keycloakAdminService).assignRealmRole(PLATFORM_REALM, newAdminId, "PLATFORM_ADMIN");
             verify(keycloakAdminService).sendInviteEmail(argThat(req ->
                     req.realmName().equals(PLATFORM_REALM) &&
-                    req.userId().equals(newAdminId)));
+                    req.userId().equals(newAdminId) &&
+                    req.redirectUri().equals("http://platform.localhost")));
         }
 
         @Test

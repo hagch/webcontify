@@ -130,12 +130,10 @@ public class TenantProvisioningListener {
             TenantRoleEntity adminRole;
             TenantRoleEntity editorRole;
             TenantRoleEntity viewerRole;
-            TenantRoleEntity inviterRole;
             try {
                 adminRole = createSystemRole(event.tenantId(), "Admin");
                 editorRole = createSystemRole(event.tenantId(), "Editor");
                 viewerRole = createSystemRole(event.tenantId(), "Viewer");
-                inviterRole = createSystemRole(event.tenantId(), "Inviter");
 
                 var userEntity = new TenantUserEntity();
                 userEntity.setId(keycloakUserId);
@@ -153,7 +151,6 @@ public class TenantProvisioningListener {
             String adminRoleId = adminRole.getId().toString();
             String editorRoleId = editorRole.getId().toString();
             String viewerRoleId = viewerRole.getId().toString();
-            String inviterRoleId = inviterRole.getId().toString();
 
             var tuples = new ArrayList<RelationshipTuple>();
 
@@ -162,11 +159,10 @@ public class TenantProvisioningListener {
             tuples.add(new RelationshipTuple("tenant:" + tid, "tenant", "role_management:" + tid));
             tuples.add(new RelationshipTuple("tenant:" + tid, "tenant", "tenant_config:" + tid));
 
-            // Role-tenant membership for all 4 roles
+            // Role-tenant membership for all 3 roles
             tuples.add(new RelationshipTuple("tenant:" + tid, "tenant", "role:" + adminRoleId));
             tuples.add(new RelationshipTuple("tenant:" + tid, "tenant", "role:" + editorRoleId));
             tuples.add(new RelationshipTuple("tenant:" + tid, "tenant", "role:" + viewerRoleId));
-            tuples.add(new RelationshipTuple("tenant:" + tid, "tenant", "role:" + inviterRoleId));
 
             // Admin role: full management permissions
             tuples.add(new RelationshipTuple("role:" + adminRoleId + "#assignee", "inviter", "user_management:" + tid));
@@ -177,13 +173,6 @@ public class TenantProvisioningListener {
             tuples.add(new RelationshipTuple("role:" + adminRoleId + "#assignee", "deleter", "role_management:" + tid));
             tuples.add(new RelationshipTuple("role:" + adminRoleId + "#assignee", "editor",  "tenant_config:" + tid));
 
-            // Inviter role: can invite users
-            tuples.add(new RelationshipTuple("role:" + inviterRoleId + "#assignee", "inviter", "user_management:" + tid));
-
-            // Editor + Viewer: can read tenant config
-            tuples.add(new RelationshipTuple("role:" + editorRoleId  + "#assignee", "reader", "tenant_config:" + tid));
-            tuples.add(new RelationshipTuple("role:" + viewerRoleId  + "#assignee", "reader", "tenant_config:" + tid));
-
             // tenant#admin tuple for computed usersets (must remain)
             tuples.add(new RelationshipTuple("user:" + keycloakUserId, "admin", "tenant:" + tid));
 
@@ -193,7 +182,7 @@ public class TenantProvisioningListener {
             openFgaService.write(new OpenFgaWriteRequest(adminStoreId, tuples));
 
             keycloakAdminService.sendInviteEmail(
-                    new SendInviteEmailRequest(adminRealmName, keycloakUserId));
+                    new SendInviteEmailRequest(adminRealmName, keycloakUserId, "http://" + event.slug() + ".localhost"));
         })) {
             persistAndReturn(event, steps, initialStatus, false, null);
             return;

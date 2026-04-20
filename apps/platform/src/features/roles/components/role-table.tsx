@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2, Shield, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import type { RoleResponse } from "@/generated/identity";
 import { useRoleActions } from "../hooks/use-role-actions";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface RoleTableProps {
   roles: RoleResponse[];
@@ -40,15 +42,16 @@ interface RoleTableProps {
 }
 
 function RoleTableSkeleton() {
+  const t = useTranslations("roles");
   return (
     <Table data-testid="table-skeleton">
       <TableHeader>
         <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Beschreibung</TableHead>
-          <TableHead>Typ</TableHead>
-          <TableHead>Mitglieder</TableHead>
-          <TableHead className="text-right">Aktionen</TableHead>
+          <TableHead>{t("tableHeaders.name")}</TableHead>
+          <TableHead>{t("tableHeaders.description")}</TableHead>
+          <TableHead>{t("tableHeaders.type")}</TableHead>
+          <TableHead>{t("tableHeaders.members")}</TableHead>
+          <TableHead className="text-right">{t("tableHeaders.actions")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -79,7 +82,12 @@ function RoleTableSkeleton() {
 export function RoleTable({ roles, isLoading, isRefetching }: RoleTableProps) {
   const [roleToDelete, setRoleToDelete] = useState<RoleResponse | null>(null);
   const { deleteRole, isDeletingRole } = useRoleActions();
+  const { can } = usePermissions();
   const router = useRouter();
+  const t = useTranslations("roles");
+
+  const canEditRole = can("role_management", "editor");
+  const canDeleteRole = can("role_management", "deleter");
 
   if (isLoading) {
     return <RoleTableSkeleton />;
@@ -88,9 +96,9 @@ export function RoleTable({ roles, isLoading, isRefetching }: RoleTableProps) {
   if (roles.length === 0) {
     return (
       <div data-testid="empty-state" className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-        <p className="text-lg font-medium">Noch keine Rollen erstellt</p>
+        <p className="text-lg font-medium">{t("emptyState.title")}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Erstelle eine Rolle, um Benutzerberechtigungen zu verwalten.
+          {t("emptyState.description")}
         </p>
       </div>
     );
@@ -114,11 +122,11 @@ export function RoleTable({ roles, isLoading, isRefetching }: RoleTableProps) {
         <Table data-testid="role-table">
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Beschreibung</TableHead>
-              <TableHead>Typ</TableHead>
-              <TableHead>Mitglieder</TableHead>
-              <TableHead className="text-right">Aktionen</TableHead>
+              <TableHead>{t("tableHeaders.name")}</TableHead>
+              <TableHead>{t("tableHeaders.description")}</TableHead>
+              <TableHead>{t("tableHeaders.type")}</TableHead>
+              <TableHead>{t("tableHeaders.members")}</TableHead>
+              <TableHead className="text-right">{t("tableHeaders.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -134,24 +142,25 @@ export function RoleTable({ roles, isLoading, isRefetching }: RoleTableProps) {
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {role.description ?? (
-                    <span className="italic">Keine Beschreibung</span>
+                    <span className="italic">{t("noDescription")}</span>
                   )}
                 </TableCell>
                 <TableCell>
                   {role.systemRole ? (
                     <Badge
+                      data-testid="system-role-badge"
                       variant="outline"
                       className="bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800"
                     >
                       <Shield className="mr-1 size-3" />
-                      System
+                      {t("typeLabels.system")}
                     </Badge>
                   ) : (
                     <Badge
                       variant="outline"
                       className="bg-stone-100 text-stone-600 border-stone-200 dark:bg-stone-900/30 dark:text-stone-400 dark:border-stone-800"
                     >
-                      Benutzerdefiniert
+                      {t("typeLabels.custom")}
                     </Badge>
                   )}
                 </TableCell>
@@ -159,34 +168,38 @@ export function RoleTable({ roles, isLoading, isRefetching }: RoleTableProps) {
                   {role.assigneeCount}
                 </TableCell>
                 <TableCell className="text-right">
-                  {!role.systemRole && (
+                  {!role.systemRole && (canEditRole || canDeleteRole) && (
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={
                           <Button
                             variant="ghost"
                             size="icon"
-                            aria-label={`Aktionen fuer ${role.name}`}
+                            aria-label={t("actionsMenu.label", { name: role.name })}
                           />
                         }
                       >
                         <MoreHorizontal className="size-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => router.push(`/roles/${role.id}`)}
-                        >
-                          <Pencil className="mr-2 size-4" />
-                          Bearbeiten
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onClick={() => setRoleToDelete(role)}
-                        >
-                          <Trash2 className="mr-2 size-4" />
-                          Loeschen
-                        </DropdownMenuItem>
+                        {canEditRole && (
+                          <DropdownMenuItem
+                            onClick={() => router.push(`/roles/${role.id}`)}
+                          >
+                            <Pencil className="mr-2 size-4" />
+                            {t("actionsMenu.edit")}
+                          </DropdownMenuItem>
+                        )}
+                        {canEditRole && canDeleteRole && <DropdownMenuSeparator />}
+                        {canDeleteRole && (
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => setRoleToDelete(role)}
+                          >
+                            <Trash2 className="mr-2 size-4" />
+                            {t("actionsMenu.delete")}
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
@@ -205,11 +218,9 @@ export function RoleTable({ roles, isLoading, isRefetching }: RoleTableProps) {
       >
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>Rolle loeschen</DialogTitle>
+            <DialogTitle>{t("deleteDialog.title")}</DialogTitle>
             <DialogDescription>
-              Moechtest du die Rolle{" "}
-              <strong>{roleToDelete?.name}</strong> wirklich loeschen? Diese
-              Aktion kann nicht rueckgaengig gemacht werden.
+              {t("deleteDialog.description", { name: roleToDelete?.name ?? "" })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -219,7 +230,7 @@ export function RoleTable({ roles, isLoading, isRefetching }: RoleTableProps) {
               onClick={() => setRoleToDelete(null)}
               disabled={isDeletingRole}
             >
-              Abbrechen
+              {t("deleteDialog.cancel")}
             </Button>
             <Button
               type="button"
@@ -230,7 +241,7 @@ export function RoleTable({ roles, isLoading, isRefetching }: RoleTableProps) {
               {isDeletingRole && (
                 <Loader2 className="mr-2 size-4 animate-spin" />
               )}
-              Loeschen
+              {t("deleteDialog.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

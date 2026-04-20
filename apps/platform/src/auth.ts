@@ -33,6 +33,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async () => {
     session: {
       strategy: "jwt",
     },
+    events: {
+      async signOut(message) {
+        // End Keycloak session server-side (best-effort)
+        const token = "token" in message ? message.token : null;
+        if (token?.idToken && token?.issuer) {
+          const logoutUrl = new URL(`${token.issuer}/protocol/openid-connect/logout`);
+          logoutUrl.searchParams.set("id_token_hint", String(token.idToken));
+          try {
+            await fetch(logoutUrl.toString());
+          } catch (e) {
+            console.error("Keycloak logout failed", e);
+          }
+        }
+      },
+    },
     callbacks: {
       async jwt({ token, account }) {
         if (account) {
@@ -40,9 +55,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async () => {
           token.refreshToken = account.refresh_token;
           token.expiresAt = account.expires_at;
           token.idToken = account.id_token;
-          // Issuer und ClientId speichern fuer Token-Refresh
+          // Issuer, ClientId und Origin-Host speichern
           token.issuer = issuer;
           token.clientId = clientId;
+          token.originHost = host;
         }
 
         if (!token.refreshToken) {
@@ -58,6 +74,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async () => {
       },
       async session({ session, token }) {
         session.accessToken = token.accessToken as string | undefined;
+        session.idToken = token.idToken as string | undefined;
+        session.issuer = token.issuer as string | undefined;
         session.error = token.error as string | undefined;
         return session;
       },

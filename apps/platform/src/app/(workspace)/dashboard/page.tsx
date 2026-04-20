@@ -4,9 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function DashboardPage() {
   return (
     <>
-      <AppHeader breadcrumbs={[{ label: "Dashboard" }]} />
+      <AppHeader mode="list" title="Dashboard" />
       <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="pb-2">

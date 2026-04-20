@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   useDeletePlatformAdmin,
@@ -11,19 +12,18 @@ import {
 
 export function useAdminActions() {
   const queryClient = useQueryClient();
+  const t = useTranslations("admins");
 
   const deleteMutation = useDeletePlatformAdmin({
     mutation: {
       onSuccess: () => {
-        toast.success("Administrator wurde entfernt.");
+        toast.success(t("toasts.deleted"));
         queryClient.invalidateQueries({
           queryKey: getListPlatformAdminsQueryKey(),
         });
       },
       onError: () => {
-        toast.error(
-          "Fehler beim Entfernen des Administrators. Bitte versuche es erneut."
-        );
+        toast.error(t("toasts.deleteError"));
       },
     },
   });
@@ -32,17 +32,18 @@ export function useAdminActions() {
     mutation: {
       onSuccess: (response) => {
         if (response.status === 200) {
-          const label = response.data.enabled ? "aktiviert" : "deaktiviert";
-          toast.success(`Administrator wurde ${label}.`);
+          toast.success(
+            response.data.enabled
+              ? t("toasts.activated")
+              : t("toasts.deactivated")
+          );
           queryClient.invalidateQueries({
             queryKey: getListPlatformAdminsQueryKey(),
           });
         }
       },
       onError: () => {
-        toast.error(
-          "Fehler beim Aktualisieren des Status. Bitte versuche es erneut."
-        );
+        toast.error(t("toasts.statusError"));
       },
     },
   });
@@ -50,14 +51,10 @@ export function useAdminActions() {
   const resetPasswordMutation = useResetPlatformAdminPassword({
     mutation: {
       onSuccess: () => {
-        toast.success(
-          "Passwort-Reset wurde ausgeloest. Der Administrator erhaelt eine E-Mail."
-        );
+        toast.success(t("toasts.passwordReset"));
       },
       onError: () => {
-        toast.error(
-          "Fehler beim Passwort-Reset. Bitte versuche es erneut."
-        );
+        toast.error(t("toasts.passwordResetError"));
       },
     },
   });

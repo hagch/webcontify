@@ -226,16 +226,83 @@
 | 3f.9 | Done | Security Tests (Cross-Tenant Isolation, Permissions, Unauthorized, Input Validation) |
 | 3f.10 | Done | Alte E2E Dateien migriert + geloescht, Frontend Build OK |
 
-## Phase 3g: Identity & Access — noch offen
+## Phase 3g — i18n + Invite Fix + Profile Self-Service (2026-03-20)
+
+### Part 1: i18n Audit + Invite Flow Fix
 
 | Task | Status | Beschreibung |
 |---|---|---|
-| 3g | Offen | Tenant Self-Service User Management |
+| 3g.1 | Done | i18n: Cookie-basiertes Locale-Switching, vollstaendige en.json + de.json |
+| 3g.2 | Done | i18n: 18 Komponenten auf useTranslations() migriert |
+| 3g.3 | Done | Invite: roleIds Pflichtfeld, tenant#admin entfernt, Privilege Escalation Check |
+| 3g.4 | Done | Invite: Role Multi-Select (Checkbox-Gruppe) im Invite-Dialog |
+| 3g.5 | Done | E2E Tests angepasst fuer roleIds, Backend + Frontend Tests gruen |
+
+### Part 2: User Self-Service Profil
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 3g.6 | Done | Backend: Avatar Upload (S3, Magic Bytes), Preferences (Keycloak Attributes), Profile Update |
+| 3g.7 | Done | Frontend: Profil-Seite (Avatar, Name, Passwort, Praeferenzen) + UI/UX Review |
+| 3g.8 | Done | Build Verification, PROGRESS.md |
+
+## Phase 3h — Permission-Aware Navigation (2026-03-22)
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 3h.1 | Done | OpenFGA Model: tenant_config Typ hinzugefuegt |
+| 3h.2 | Done | OpenFgaService: batchCheck() implementiert |
+| 3h.3 | Done | OpenAPI Spec: effective-permissions + set-role-permissions Endpoints |
+| 3h.4 | Done | AuthService: getEffectivePermissions() mit BatchCheck |
+| 3h.5 | Done | RoleService: setPermissions() + Delete Cleanup + BatchCheck Migration |
+| 3h.6 | Done | Provisioning: Editor/Viewer Singleton-Tuples entfernt |
+| 3h.7 | Done | Frontend: usePermissions Hook + Orval Regeneration |
+| 3h.8 | Done | Frontend: Permission-aware Navigation |
+| 3h.9 | Done | Frontend: Permission Guards auf Workspace-Seiten |
+| 3h.10 | Done | Frontend: Editierbare Permission-Toggles auf Role-Detail |
+| 3h.11 | Done | E2E Tests: Permission-Aware Navigation (6 Tests) + 3 Bugfixes |
+| 3h.12 | Done | Build Verification: Backend + Frontend Tests gruen, Build OK |
+
+## Phase 3i — Branding Enhancements (2026-03-24)
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 3i.1 | Done | OpenAPI: TenantConfigResponse um name/slug, BrandingConfig um severity colors |
+| 3i.2 | Done | Backend: BrandingConfig Record + Event + Listener um severity colors erweitert |
+| 3i.3 | Done | Backend: TenantConfigWithInfo Wrapper mit name/slug, Controller + Service angepasst |
+| 3i.4 | Done | Backend Tests: Alle 4 Testklassen auf neue Record-Signaturen aktualisiert |
+| 3i.5 | Done | shadcn Color Picker: Popover mit HSV Farbfeld, Hue Slider, Hex Input |
+| 3i.6 | Done | Logo Upload: Nur SVG akzeptiert (image/svg+xml), Hint-Text |
+| 3i.7 | Done | Sidebar: Tenant-Logo (SVG via img) + Tenant-Name statt hardcoded "Webcontify" |
+| 3i.8 | Done | Advanced Settings: Severity Colors (danger/success/warning) mit Color Picker |
+| 3i.9 | Done | BrandingProvider: Severity CSS Variables + tenantName/tenantSlug |
+| 3i.10 | Done | Preview: Severity Badges hinzugefuegt |
+| 3i.11 | Done | i18n: EN + DE Keys fuer severity colors, SVG hint |
+
+## Phase 3j — UI/UX Improvements (2026-03-25)
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 3j.1 | Done | Sidebar Contrast Fix: Light Mode hover/active von Indigo 50 auf Indigo 100 |
+| 3j.2 | Done | Keycloak Login CSS: Komplett-Rewrite mit Design-System Tokens (kein PatternFly) |
+| 3j.3 | Done | Keycloak Template: Statische + dynamische Tokens, generisches Google Fonts Loading |
+| 3j.4 | Done | Keycloak Seiten-Templates: login.ftl, login-reset-password.ftl, error.ftl, info.ftl |
+| 3j.5 | Done | Keycloak Invite: Welcome-Password Template + Auto-Submit in info.ftl + i18n (EN+DE) |
+| 3j.6 | Done | Backend Invite Redirect: redirectUri + clientId + lifespan in executeActionsEmail |
+| 3j.7 | Done | Backend Font-Enum: OpenAPI + ALLOWED_FONTS + mapFontFamilyToCss (5→13 Fonts) |
+| 3j.8 | Done | Frontend Font Setup: 12 Fonts via next/font/google, CSS-Variablen, Mapping-Tabellen |
+| 3j.9 | Done | BrandingProvider: Font-Switching via --font-sans CSS Variable + Cleanup |
+| 3j.10 | Done | FontSelect: Kategorisiertes Dropdown (Modern/Classic/Friendly/Serif) + i18n |
+| 3j.11 | Done | Branding Form: Cards→Tabs (Logo, Farben, Typografie) + Font-Preview |
+| 3j.12 | Done | AppHeader: Kontextabhaengige Top-Bar mit Union Type API (list/detail Mode) |
+| 3j.13 | Done | Page Migration: 15 Seiten auf neue AppHeader API, Actions in Top-Bar |
+| 3j.14 | Done | Zod Schema: fontFamily Enum auf 13 Werte erweitert |
 
 ## Naechste Schritte
 
-- Phase 3g: Tenant Self-Service User Management
-- Voraussetzung: Phase 3f abgeschlossen
+- Phase 4: App Domain (Content Definitions, Content Entries, App Management)
+- Voraussetzung: Phase 3 abgeschlossen
+- **Offen:** E2E Tests fuer Keycloak Theme + Invite Flow (erfordert Docker/Infrastruktur)
 
 ## Lokale Entwicklung
 

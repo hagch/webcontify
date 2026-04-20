@@ -42,7 +42,23 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
         }
 
         if (tenantAuth.getTenantInformation().platformAdmin()) {
-            log.debug("Platform admin request — skipping subdomain validation");
+            // Platform admins skip subdomain validation but we resolve tenantId
+            // from subdomain if present (needed for tenant-scoped operations)
+            String host = request.getHeader("Host");
+            Optional<String> subdomain = extractSubdomain(host);
+            if (subdomain.isPresent()) {
+                Optional<UUID> resolvedTenantId = tenantSlugResolver.resolveTenantIdBySlug(subdomain.get());
+                if (resolvedTenantId.isPresent()) {
+                    var enrichedInfo = new io.webcontify.shared.model.TenantInformation(
+                            resolvedTenantId.get(), true, tenantAuth.getTenantInformation().realmName());
+                    var enrichedAuth = new TenantAwareAuthentication(
+                            enrichedInfo, tenantAuth.getPrincipal(), tenantAuth.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(enrichedAuth);
+                    log.debug("Platform admin on tenant subdomain: slug={}, tenantId={}", subdomain.get(), resolvedTenantId.get());
+                }
+            } else {
+                log.debug("Platform admin request — no tenant subdomain");
+            }
             filterChain.doFilter(request, response);
             return;
         }
@@ -51,12 +67,14 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
         Optional<String> subdomain = extractSubdomain(host);
 
         if (subdomain.isEmpty()) {
-            // Self-Service Endpoints (/api/v1/tenant/**) brauchen keine Subdomain-Validierung.
-            // Die TenantId kommt aus dem JWT.
+            // Self-Service Endpoints (/api/v1/tenant/** and /api/v1/auth/**) do not require
+            // Subdomain validation. The TenantId is resolved from the JWT.
+            // /api/v1/auth/** endpoints (e.g. effective-permissions) are called from the
+            // browser with Host: api.localhost — subdomain validation would always fail.
             String path = request.getRequestURI();
-            if (path != null && path.startsWith("/api/v1/tenant/")) {
+            if (path != null && (path.startsWith("/api/v1/tenant/") || path.startsWith("/api/v1/auth/"))) {
                 log.debug(
-                        "Self-service endpoint without subdomain — tenantId from JWT: principal={}",
+                        "Self-service/auth endpoint without subdomain — tenantId from JWT: principal={}",
                         tenantAuth.getPrincipal());
                 filterChain.doFilter(request, response);
                 return;

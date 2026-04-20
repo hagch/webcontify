@@ -430,6 +430,47 @@ paths:
               schema:
                 $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
 
+  /api/v1/tenant/roles/{roleId}/permissions:
+    put:
+      operationId: setRolePermissions
+      tags:
+        - TenantRoles
+      summary: Set permissions for a role
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetRolePermissionsRequest'
+      responses:
+        '200':
+          description: Permissions updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleDetailResponse'
+        '400':
+          description: Invalid request or system role
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - privilege escalation or missing permission
+        '404':
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
   /api/v1/tenant/users/{userId}/roles:
     get:
       operationId: getUserRoles
@@ -510,6 +551,7 @@ components:
         - email
         - firstName
         - lastName
+        - roleIds
       properties:
         email:
           type: string
@@ -523,10 +565,17 @@ components:
           type: string
           minLength: 1
           maxLength: 255
+        roleIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          maxItems: 50
         copyRolesFromUserId:
           type: string
           format: uuid
-          description: Optional user ID to copy roles from
+          description: Optional user ID to copy roles from (frontend convenience only, backend uses roleIds)
 
     UpdateUserStatusRequest:
       type: object
@@ -770,3 +819,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RoleResponse'
+
+    SetRolePermissionsRequest:
+      type: object
+      required:
+        - permissions
+      properties:
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RolePermissionEntry'
+
+    RolePermissionEntry:
+      type: object
+      required:
+        - resourceType
+        - actions
+      properties:
+        resourceType:
+          type: string
+        actions:
+          type: array
+          items:
+            type: string

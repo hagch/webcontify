@@ -32,7 +32,7 @@ public class UserController implements TenantUsersApi {
     @RequiresPermission(action = "inviter", resource = "user_management")
     public ResponseEntity<UserResponse> inviteUser(InviteUserRequest request) {
         var user = userService.invite(request.getEmail(), request.getFirstName(), request.getLastName(),
-                request.getCopyRolesFromUserId());
+                request.getRoleIds(), request.getCopyRolesFromUserId());
         var response = userMapper.toResponse(user);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()

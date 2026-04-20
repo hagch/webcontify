@@ -93,6 +93,29 @@ class TenantConfigControllerIntegrationTest {
     }
 
     @Test
+    void shouldUpdateBrandingConfigWithNewFields() throws Exception {
+        String request = """
+                {
+                    "primaryColor": "#3b82f6",
+                    "secondaryColor": "#64748b",
+                    "accentColor": "#10b981",
+                    "fontFamily": "inter",
+                    "borderRadius": "0.75rem"
+                }
+                """;
+
+        mockMvc.perform(
+                        put("/api/v1/admin/tenants/{tenantId}/config/branding", TEST_TENANT_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.branding.primaryColor").value("#3b82f6"))
+                .andExpect(jsonPath("$.branding.accentColor").value("#10b981"))
+                .andExpect(jsonPath("$.branding.fontFamily").value("inter"))
+                .andExpect(jsonPath("$.branding.borderRadius").value("0.75rem"));
+    }
+
+    @Test
     void shouldUpdateEmailConfigAndNotReturnPassword() throws Exception {
         String request = """
                 {

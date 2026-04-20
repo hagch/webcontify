@@ -16,6 +16,9 @@ public class S3Configuration {
     @Value("${webcontify.s3.endpoint:}")
     private String endpoint;
 
+    @Value("${webcontify.s3.public-endpoint:${webcontify.s3.endpoint:}}")
+    private String publicEndpoint;
+
     @Value("${webcontify.s3.region:us-east-1}")
     private String region;
 
@@ -45,16 +48,23 @@ public class S3Configuration {
 
     @Bean
     public S3Presigner s3Presigner() {
+        // Use public endpoint for presigned URLs (browser-accessible)
+        var presignerEndpoint = !publicEndpoint.isEmpty() ? publicEndpoint : endpoint;
+
         var builder = S3Presigner.builder()
-                .region(Region.of(region));
+                .region(Region.of(region))
+                .serviceConfiguration(
+                        software.amazon.awssdk.services.s3.S3Configuration.builder()
+                                .pathStyleAccessEnabled(true)
+                                .build());
 
         if (!accessKey.isEmpty() && !secretKey.isEmpty()) {
             builder.credentialsProvider(StaticCredentialsProvider.create(
                     AwsBasicCredentials.create(accessKey, secretKey)));
         }
 
-        if (!endpoint.isEmpty()) {
-            builder.endpointOverride(URI.create(endpoint));
+        if (!presignerEndpoint.isEmpty()) {
+            builder.endpointOverride(URI.create(presignerEndpoint));
         }
 
         return builder.build();

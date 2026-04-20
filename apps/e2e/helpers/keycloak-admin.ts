@@ -289,6 +289,49 @@ export async function findKeycloakUserByEmail(
 }
 
 /**
+ * Enables Direct Access Grants (ROPC flow) on the tenant-ui client
+ * for a given realm. Required for E2E tests that obtain JWT tokens
+ * directly without a browser.
+ */
+export async function enableDirectAccessGrants(
+  token: string,
+  realmName: string,
+  clientId: string = "tenant-ui"
+): Promise<void> {
+  // Find the client by clientId
+  const searchUrl = `${KEYCLOAK_URL}/admin/realms/${realmName}/clients?clientId=${encodeURIComponent(clientId)}&exact=true`;
+  const searchResponse = await fetch(searchUrl, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!searchResponse.ok) {
+    throw new Error(
+      `Failed to find client ${clientId}: ${searchResponse.status} ${await searchResponse.text()}`
+    );
+  }
+  const clients = await searchResponse.json();
+  if (clients.length === 0) {
+    throw new Error(`Client ${clientId} not found in realm ${realmName}`);
+  }
+  const client = clients[0];
+  client.directAccessGrantsEnabled = true;
+
+  const updateUrl = `${KEYCLOAK_URL}/admin/realms/${realmName}/clients/${client.id}`;
+  const updateResponse = await fetch(updateUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(client),
+  });
+  if (!updateResponse.ok) {
+    throw new Error(
+      `Failed to enable direct access grants for ${clientId}: ${updateResponse.status} ${await updateResponse.text()}`
+    );
+  }
+}
+
+/**
  * Deletes a user from the realm.
  * Ignores 404 (user does not exist).
  */

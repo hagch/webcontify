@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { MoreHorizontal, UserCheck, UserX, KeyRound, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,7 @@ export function AdminActionsMenu({
 }: AdminActionsMenuProps) {
   const { activateAdmin, deactivateAdmin, resetPassword, isUpdatingStatus, isResettingPassword } =
     useAdminActions();
+  const t = useTranslations("admins");
 
   const fullName = `${admin.firstName} ${admin.lastName}`;
 
@@ -34,7 +36,7 @@ export function AdminActionsMenu({
             data-testid={`actions-menu-${admin.id}`}
             variant="ghost"
             size="icon"
-            aria-label={`Aktionen fuer ${fullName}`}
+            aria-label={t("actionsMenu.label", { name: fullName })}
           />
         }
       >
@@ -48,7 +50,7 @@ export function AdminActionsMenu({
             onClick={() => deactivateAdmin(admin.id)}
           >
             <UserX className="mr-2 size-4" />
-            Deaktivieren
+            {t("actionsMenu.deactivate")}
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem
@@ -57,7 +59,7 @@ export function AdminActionsMenu({
             onClick={() => activateAdmin(admin.id)}
           >
             <UserCheck className="mr-2 size-4" />
-            Aktivieren
+            {t("actionsMenu.activate")}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem
@@ -66,7 +68,7 @@ export function AdminActionsMenu({
           onClick={() => resetPassword(admin.id)}
         >
           <KeyRound className="mr-2 size-4" />
-          Passwort-Reset erzwingen
+          {t("actionsMenu.resetPassword")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -75,7 +77,7 @@ export function AdminActionsMenu({
           onClick={() => onDeleteRequest?.(admin)}
         >
           <Trash2 className="mr-2 size-4" />
-          Entfernen
+          {t("actionsMenu.delete")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

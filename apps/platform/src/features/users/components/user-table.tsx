@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,6 +46,7 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
   const [userToDelete, setUserToDelete] = useState<UserResponse | null>(null);
   const [cloneFromUserId, setCloneFromUserId] = useState<string | undefined>();
   const { deleteUser, isDeletingUser } = useUserActions();
+  const t = useTranslations("users");
 
   if (isLoading) {
     return <UserTableSkeleton />;
@@ -53,9 +55,9 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
   if (users.length === 0) {
     return (
       <div data-testid="empty-state" className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-        <p className="text-lg font-medium">Noch keine Benutzer</p>
+        <p className="text-lg font-medium">{t("emptyState.title")}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Lade Benutzer ein, um mit der Zusammenarbeit zu beginnen.
+          {t("emptyState.description")}
         </p>
       </div>
     );
@@ -83,11 +85,11 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
         <Table data-testid="user-table">
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>E-Mail</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Eingeladen am</TableHead>
-              <TableHead className="text-right">Aktionen</TableHead>
+              <TableHead>{t("tableHeaders.name")}</TableHead>
+              <TableHead>{t("tableHeaders.email")}</TableHead>
+              <TableHead>{t("tableHeaders.status")}</TableHead>
+              <TableHead>{t("tableHeaders.invitedAt")}</TableHead>
+              <TableHead className="text-right">{t("tableHeaders.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -131,14 +133,13 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
       >
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>Benutzer loeschen</DialogTitle>
+            <DialogTitle>{t("deleteDialog.title")}</DialogTitle>
             <DialogDescription>
-              Moechtest du{" "}
-              <strong>
-                {userToDelete?.firstName} {userToDelete?.lastName}
-              </strong>{" "}
-              wirklich loeschen? Diese Aktion kann nicht rueckgaengig gemacht
-              werden.
+              {t("deleteDialog.description", {
+                name: userToDelete
+                  ? `${userToDelete.firstName} ${userToDelete.lastName}`
+                  : "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -148,7 +149,7 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
               onClick={() => setUserToDelete(null)}
               disabled={isDeletingUser}
             >
-              Abbrechen
+              {t("deleteDialog.cancel")}
             </Button>
             <Button
               type="button"
@@ -159,7 +160,7 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
               {isDeletingUser && (
                 <Loader2 className="mr-2 size-4 animate-spin" />
               )}
-              Loeschen
+              {t("deleteDialog.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

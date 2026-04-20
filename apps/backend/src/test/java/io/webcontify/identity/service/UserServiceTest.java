@@ -12,6 +12,7 @@ import io.webcontify.identity.repository.entity.TenantRoleEntity;
 import io.webcontify.identity.repository.entity.TenantUserEntity;
 import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
+import org.springframework.security.access.AccessDeniedException;
 import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.model.TenantInformation;
 import io.webcontify.tenant.model.TenantInfrastructureInfo;
@@ -91,20 +92,26 @@ class UserServiceTest {
 
     @Nested
     class Invite {
+
+        static final UUID ROLE_ID = UUID.randomUUID();
+
         @Test
         void shouldInviteUserSuccessfully() {
+            var roleIds = List.of(ROLE_ID);
             when(userRepository.findActiveByEmail("new@test.com")).thenReturn(Optional.empty());
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.empty());
             when(keycloakAdminService.createUser(any()))
                     .thenReturn(new CreateKeycloakUserResponse(TARGET_USER_ID));
             when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(userMapper.toDomain(any(TenantUserEntity.class))).thenReturn(new TenantUser());
 
-            userService.invite("new@test.com", "Max", "Muster", null);
+            userService.invite("new@test.com", "Max", "Muster", roleIds, null);
 
             verify(keycloakAdminService).createUser(any());
             verify(userRepository).save(any());
-            verify(permissionService).grant(any());
+            verify(roleService).setRolesForUser(TARGET_USER_ID, roleIds);
             verify(keycloakAdminService).sendInviteEmail(any());
+            verify(permissionService, never()).grant(any());
         }
 
         @Test
@@ -112,7 +119,8 @@ class UserServiceTest {
             var existing = createUserEntity(TARGET_USER_ID, UserStatus.ACTIVE);
             when(userRepository.findActiveByEmail("existing@test.com")).thenReturn(Optional.of(existing));
 
-            assertThatThrownBy(() -> userService.invite("existing@test.com", "Max", "Muster", null))
+            assertThatThrownBy(() ->
+                    userService.invite("existing@test.com", "Max", "Muster", List.of(ROLE_ID), null))
                     .isInstanceOf(ConflictException.class);
 
             verify(keycloakAdminService, never()).createUser(any());
@@ -121,92 +129,92 @@ class UserServiceTest {
         @Test
         void shouldCleanupKeycloakUserOnDbError() {
             when(userRepository.findActiveByEmail(any())).thenReturn(Optional.empty());
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.empty());
             when(keycloakAdminService.createUser(any()))
                     .thenReturn(new CreateKeycloakUserResponse(TARGET_USER_ID));
             when(userRepository.save(any())).thenThrow(new RuntimeException("DB error"));
 
-            assertThatThrownBy(() -> userService.invite("new@test.com", "Max", "Muster", null))
+            assertThatThrownBy(() ->
+                    userService.invite("new@test.com", "Max", "Muster", List.of(ROLE_ID), null))
                     .isInstanceOf(RuntimeException.class);
 
             verify(keycloakAdminService).deleteUser(any());
         }
-    }
-
-    @Nested
-    class InviteWithRoleClone {
 
         @Test
-        void shouldThrowWhenSourceUserNotInTenant() {
-            UUID sourceUserId = UUID.randomUUID();
-            when(userRepository.findActiveById(sourceUserId)).thenReturn(Optional.empty());
+        void shouldRollbackWhenRoleAssignmentFails() {
+            var roleIds = List.of(ROLE_ID);
+            when(userRepository.findActiveByEmail("new@test.com")).thenReturn(Optional.empty());
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.empty());
+            when(keycloakAdminService.createUser(any()))
+                    .thenReturn(new CreateKeycloakUserResponse(TARGET_USER_ID));
+            when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            doThrow(new RuntimeException("OpenFGA down"))
+                    .when(roleService).setRolesForUser(any(), any());
 
-            assertThatThrownBy(() -> userService.invite("test@test.com", "Test", "User", sourceUserId))
-                    .isInstanceOf(BadRequestException.class)
-                    .hasMessage("invite.source_user_not_found");
+            assertThatThrownBy(() ->
+                    userService.invite("new@test.com", "Max", "Muster", roleIds, null))
+                    .isInstanceOf(RuntimeException.class);
+
+            // Rollback: Soft-Delete in DB + Keycloak cleanup
+            verify(userRepository, times(2)).save(any());
+            verify(keycloakAdminService).deleteUser(any());
+        }
+
+        @Test
+        void shouldRejectInviteWhenNonAdminAssignsAdminRole() {
+            var adminRole = createAdminRoleEntity();
+            var roleIds = List.of(adminRole.getId());
+
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.of(adminRole));
+            // Current user is NOT admin
+            when(permissionService.check(any())).thenReturn(false);
+
+            assertThatThrownBy(() ->
+                    userService.invite("new@test.com", "Max", "Muster", roleIds, null))
+                    .isInstanceOf(AccessDeniedException.class);
 
             verify(keycloakAdminService, never()).createUser(any());
         }
 
         @Test
-        void shouldCopyRolesFromSourceUser() {
-            UUID sourceUserId = UUID.randomUUID();
-            var sourceEntity = createUserEntity(sourceUserId, UserStatus.ACTIVE);
-
-            var role = new TenantRole();
-            role.setId(UUID.randomUUID());
+        void shouldAllowAdminToAssignAdminRole() {
+            var adminRole = createAdminRoleEntity();
+            var roleIds = List.of(adminRole.getId());
 
             when(userRepository.findActiveByEmail("new@test.com")).thenReturn(Optional.empty());
-            when(userRepository.findActiveById(sourceUserId)).thenReturn(Optional.of(sourceEntity));
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.of(adminRole));
+            // Current user IS admin
+            when(permissionService.check(any())).thenReturn(true);
             when(keycloakAdminService.createUser(any()))
                     .thenReturn(new CreateKeycloakUserResponse(TARGET_USER_ID));
             when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(userMapper.toDomain(any(TenantUserEntity.class))).thenReturn(new TenantUser());
-            when(roleService.getRolesForUser(sourceUserId)).thenReturn(List.of(role));
 
-            userService.invite("new@test.com", "Max", "Muster", sourceUserId);
-
-            verify(roleService).getRolesForUser(sourceUserId);
-            verify(roleService).setRolesForUser(eq(TARGET_USER_ID), eq(List.of(role.getId())));
-        }
-
-        @Test
-        void shouldContinueInviteIfRoleCloningFails() {
-            UUID sourceUserId = UUID.randomUUID();
-            var sourceEntity = createUserEntity(sourceUserId, UserStatus.ACTIVE);
-
-            when(userRepository.findActiveByEmail("new@test.com")).thenReturn(Optional.empty());
-            when(userRepository.findActiveById(sourceUserId)).thenReturn(Optional.of(sourceEntity));
-            when(keycloakAdminService.createUser(any()))
-                    .thenReturn(new CreateKeycloakUserResponse(TARGET_USER_ID));
-            when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-            when(userMapper.toDomain(any(TenantUserEntity.class))).thenReturn(new TenantUser());
-            when(roleService.getRolesForUser(sourceUserId)).thenThrow(new RuntimeException("OpenFGA down"));
-
-            // kein throw erwartet — best-effort
-            assertThatCode(() -> userService.invite("new@test.com", "Max", "Muster", sourceUserId))
+            assertThatCode(() ->
+                    userService.invite("new@test.com", "Max", "Muster", roleIds, null))
                     .doesNotThrowAnyException();
 
-            verify(permissionService).grant(any());
-            verify(keycloakAdminService).sendInviteEmail(any());
+            verify(roleService).setRolesForUser(TARGET_USER_ID, roleIds);
         }
 
         @Test
-        void shouldSkipRoleCopyWhenSourceUserHasNoRoles() {
-            UUID sourceUserId = UUID.randomUUID();
-            var sourceEntity = createUserEntity(sourceUserId, UserStatus.ACTIVE);
+        void shouldIgnoreCopyRolesFromUserId() {
+            // Backend uses roleIds, ignores copyRolesFromUserId
+            var roleIds = List.of(ROLE_ID);
+            UUID copyFrom = UUID.randomUUID();
 
             when(userRepository.findActiveByEmail("new@test.com")).thenReturn(Optional.empty());
-            when(userRepository.findActiveById(sourceUserId)).thenReturn(Optional.of(sourceEntity));
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.empty());
             when(keycloakAdminService.createUser(any()))
                     .thenReturn(new CreateKeycloakUserResponse(TARGET_USER_ID));
             when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(userMapper.toDomain(any(TenantUserEntity.class))).thenReturn(new TenantUser());
-            when(roleService.getRolesForUser(sourceUserId)).thenReturn(List.of());
 
-            userService.invite("new@test.com", "Max", "Muster", sourceUserId);
+            userService.invite("new@test.com", "Max", "Muster", roleIds, copyFrom);
 
-            verify(roleService).getRolesForUser(sourceUserId);
-            verify(roleService, never()).setRolesForUser(any(), any());
+            verify(roleService).setRolesForUser(TARGET_USER_ID, roleIds);
+            verify(roleService, never()).getRolesForUser(any());
         }
     }
 

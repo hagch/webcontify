@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -47,6 +48,8 @@ export function AddAssigneesDialog({
   const queryClient = useQueryClient();
   const { data, isLoading } = useListUsers();
   const setRoleAssignees = useSetRoleAssignees();
+  const t = useTranslations("roles");
+  const te = useTranslations("errors");
 
   const allUsers = (data?.status === 200 ? data.data.items : undefined) ?? [];
   const availableUsers = allUsers.filter(
@@ -72,9 +75,7 @@ export function AddAssigneesDialog({
         data: { userIds: newAssigneeIds },
       });
       if (response.status === 200) {
-        toast.success(
-          `${selectedIds.length} Benutzer wurden der Rolle zugewiesen.`
-        );
+        toast.success(t("toasts.assigneesAdded", { count: selectedIds.length }));
         setOpen(false);
         setSelectedIds([]);
         queryClient.invalidateQueries({ queryKey: getListRolesQueryKey() });
@@ -82,10 +83,9 @@ export function AddAssigneesDialog({
           queryKey: getGetRoleQueryKey(roleId),
         });
       }
-    } catch {
-      toast.error(
-        "Fehler beim Hinzufuegen der Benutzer. Bitte versuche es erneut."
-      );
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      toast.error(te.has(err.code ?? "") ? te(err.code!) : te("generic"));
     }
   }
 
@@ -101,9 +101,9 @@ export function AddAssigneesDialog({
       <DialogTrigger render={children as React.ReactElement} />
       <DialogContent data-testid="add-assignees-dialog" className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Benutzer hinzufuegen</DialogTitle>
+          <DialogTitle>{t("addAssigneesDialog.title")}</DialogTitle>
           <DialogDescription>
-            Waehle Benutzer aus, die dieser Rolle zugewiesen werden sollen.
+            {t("addAssigneesDialog.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -117,10 +117,9 @@ export function AddAssigneesDialog({
           ) : availableUsers.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-center">
               <UserPlus className="mb-2 size-8 text-muted-foreground" />
-              <p className="text-sm font-medium">Alle Benutzer zugewiesen</p>
+              <p className="text-sm font-medium">{t("addAssigneesDialog.allAssignedTitle")}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Es gibt keine weiteren Benutzer, die hinzugefuegt werden
-                koennen.
+                {t("addAssigneesDialog.allAssignedDescription")}
               </p>
             </div>
           ) : (
@@ -128,8 +127,8 @@ export function AddAssigneesDialog({
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10" />
-                  <TableHead>Name</TableHead>
-                  <TableHead>E-Mail</TableHead>
+                  <TableHead>{t("addAssigneesDialog.nameHeader")}</TableHead>
+                  <TableHead>{t("addAssigneesDialog.emailHeader")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -148,7 +147,9 @@ export function AddAssigneesDialog({
                           checked={isSelected}
                           onChange={() => toggleUser(user.id)}
                           onClick={(e) => e.stopPropagation()}
-                          aria-label={`${user.firstName} ${user.lastName} auswaehlen`}
+                          aria-label={t("addAssigneesDialog.selectLabel", {
+                            name: `${user.firstName} ${user.lastName}`,
+                          })}
                           className="size-4 cursor-pointer rounded border-input accent-primary"
                         />
                       </TableCell>
@@ -173,7 +174,7 @@ export function AddAssigneesDialog({
             onClick={() => handleOpenChange(false)}
             disabled={setRoleAssignees.isPending}
           >
-            Abbrechen
+            {t("addAssigneesDialog.cancel")}
           </Button>
           <Button
             type="button"
@@ -185,8 +186,8 @@ export function AddAssigneesDialog({
               <Loader2 className="mr-2 size-4 animate-spin" />
             )}
             {selectedIds.length > 0
-              ? `${selectedIds.length} Benutzer hinzufuegen`
-              : "Hinzufuegen"}
+              ? t("addAssigneesDialog.addCount", { count: selectedIds.length })
+              : t("addAssigneesDialog.add")}
           </Button>
         </DialogFooter>
       </DialogContent>

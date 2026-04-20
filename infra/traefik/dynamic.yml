@@ -17,6 +17,12 @@ http:
       service: api
       entryPoints:
         - web
+    s3-api:
+      rule: "Host(`s3-api.localhost`)"
+      service: s3-api
+      priority: 10
+      entryPoints:
+        - web
 
   services:
     platform:
@@ -27,3 +33,7 @@ http:
       loadBalancer:
         servers:
           - url: "http://host.docker.internal:8080"
+    s3-api:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:9000"

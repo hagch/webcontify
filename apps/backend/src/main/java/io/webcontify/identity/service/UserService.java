@@ -8,6 +8,8 @@ import io.webcontify.identity.repository.entity.TenantUserEntity;
 import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
+import org.springframework.security.access.AccessDeniedException;
+import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.security.TenantAwareAuthentication;
 import io.webcontify.shared.security.TenantContext;
 import org.slf4j.Logger;
@@ -56,11 +58,16 @@ public class UserService {
     }
 
     @Transactional
-    public TenantUser invite(String email, String firstName, String lastName, UUID copyRolesFromUserId) {
-        // Validierung copyRolesFromUserId VOR Keycloak-User-Create
-        if (copyRolesFromUserId != null) {
-            userRepository.findActiveById(copyRolesFromUserId)
-                    .orElseThrow(() -> new BadRequestException("invite.source_user_not_found"));
+    public TenantUser invite(String email, String firstName, String lastName, List<UUID> roleIds, UUID copyRolesFromUserId) {
+        // Privilege escalation check: non-admin cannot assign admin role
+        var adminRole = roleRepository.findActiveByName("Admin");
+        if (adminRole.isPresent() && roleIds.contains(adminRole.get().getId())) {
+            var tenantInfoForCheck = TenantContext.getTenantInformation();
+            boolean isAdmin = permissionService.check(new CheckPermissionRequest(
+                    resolveCurrentUserId(), "admin", "tenant", tenantInfoForCheck.tenantId()));
+            if (!isAdmin) {
+                throw new AccessDeniedException("invite.cannot_assign_admin_role");
+            }
         }
 
         // Duplikat-Check
@@ -105,25 +112,32 @@ public class UserService {
             throw e;
         }
 
-        // OpenFGA: grant admin
-        permissionService.grant(new GrantPermissionRequest(
-                keycloakUserId, "admin", "tenant", tenantInfo.tenantId()));
-
         // Invite-Email senden
+        String inviteSlug = infrastructure.keycloakRealmName().replace("tenant-", "");
+        String inviteRedirectUri = "http://" + inviteSlug + ".localhost";
         keycloakAdminService.sendInviteEmail(
-                new SendInviteEmailRequest(infrastructure.keycloakRealmName(), keycloakUserId));
+                new SendInviteEmailRequest(infrastructure.keycloakRealmName(), keycloakUserId, inviteRedirectUri));
 
-        // Rollen-Klon (best-effort)
-        if (copyRolesFromUserId != null) {
-            try {
-                var sourceRoles = roleService.getRolesForUser(copyRolesFromUserId);
-                var roleIds = sourceRoles.stream().map(TenantRole::getId).toList();
-                if (!roleIds.isEmpty()) {
-                    roleService.setRolesForUser(keycloakUserId, roleIds);
-                }
-            } catch (Exception e) {
-                log.warn("Failed to copy roles from userId={} to new user={}", copyRolesFromUserId, keycloakUserId, e);
+        // Rollen zuweisen (verpflichtend — Rollback bei Fehler)
+        try {
+            roleService.setRolesForUser(keycloakUserId, roleIds);
+        } catch (Exception e) {
+            log.error("Role assignment failed for user={}, rolling back", keycloakUserId, e);
+            var auditInfo = entity.getAuditInfo();
+            if (auditInfo == null) {
+                auditInfo = new AuditInfo();
+                entity.setAuditInfo(auditInfo);
             }
+            auditInfo.setDeletedAt(java.time.OffsetDateTime.now());
+            auditInfo.setDeletedBy(resolveCurrentUserId());
+            userRepository.save(entity);
+            try {
+                keycloakAdminService.deleteUser(
+                        new DeleteKeycloakUserRequest(infrastructure.keycloakRealmName(), keycloakUserId));
+            } catch (Exception cleanupEx) {
+                log.error("Keycloak cleanup failed during role rollback for user={}", keycloakUserId, cleanupEx);
+            }
+            throw e;
         }
 
         log.info("User invited: id={}, email={}, tenant={}", keycloakUserId, email, tenantInfo.tenantId());
@@ -194,8 +208,10 @@ public class UserService {
         var tenantInfo = TenantContext.getTenantInformation();
         var infrastructure = lookupService.getInfrastructure(tenantInfo.tenantId());
 
+        String resendSlug = infrastructure.keycloakRealmName().replace("tenant-", "");
+        String resendRedirectUri = "http://" + resendSlug + ".localhost";
         keycloakAdminService.sendInviteEmail(
-                new SendInviteEmailRequest(infrastructure.keycloakRealmName(), userId));
+                new SendInviteEmailRequest(infrastructure.keycloakRealmName(), userId, resendRedirectUri));
 
         log.info("Invite resent for user={}", userId);
     }

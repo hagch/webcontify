@@ -128,6 +128,12 @@ test.describe.serial("Invite with Role Clone", () => {
     await inviteDialog.getByTestId("user-email-input").fill(userAEmail);
     await inviteDialog.getByTestId("user-firstname-input").fill("User");
     await inviteDialog.getByTestId("user-lastname-input").fill("A");
+
+    // Select at least one role (roleIds is mandatory)
+    const firstRoleCheckbox = inviteDialog.locator('[data-testid^="role-checkbox-"]').first();
+    await expect(firstRoleCheckbox).toBeVisible({ timeout: 10000 });
+    await firstRoleCheckbox.check();
+
     await inviteDialog.getByTestId("invite-user-submit").click();
 
     await expect(inviteDialog).not.toBeVisible({ timeout: 10000 });

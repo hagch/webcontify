@@ -65,8 +65,8 @@ class TenantProvisioningListenerTest {
         verify(keycloakAdminService).sendInviteEmail(any());
         verify(openFgaService).write(any());
 
-        // 4 system roles must be saved
-        verify(tenantRoleRepository, times(4)).save(any());
+        // 3 system roles must be saved (Admin, Editor, Viewer)
+        verify(tenantRoleRepository, times(3)).save(any());
 
         // 4 persist calls: after step 0, 1, 2, and final completed
         verify(statusPersister, times(4)).persistStatus(eq(tenantId), any(), anyBoolean(), any());
@@ -84,7 +84,7 @@ class TenantProvisioningListenerTest {
     }
 
     @Test
-    void shouldCreateFourSystemRolesWithCorrectNames() {
+    void shouldCreateThreeSystemRolesWithCorrectNames() {
         var tenantId = UUID.randomUUID();
         var event = new TenantCreatedEvent(tenantId, "acme", "admin@acme.com", "Max", "Muster");
         var initialStatus = ProvisioningStatus.initial("admin@acme.com", "Max", "Muster");
@@ -99,11 +99,11 @@ class TenantProvisioningListenerTest {
         listener.onTenantCreated(event);
 
         var roleCaptor = ArgumentCaptor.forClass(TenantRoleEntity.class);
-        verify(tenantRoleRepository, times(4)).save(roleCaptor.capture());
+        verify(tenantRoleRepository, times(3)).save(roleCaptor.capture());
 
         var savedRoles = roleCaptor.getAllValues();
         assertThat(savedRoles).extracting(TenantRoleEntity::getName)
-                .containsExactlyInAnyOrder("Admin", "Editor", "Viewer", "Inviter");
+                .containsExactlyInAnyOrder("Admin", "Editor", "Viewer");
         assertThat(savedRoles).allMatch(TenantRoleEntity::isSystemRole);
         assertThat(savedRoles).allMatch(r -> tenantId.equals(r.getTenantId()));
     }
@@ -147,12 +147,12 @@ class TenantProvisioningListenerTest {
                 new RelationshipTuple("user:" + keycloakUserId, "admin", "tenant:" + tenantId)
         );
 
-        // All four roles must have a role#tenant -> tenant tuple
+        // All three roles must have a role#tenant -> tenant tuple
         var roleIds = tuples.stream()
                 .filter(t -> t.relation().equals("tenant") && t.object().startsWith("role:"))
                 .map(t -> t.object().substring("role:".length()))
                 .toList();
-        assertThat(roleIds).hasSize(4);
+        assertThat(roleIds).hasSize(3);
 
         // Admin role: full set of management permissions
         // Tupel-Format: (role:{id}#assignee, relation, object)
@@ -166,11 +166,11 @@ class TenantProvisioningListenerTest {
                 "tenant_config:" + tenantId
         );
 
-        // At minimum 7 admin + 1 inviter + 2 editor/viewer + 1 user=assignee = 11
+        // 7 admin role permission tuples (inviter no longer a separate role)
         var roleAssigneeTupleCount = tuples.stream()
                 .filter(t -> t.user().contains("#assignee") && t.user().startsWith("role:"))
                 .count();
-        assertThat(roleAssigneeTupleCount).isGreaterThanOrEqualTo(10);
+        assertThat(roleAssigneeTupleCount).isGreaterThanOrEqualTo(7);
     }
 
     @Test

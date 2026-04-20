@@ -96,7 +96,8 @@ test.describe.serial("Tenant Config", () => {
       const brandingTab = platformAdminPage.getByRole("tab", {
         name: /branding/i,
       });
-      await expect(brandingTab).toHaveAttribute("data-state", "active");
+      // Base UI tabs use data-active or aria-selected to indicate the active tab
+      await expect(brandingTab).toHaveAttribute("aria-selected", "true");
 
       const primaryInput = platformAdminPage.getByLabel(/primary color/i);
       const secondaryInput = platformAdminPage.getByLabel(/secondary color/i);

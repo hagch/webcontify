@@ -10,6 +10,7 @@
  * Neutrals: Stone (warm grays) | Signals: fixed
  */
 :root {
+    --font-sans: var(--font-geist);
     --background: oklch(0.985 0.002 75);       /* Stone 50 #FAFAF9 */
     --foreground: oklch(0.216 0.006 56);        /* Stone 950 #1C1917 */
     --card: oklch(1.0 0 0);                     /* White */
@@ -48,8 +49,8 @@
     --sidebar-foreground: oklch(0.444 0.011 73);/* Stone 600 */
     --sidebar-primary: oklch(0.585 0.233 277);  /* Indigo 500 */
     --sidebar-primary-foreground: oklch(1.0 0 0);
-    --sidebar-accent: oklch(0.98 0.003 277);    /* Indigo 50 #EEF2FF */
-    --sidebar-accent-foreground: oklch(0.585 0.233 277); /* Indigo 500 */
+    --sidebar-accent: oklch(0.94 0.028 277);    /* Indigo 100 #E0E7FF */
+    --sidebar-accent-foreground: oklch(0.457 0.24 277);  /* Indigo 600 */
     --sidebar-border: oklch(0.923 0.003 75);    /* Stone 200 */
     --sidebar-ring: oklch(0.585 0.233 277);     /* Indigo 500 */
 }

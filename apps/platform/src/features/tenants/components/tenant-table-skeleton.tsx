@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -9,14 +12,16 @@ import {
 } from "@/components/ui/table";
 
 export function TenantTableSkeleton() {
+  const t = useTranslations("tenants");
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Slug</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead>{t("name")}</TableHead>
+          <TableHead>{t("slug")}</TableHead>
+          <TableHead>{t("status")}</TableHead>
+          <TableHead className="text-right">{t("actions")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

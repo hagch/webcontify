@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { getPlatformNavItems } from "@/components/layout/nav-config";
@@ -9,7 +10,8 @@ export default function PlatformLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const sections = getPlatformNavItems();
+  const t = useTranslations("nav");
+  const sections = getPlatformNavItems(t);
 
   return (
     <SidebarProvider>

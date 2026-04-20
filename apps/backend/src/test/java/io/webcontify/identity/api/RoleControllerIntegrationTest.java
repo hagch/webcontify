@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.webcontify.identity.model.OpenFgaBatchCheckResponse;
 import io.webcontify.identity.model.RelationshipTuple;
 import io.webcontify.identity.repository.TenantRoleRepository;
 import io.webcontify.identity.repository.TenantUserRepository;
@@ -24,6 +25,7 @@ import io.webcontify.tenant.repository.entity.TenantEntity;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -97,6 +99,8 @@ class RoleControllerIntegrationTest {
 
         lenient().when(openFgaService.readTuples(any())).thenReturn(List.of());
         lenient().when(openFgaService.check(any())).thenReturn(false);
+        lenient().when(openFgaService.batchCheck(any()))
+                .thenReturn(new OpenFgaBatchCheckResponse(Map.of()));
         doNothing().when(openFgaService).write(any());
         doNothing().when(openFgaService).delete(any());
     }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hexToHsl } from "@/lib/color-utils";
+import { hexToHsl, hexToOklch } from "@/lib/color-utils";
 
 describe("hexToHsl", () => {
   it("konvertiert reines Rot (#ff0000) korrekt", () => {
@@ -53,5 +53,51 @@ describe("hexToHsl", () => {
 
   it("gibt null zurueck bei leerem String", () => {
     expect(hexToHsl("")).toBeNull();
+  });
+});
+
+describe("hexToOklch", () => {
+  it("converts pure black (#000000)", () => {
+    const result = hexToOklch("#000000");
+    expect(result).toBe("0 0 0");
+  });
+
+  it("converts pure white (#ffffff)", () => {
+    const result = hexToOklch("#ffffff");
+    expect(result).not.toBeNull();
+    const [l] = result!.split(" ").map(Number);
+    expect(l).toBeCloseTo(1.0, 1);
+  });
+
+  it("converts Indigo 500 (#6366F1) close to expected OKLCH values", () => {
+    // globals.css: oklch(0.585 0.233 277)
+    const result = hexToOklch("#6366F1");
+    expect(result).not.toBeNull();
+    const [l, c, h] = result!.split(" ").map(Number);
+    expect(l).toBeCloseTo(0.585, 1);
+    expect(c).toBeCloseTo(0.233, 1);
+    expect(h).toBeCloseTo(277, 5);
+  });
+
+  it("converts Emerald 500 (#10B981) to reasonable OKLCH values", () => {
+    const result = hexToOklch("#10B981");
+    expect(result).not.toBeNull();
+    const [l, c, h] = result!.split(" ").map(Number);
+    // Emerald 500 should be green-ish (H ~160), medium lightness, moderate chroma
+    expect(l).toBeGreaterThan(0.6);
+    expect(l).toBeLessThan(0.8);
+    expect(c).toBeGreaterThan(0.1);
+    expect(c).toBeLessThan(0.25);
+    expect(h).toBeCloseTo(163, -1);
+  });
+
+  it("returns null for invalid hex", () => {
+    expect(hexToOklch("not-a-hex")).toBeNull();
+    expect(hexToOklch("#fff")).toBeNull();
+    expect(hexToOklch("")).toBeNull();
+  });
+
+  it("is case-insensitive", () => {
+    expect(hexToOklch("#FF0000")).toBe(hexToOklch("#ff0000"));
   });
 });

@@ -71,7 +71,7 @@ dependencies {
     implementation("dev.openfga:openfga-sdk:0.7.2")
 
     // Keycloak Admin Client
-    implementation("org.keycloak:keycloak-admin-client:26.0.0")
+    implementation("org.keycloak:keycloak-admin-client:26.0.5")
 
     // Caffeine Cache
     implementation("com.github.ben-manes.caffeine:caffeine")

@@ -25,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.OffsetDateTime;
@@ -40,6 +41,7 @@ class RoleServiceTest {
     @Mock OpenFgaService openFgaService;
     @Mock TenantInfrastructureLookupService lookupService;
     @Mock RoleMapper roleMapper;
+    @Mock PermissionService permissionService;
 
     @InjectMocks RoleService roleService;
 
@@ -237,6 +239,29 @@ class RoleServiceTest {
         }
 
         @Test
+        void shouldCleanupPermissionTuplesOnDelete() {
+            var customRole = createRoleEntity(ROLE_ID, "Editor", false);
+            when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(customRole));
+
+            String roleSubject = "role:" + ROLE_ID + "#assignee";
+            var permissionTuple = new RelationshipTuple(
+                    roleSubject, "inviter", "user_management:" + TENANT_ID);
+
+            // Default: leere Liste fuer alle readTuples-Anfragen
+            when(openFgaService.readTuples(any())).thenReturn(List.of());
+            // Ueberschreibe fuer den spezifischen inviter/user_management-Match
+            when(openFgaService.readTuples(argThat(req ->
+                req != null && "inviter".equals(req.relation()) && "user_management".equals(req.objectType())
+            ))).thenReturn(List.of(permissionTuple));
+            when(roleRepository.save(any())).thenReturn(customRole);
+
+            roleService.delete(ROLE_ID);
+
+            // Muss zweimal delete aufrufen: einmal Permission-Cleanup, einmal Tenant-Tuple
+            verify(openFgaService, atLeast(2)).delete(any());
+        }
+
+        @Test
         void shouldContinueDeleteEvenIfOpenFgaCleanupFails() {
             var customRole = createRoleEntity(ROLE_ID, "Editor", false);
             when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(customRole));
@@ -247,6 +272,109 @@ class RoleServiceTest {
             // Sollte keine Exception werfen (best-effort cleanup)
             assertThatCode(() -> roleService.delete(ROLE_ID)).doesNotThrowAnyException();
             verify(roleRepository).save(any());
+        }
+    }
+
+    @Nested
+    class SetPermissions {
+
+        private RolePermissionEntry entry(String resourceType, String... actions) {
+            return new RolePermissionEntry(resourceType, List.of(actions));
+        }
+
+        @Test
+        void shouldWritePermissionTuples() {
+            var customRole = createRoleEntity(ROLE_ID, "Editor", false);
+            when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(customRole));
+            // Keine bestehenden Tuples
+            when(openFgaService.readTuples(any())).thenReturn(List.of());
+            // Privilege escalation check: current user hat inviter-Recht
+            when(permissionService.check(any())).thenReturn(true);
+
+            roleService.setPermissions(ROLE_ID, List.of(entry("user_management", "inviter")));
+
+            verify(openFgaService).write(argThat(req ->
+                req.storeId().equals(STORE_ID) &&
+                req.tuples().size() == 1 &&
+                req.tuples().get(0).user().equals("role:" + ROLE_ID + "#assignee") &&
+                req.tuples().get(0).relation().equals("inviter") &&
+                req.tuples().get(0).object().equals("user_management:" + TENANT_ID)
+            ));
+            verify(openFgaService, never()).delete(any());
+        }
+
+        @Test
+        void shouldRejectSystemRole() {
+            var adminRole = createRoleEntity(ROLE_ID, "Admin", true);
+            when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(adminRole));
+
+            assertThatThrownBy(() -> roleService.setPermissions(ROLE_ID,
+                    List.of(entry("user_management", "inviter"))))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("role.system_role_permissions_cannot_be_modified");
+
+            verify(openFgaService, never()).write(any());
+        }
+
+        @Test
+        void shouldRejectUnknownResourceType() {
+            var customRole = createRoleEntity(ROLE_ID, "Editor", false);
+            when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(customRole));
+
+            assertThatThrownBy(() -> roleService.setPermissions(ROLE_ID,
+                    List.of(entry("unknown_resource", "reader"))))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("role.invalid_resource_type");
+
+            verify(openFgaService, never()).write(any());
+        }
+
+        @Test
+        void shouldRejectPrivilegeEscalation() {
+            var customRole = createRoleEntity(ROLE_ID, "Editor", false);
+            when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(customRole));
+            // Current user hat NICHT editor-Recht auf user_management
+            when(permissionService.check(any())).thenReturn(false);
+
+            assertThatThrownBy(() -> roleService.setPermissions(ROLE_ID,
+                    List.of(entry("user_management", "editor"))))
+                    .isInstanceOf(AccessDeniedException.class);
+
+            verify(openFgaService, never()).write(any());
+        }
+
+        @Test
+        void shouldDeltaUpdatePermissions() {
+            var customRole = createRoleEntity(ROLE_ID, "Editor", false);
+            when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(customRole));
+
+            String roleSubject = "role:" + ROLE_ID + "#assignee";
+            // Aktuell hat die Rolle "inviter" auf user_management
+            var existingTuple = new RelationshipTuple(
+                    roleSubject, "inviter", "user_management:" + TENANT_ID);
+            // Default: leere Liste fuer alle readTuples-Anfragen
+            when(openFgaService.readTuples(any())).thenReturn(List.of());
+            // Ueberschreibe fuer den spezifischen inviter/user_management-Match
+            when(openFgaService.readTuples(argThat(req ->
+                req != null && "inviter".equals(req.relation()) && "user_management".equals(req.objectType())
+            ))).thenReturn(List.of(existingTuple));
+
+            // Privilege escalation check: user hat editor-Recht
+            when(permissionService.check(any())).thenReturn(true);
+
+            // Setze nun "editor" (nicht mehr "inviter")
+            roleService.setPermissions(ROLE_ID, List.of(entry("user_management", "editor")));
+
+            // "editor" schreiben
+            verify(openFgaService).write(argThat(req ->
+                req.tuples().size() == 1 &&
+                req.tuples().get(0).relation().equals("editor")
+            ));
+            // "inviter" loeschen
+            verify(openFgaService).delete(argThat(req ->
+                req.tuples().size() == 1 &&
+                req.tuples().get(0).relation().equals("inviter")
+            ));
         }
     }
 
@@ -325,6 +453,111 @@ class RoleServiceTest {
             assertThatThrownBy(() -> roleService.setAssignees(ROLE_ID, List.of()))
                     .isInstanceOf(BadRequestException.class)
                     .hasMessageContaining("role.last_admin_cannot_be_removed");
+        }
+
+        @Test
+        void shouldWriteAdminTupleWhenAddingUserToAdminRole() {
+            var adminRole = createRoleEntity(ROLE_ID, "Admin", true);
+            when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(adminRole));
+
+            var user1 = createUserEntity(USER_ID_1);
+            when(userRepository.findAllById(List.of(USER_ID_1))).thenReturn(List.of(user1));
+
+            // Keine aktuellen Assignees
+            when(openFgaService.readTuples(argThat(req ->
+                req.relation().equals("assignee") && req.objectId().equals(ROLE_ID.toString())
+            ))).thenReturn(List.of());
+
+            roleService.setAssignees(ROLE_ID, List.of(USER_ID_1));
+
+            // Assignee tuple + admin tuple
+            verify(openFgaService, times(2)).write(any());
+            verify(openFgaService).write(argThat(req ->
+                req.tuples().size() == 1 &&
+                req.tuples().get(0).user().equals("user:" + USER_ID_1) &&
+                req.tuples().get(0).relation().equals("admin") &&
+                req.tuples().get(0).object().equals("tenant:" + TENANT_ID)
+            ));
+        }
+
+        @Test
+        void shouldDeleteAdminTupleWhenRemovingUserFromAdminRole() {
+            var adminRole = createRoleEntity(ROLE_ID, "Admin", true);
+            when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(adminRole));
+
+            var user2 = createUserEntity(USER_ID_2);
+            when(userRepository.findAllById(List.of(USER_ID_2))).thenReturn(List.of(user2));
+
+            // First call: both users assigned. Second call (compensating check): user2 remains
+            var tuple1 = new RelationshipTuple("user:" + USER_ID_1, "assignee", "role:" + ROLE_ID);
+            var tuple2 = new RelationshipTuple("user:" + USER_ID_2, "assignee", "role:" + ROLE_ID);
+            when(openFgaService.readTuples(argThat(req ->
+                req != null && "assignee".equals(req.relation()) && ROLE_ID.toString().equals(req.objectId())
+            ))).thenReturn(List.of(tuple1, tuple2)).thenReturn(List.of(tuple2));
+
+            roleService.setAssignees(ROLE_ID, List.of(USER_ID_2));
+
+            // Assignee remove + admin tuple remove
+            verify(openFgaService, times(2)).delete(any());
+            verify(openFgaService).delete(argThat(req ->
+                req.tuples().size() == 1 &&
+                req.tuples().get(0).user().equals("user:" + USER_ID_1) &&
+                req.tuples().get(0).relation().equals("admin") &&
+                req.tuples().get(0).object().equals("tenant:" + TENANT_ID)
+            ));
+        }
+    }
+
+    @Nested
+    class SetRolesForUser {
+
+        @Test
+        void shouldWriteAdminTupleWhenAssigningAdminRole() {
+            UUID adminRoleId = UUID.randomUUID();
+            var adminRoleEntity = createRoleEntity(adminRoleId, "Admin", true);
+            when(roleRepository.findAllActiveByIds(List.of(adminRoleId))).thenReturn(List.of(adminRoleEntity));
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.of(adminRoleEntity));
+            when(openFgaService.listObjects(any())).thenReturn(List.of());
+
+            roleService.setRolesForUser(USER_ID_1, List.of(adminRoleId));
+
+            // Assignee tuple + admin tuple
+            verify(openFgaService, times(2)).write(any());
+            verify(openFgaService).write(argThat(req ->
+                req.tuples().size() == 1 &&
+                req.tuples().get(0).user().equals("user:" + USER_ID_1) &&
+                req.tuples().get(0).relation().equals("admin") &&
+                req.tuples().get(0).object().equals("tenant:" + TENANT_ID)
+            ));
+        }
+
+        @Test
+        void shouldDeleteAdminTupleWhenRemovingAdminRole() {
+            UUID adminRoleId = UUID.randomUUID();
+            UUID otherRoleId = UUID.randomUUID();
+            var adminRoleEntity = createRoleEntity(adminRoleId, "Admin", true);
+            var otherRoleEntity = createRoleEntity(otherRoleId, "Editor", false);
+
+            when(roleRepository.findAllActiveByIds(List.of(otherRoleId))).thenReturn(List.of(otherRoleEntity));
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.of(adminRoleEntity));
+            // Currently has admin + other role
+            when(openFgaService.listObjects(any())).thenReturn(List.of("role:" + adminRoleId, "role:" + otherRoleId));
+
+            roleService.setRolesForUser(USER_ID_1, List.of(otherRoleId));
+
+            // Assignee remove (admin role) + admin tuple remove
+            verify(openFgaService).delete(argThat(req ->
+                req.tuples().stream().anyMatch(t ->
+                    t.user().equals("user:" + USER_ID_1) &&
+                    t.relation().equals("assignee") &&
+                    t.object().equals("role:" + adminRoleId))
+            ));
+            verify(openFgaService).delete(argThat(req ->
+                req.tuples().stream().anyMatch(t ->
+                    t.user().equals("user:" + USER_ID_1) &&
+                    t.relation().equals("admin") &&
+                    t.object().equals("tenant:" + TENANT_ID))
+            ));
         }
     }
 }

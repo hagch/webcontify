@@ -1,15 +1,11 @@
+"use client";
+
 import { CheckCircle2, Circle, Loader2, XCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { ProvisioningStepInfo } from "@/generated/tenant";
-
-const STEP_LABELS: Record<string, string> = {
-  S3_BUCKET: "Speicher",
-  KEYCLOAK_REALM: "Authentifizierung",
-  OPENFGA_STORE: "Berechtigungssystem",
-  INITIAL_ADMIN: "Initialer Admin",
-};
 
 const DEFAULT_STEPS: ProvisioningStepInfo[] = [
   { step: "S3_BUCKET", status: "PENDING" },
@@ -44,6 +40,8 @@ export function ProvisioningStatus({
   onRetry,
   isRetrying,
 }: ProvisioningStatusProps) {
+  const t = useTranslations("tenants");
+
   const effectiveSteps = steps ?? DEFAULT_STEPS;
   const completedCount = effectiveSteps.filter(
     (s) => s.status === "COMPLETED"
@@ -59,11 +57,11 @@ export function ProvisioningStatus({
     <Card data-testid="provisioning-status" className="min-h-[300px]">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <CardTitle>Tenant wird eingerichtet</CardTitle>
+          <CardTitle>{t("provisioning.title")}</CardTitle>
           {isActive && (
             <Loader2
               className="size-4 text-primary animate-spin"
-              aria-label="Einrichtung laeuft"
+              aria-label={t("provisioning.spinnerLabel")}
             />
           )}
         </div>
@@ -77,7 +75,7 @@ export function ProvisioningStatus({
             aria-valuemax={100}
           />
           <p className="text-sm text-muted-foreground">
-            {completedCount} von {totalCount} Schritten abgeschlossen
+            {t("provisioning.progress", { completed: completedCount, total: totalCount })}
           </p>
         </div>
 
@@ -87,10 +85,10 @@ export function ProvisioningStatus({
               <StepIcon status={displayStatuses[index]} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">
-                  {STEP_LABELS[step.step] ?? step.step}
+                  {t(`provisioning.stepLabels.${step.step}`)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  <StepStatusText status={displayStatuses[index]} />
+                  {t(`provisioning.statusText.${displayStatuses[index]}`)}
                 </p>
                 {step.status === "FAILED" && step.error && (
                   <p className="text-xs text-destructive mt-0.5">
@@ -110,7 +108,7 @@ export function ProvisioningStatus({
             aria-busy={isRetrying}
           >
             {isRetrying && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Erneut versuchen
+            {t("provisioning.retry")}
           </Button>
         )}
       </CardContent>
@@ -134,18 +132,5 @@ function StepIcon({ status }: { status: string }) {
       return (
         <Circle className="size-4 text-muted-foreground mt-0.5 shrink-0" />
       );
-  }
-}
-
-function StepStatusText({ status }: { status: string }) {
-  switch (status) {
-    case "COMPLETED":
-      return "Abgeschlossen";
-    case "IN_PROGRESS":
-      return "Wird eingerichtet...";
-    case "FAILED":
-      return "Fehlgeschlagen";
-    default:
-      return "Ausstehend";
   }
 }

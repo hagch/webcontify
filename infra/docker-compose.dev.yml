@@ -95,9 +95,14 @@ services:
       - minio-data:/data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.minio.rule=Host(`s3.localhost`)"
-      - "traefik.http.routers.minio.priority=10"
-      - "traefik.http.services.minio.loadbalancer.server.port=9001"
+      # S3 API on s3-api.localhost (port 9000)
+      - "traefik.http.routers.minio-api.rule=Host(`s3-api.localhost`)"
+      - "traefik.http.routers.minio-api.priority=10"
+      - "traefik.http.services.minio-api.loadbalancer.server.port=9000"
+      # Console on s3.localhost (port 9001)
+      - "traefik.http.routers.minio-console.rule=Host(`s3.localhost`)"
+      - "traefik.http.routers.minio-console.priority=10"
+      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
 
   mailpit:
     image: axllent/mailpit:latest

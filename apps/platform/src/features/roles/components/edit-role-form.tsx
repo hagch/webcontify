@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,8 @@ export function EditRoleForm({
 }: EditRoleFormProps) {
   const queryClient = useQueryClient();
   const updateRole = useUpdateRole();
+  const t = useTranslations("roles");
+  const te = useTranslations("errors");
 
   const form = useForm<UpdateRoleFormValues>({
     resolver: zodResolver(updateRoleSchema),
@@ -68,14 +71,14 @@ export function EditRoleForm({
         },
       });
       if (response.status === 200) {
-        toast.success("Rolle wurde aktualisiert.");
+        toast.success(t("toasts.updated"));
         queryClient.invalidateQueries({ queryKey: getListRolesQueryKey() });
         queryClient.invalidateQueries({
           queryKey: getGetRoleQueryKey(roleId),
         });
       }
     } catch (error: unknown) {
-      const err = error as { status?: number } & (
+      const err = error as { status?: number; code?: string } & (
         | ValidationProblemDetail
         | ProblemDetail
       );
@@ -92,13 +95,11 @@ export function EditRoleForm({
       }
       if (err.status === 409) {
         form.setError("name", {
-          message: "Eine Rolle mit diesem Namen existiert bereits.",
+          message: te.has(err.code ?? "") ? te(err.code!) : te("role.name_already_exists"),
         });
         return;
       }
-      toast.error(
-        "Fehler beim Aktualisieren der Rolle. Bitte versuche es erneut."
-      );
+      toast.error(te.has(err.code ?? "") ? te(err.code!) : te("generic"));
     }
   }
 
@@ -111,10 +112,10 @@ export function EditRoleForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Name <span className="text-destructive">*</span>
+                {t("editForm.nameLabel")} <span className="text-destructive">*</span>
               </FormLabel>
               <FormControl>
-                <Input placeholder="z.B. Redakteur" {...field} />
+                <Input data-testid="role-name-input" placeholder={t("editForm.namePlaceholder")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -125,10 +126,10 @@ export function EditRoleForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Beschreibung</FormLabel>
+              <FormLabel>{t("editForm.descriptionLabel")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Optionale Beschreibung der Rolle"
+                  placeholder={t("editForm.descriptionPlaceholder")}
                   rows={3}
                   {...field}
                 />
@@ -142,7 +143,7 @@ export function EditRoleForm({
             {updateRole.isPending && (
               <Loader2 className="mr-2 size-4 animate-spin" />
             )}
-            Speichern
+            {t("editForm.submit")}
           </Button>
         </div>
       </form>

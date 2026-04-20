@@ -34,17 +34,19 @@ public class TenantConfigService {
         this.tenantFileService = tenantFileService;
     }
 
+    public record TenantConfigWithInfo(String name, String slug, TenantConfig config) {}
+
     @Transactional(readOnly = true)
-    public TenantConfig getConfig(UUID tenantId) {
+    public TenantConfigWithInfo getConfig(UUID tenantId) {
         TenantEntity entity = findTenantOrThrow(tenantId);
         TenantConfig config = entity.getConfig();
         if (config == null) {
-            return new TenantConfig(null, null, null);
+            config = new TenantConfig(null, null, null);
         }
-        return stripPassword(config);
+        return new TenantConfigWithInfo(entity.getName(), entity.getSlug(), stripPassword(config));
     }
 
-    public TenantConfig updateBranding(UUID tenantId, BrandingConfig branding) {
+    public TenantConfigWithInfo updateBranding(UUID tenantId, BrandingConfig branding) {
         TenantEntity entity = findTenantOrThrow(tenantId);
         TenantConfig existing = getOrEmpty(entity.getConfig());
 
@@ -52,26 +54,34 @@ public class TenantConfigService {
         entity.setConfig(updated);
         tenantRepository.save(entity);
 
-        String logoPublicUrl = resolveLogoPublicUrl(tenantId, branding);
+        String logoPublicUrl = resolvePublicUrl(tenantId, branding.logoStorageKey());
+        String faviconPublicUrl = resolvePublicUrl(tenantId, branding.faviconStorageKey());
         eventPublisher.publishEvent(new TenantBrandingUpdatedEvent(
                 entity.getId(),
                 entity.getName(),
                 entity.getKeycloakRealmName(),
                 branding.primaryColor(),
                 branding.secondaryColor(),
-                logoPublicUrl));
+                branding.accentColor(),
+                branding.dangerColor(),
+                branding.successColor(),
+                branding.warningColor(),
+                branding.fontFamily(),
+                branding.borderRadius(),
+                logoPublicUrl,
+                faviconPublicUrl));
 
-        return stripPassword(updated);
+        return new TenantConfigWithInfo(entity.getName(), entity.getSlug(), stripPassword(updated));
     }
 
-    private String resolveLogoPublicUrl(UUID tenantId, BrandingConfig branding) {
-        if (branding.logoStorageKey() == null || branding.logoStorageKey().isBlank()) {
+    private String resolvePublicUrl(UUID tenantId, String storageKey) {
+        if (storageKey == null || storageKey.isBlank()) {
             return null;
         }
-        return tenantFileService.getFileUrl(tenantId, branding.logoStorageKey());
+        return tenantFileService.getFileUrl(tenantId, storageKey);
     }
 
-    public TenantConfig updateEmail(UUID tenantId, EmailConfig email) {
+    public TenantConfigWithInfo updateEmail(UUID tenantId, EmailConfig email) {
         TenantEntity entity = findTenantOrThrow(tenantId);
         TenantConfig existing = getOrEmpty(entity.getConfig());
 
@@ -94,10 +104,10 @@ public class TenantConfigService {
         entity.setConfig(updated);
         tenantRepository.save(entity);
 
-        return stripPassword(updated);
+        return new TenantConfigWithInfo(entity.getName(), entity.getSlug(), stripPassword(updated));
     }
 
-    public TenantConfig updateDomain(UUID tenantId, DomainConfig domain) {
+    public TenantConfigWithInfo updateDomain(UUID tenantId, DomainConfig domain) {
         TenantEntity entity = findTenantOrThrow(tenantId);
         TenantConfig existing = getOrEmpty(entity.getConfig());
 
@@ -105,7 +115,7 @@ public class TenantConfigService {
         entity.setConfig(updated);
         tenantRepository.save(entity);
 
-        return stripPassword(updated);
+        return new TenantConfigWithInfo(entity.getName(), entity.getSlug(), stripPassword(updated));
     }
 
     private TenantEntity findTenantOrThrow(UUID tenantId) {

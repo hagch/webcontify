@@ -17,6 +17,12 @@ public class TenantBrandingSyncListener {
 
     private static final Pattern HEX_COLOR = Pattern.compile("^#[0-9a-fA-F]{6}$");
     private static final Pattern SAFE_URL = Pattern.compile("^https?://[^\"'<>]+$");
+    private static final java.util.Set<String> ALLOWED_FONTS = java.util.Set.of(
+            "system", "inter", "geist", "plus-jakarta-sans", "dm-sans",
+            "roboto", "source-sans-3", "ibm-plex-sans", "open-sans",
+            "lato", "nunito-sans", "poppins", "merriweather");
+    private static final java.util.Set<String> ALLOWED_RADII = java.util.Set.of(
+            "0", "0.25rem", "0.5rem", "0.75rem", "1rem");
 
     private final KeycloakAdminService keycloakAdminService;
 
@@ -52,10 +58,56 @@ public class TenantBrandingSyncListener {
             attributes.put("brandSecondaryColor", event.secondaryColor());
         }
 
+        if (event.accentColor() != null && HEX_COLOR.matcher(event.accentColor()).matches()) {
+            attributes.put("brandAccentColor", event.accentColor());
+        }
+
+        if (event.dangerColor() != null && HEX_COLOR.matcher(event.dangerColor()).matches()) {
+            attributes.put("brandDangerColor", event.dangerColor());
+        }
+
+        if (event.successColor() != null && HEX_COLOR.matcher(event.successColor()).matches()) {
+            attributes.put("brandSuccessColor", event.successColor());
+        }
+
+        if (event.warningColor() != null && HEX_COLOR.matcher(event.warningColor()).matches()) {
+            attributes.put("brandWarningColor", event.warningColor());
+        }
+
+        if (event.fontFamily() != null && ALLOWED_FONTS.contains(event.fontFamily())) {
+            attributes.put("brandFontFamily", mapFontFamilyToCss(event.fontFamily()));
+        }
+
+        if (event.borderRadius() != null && ALLOWED_RADII.contains(event.borderRadius())) {
+            attributes.put("brandBorderRadius", event.borderRadius());
+        }
+
         if (event.logoPublicUrl() != null && SAFE_URL.matcher(event.logoPublicUrl()).matches()) {
             attributes.put("brandLogo", event.logoPublicUrl());
         }
 
+        if (event.faviconPublicUrl() != null && SAFE_URL.matcher(event.faviconPublicUrl()).matches()) {
+            attributes.put("brandFavicon", event.faviconPublicUrl());
+        }
+
         return attributes;
+    }
+
+    private String mapFontFamilyToCss(String fontFamily) {
+        return switch (fontFamily) {
+            case "inter" -> "'Inter', sans-serif";
+            case "geist" -> "'Geist', sans-serif";
+            case "plus-jakarta-sans" -> "'Plus Jakarta Sans', sans-serif";
+            case "dm-sans" -> "'DM Sans', sans-serif";
+            case "roboto" -> "'Roboto', sans-serif";
+            case "source-sans-3" -> "'Source Sans 3', sans-serif";
+            case "ibm-plex-sans" -> "'IBM Plex Sans', sans-serif";
+            case "open-sans" -> "'Open Sans', sans-serif";
+            case "lato" -> "'Lato', sans-serif";
+            case "nunito-sans" -> "'Nunito Sans', sans-serif";
+            case "poppins" -> "'Poppins', sans-serif";
+            case "merriweather" -> "'Merriweather', serif";
+            default -> "system-ui, sans-serif";
+        };
     }
 }

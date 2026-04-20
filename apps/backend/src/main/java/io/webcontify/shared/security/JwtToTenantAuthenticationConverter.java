@@ -36,9 +36,11 @@ public class JwtToTenantAuthenticationConverter implements Converter<Jwt, Abstra
         String subject = jwt.getSubject();
         boolean isPlatformAdmin = hasPlatformAdminRole(jwt);
 
+        String realmName = extractRealmName(jwt);
+
         TenantInformation tenantInformation;
         if (isPlatformAdmin) {
-            tenantInformation = new TenantInformation(null, true);
+            tenantInformation = new TenantInformation(null, true, realmName);
             log.debug("Authenticated platform admin: sub={}", subject);
         } else {
             UUID tenantId = resolveTenantId(jwt);
@@ -46,7 +48,7 @@ public class JwtToTenantAuthenticationConverter implements Converter<Jwt, Abstra
                 log.warn("Could not resolve tenant_id for non-admin user: sub={}", subject);
                 throw new IllegalArgumentException("Could not resolve tenant_id from JWT");
             }
-            tenantInformation = new TenantInformation(tenantId, false);
+            tenantInformation = new TenantInformation(tenantId, false, realmName);
             log.debug("Authenticated tenant user: sub={}, tenantId={}", subject, tenantId);
         }
 
@@ -107,6 +109,14 @@ public class JwtToTenantAuthenticationConverter implements Converter<Jwt, Abstra
             log.warn("Tenant slug from issuer not found in database: slug={}", slug);
         }
         return tenantId;
+    }
+
+    private String extractRealmName(Jwt jwt) {
+        String issuer = jwt.getIssuer() != null ? jwt.getIssuer().toString() : null;
+        if (issuer == null) return null;
+        int realmsIdx = issuer.lastIndexOf("/realms/");
+        if (realmsIdx < 0) return null;
+        return issuer.substring(realmsIdx + "/realms/".length());
     }
 
     private boolean hasPlatformAdminRole(Jwt jwt) {

@@ -437,6 +437,26 @@ paths:
             application/json:
               schema:
                 $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+    delete:
+      operationId: deleteFile
+      summary: Delete a file
+      tags:
+        - TenantFiles
+      parameters:
+        - name: storageKey
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: File deleted
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
 
   /api/v1/admin/tenants/check-name:
     get:
@@ -487,7 +507,7 @@ paths:
               schema:
                 $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
 
-  /api/v1/tenant/files/{storageKey}:
+  /api/v1/tenant/files/resolve:
     get:
       operationId: getFile
       summary: Get file (returns pre-signed URL for private, direct URL for public)
@@ -495,7 +515,7 @@ paths:
         - TenantFiles
       parameters:
         - name: storageKey
-          in: path
+          in: query
           required: true
           schema:
             type: string
@@ -506,27 +526,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FileUrlResponse'
-        '404':
-          description: File not found
-          content:
-            application/json:
-              schema:
-                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
-
-    delete:
-      operationId: deleteFile
-      summary: Delete a file
-      tags:
-        - TenantFiles
-      parameters:
-        - name: storageKey
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '204':
-          description: File deleted
         '404':
           description: File not found
           content:
@@ -714,6 +713,10 @@ components:
     TenantConfigResponse:
       type: object
       properties:
+        name:
+          type: string
+        slug:
+          type: string
         branding:
           $ref: '#/components/schemas/BrandingConfigResponse'
         email:
@@ -732,6 +735,20 @@ components:
           type: string
         secondaryColor:
           type: string
+        accentColor:
+          type: string
+        dangerColor:
+          type: string
+        successColor:
+          type: string
+        warningColor:
+          type: string
+        fontFamily:
+          type: string
+          enum: [system, inter, geist, plus-jakarta-sans, dm-sans, roboto, source-sans-3, ibm-plex-sans, open-sans, lato, nunito-sans, poppins, merriweather]
+        borderRadius:
+          type: string
+          enum: ['0', '0.25rem', '0.5rem', '0.75rem', '1rem']
 
     EmailConfigResponse:
       type: object
@@ -768,6 +785,24 @@ components:
         secondaryColor:
           type: string
           pattern: '^#[0-9a-fA-F]{6}$'
+        accentColor:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+        dangerColor:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+        successColor:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+        warningColor:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+        fontFamily:
+          type: string
+          enum: [system, inter, geist, plus-jakarta-sans, dm-sans, roboto, source-sans-3, ibm-plex-sans, open-sans, lato, nunito-sans, poppins, merriweather]
+        borderRadius:
+          type: string
+          enum: ['0', '0.25rem', '0.5rem', '0.75rem', '1rem']
         logoStorageKey:
           type: string
           description: S3 storage key for the logo file

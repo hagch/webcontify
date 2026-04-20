@@ -3,6 +3,15 @@ import { render, screen } from "@testing-library/react";
 import { AdminTable } from "../admin-table";
 import type { PlatformAdminResponse } from "@/generated/platform-admin";
 
+// Mock next-intl
+vi.mock("next-intl", () => ({
+  useTranslations: (ns: string) => {
+    const translator = (key: string) => `${ns}.${key}`;
+    translator.has = () => false;
+    return translator;
+  },
+}));
+
 // Mock use-admin-actions
 vi.mock("../../hooks/use-admin-actions", () => ({
   useAdminActions: vi.fn(),
@@ -81,30 +90,26 @@ describe("AdminTable", () => {
   it("should show active badge for enabled admins", () => {
     render(<AdminTable admins={sampleAdmins} isLoading={false} isRefetching={false} />);
 
-    expect(screen.getByText("Aktiv")).toBeInTheDocument();
+    expect(screen.getByText("admins.statusValues.active")).toBeInTheDocument();
   });
 
   it("should show deactivated badge for disabled admins", () => {
     render(<AdminTable admins={sampleAdmins} isLoading={false} isRefetching={false} />);
 
-    expect(screen.getByText("Deaktiviert")).toBeInTheDocument();
+    expect(screen.getByText("admins.statusValues.deactivated")).toBeInTheDocument();
   });
 
   it("should show empty state when no admins", () => {
     render(<AdminTable admins={[]} isLoading={false} isRefetching={false} />);
 
-    expect(screen.getByText("Noch keine Administratoren")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Lade einen Administrator ein, um die Plattform gemeinsam zu verwalten."
-      )
-    ).toBeInTheDocument();
+    expect(screen.getByText("admins.emptyState.title")).toBeInTheDocument();
+    expect(screen.getByText("admins.emptyState.description")).toBeInTheDocument();
   });
 
   it("should show skeleton when loading", () => {
     render(<AdminTable admins={[]} isLoading={true} isRefetching={false} />);
 
-    expect(screen.queryByText("Noch keine Administratoren")).not.toBeInTheDocument();
+    expect(screen.queryByText("admins.emptyState.title")).not.toBeInTheDocument();
     const skeletonElements = document.querySelectorAll(".animate-pulse");
     expect(skeletonElements.length).toBeGreaterThan(0);
   });

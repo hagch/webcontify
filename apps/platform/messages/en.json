@@ -5,21 +5,435 @@
   },
   "nav": {
     "tenants": "Tenants",
-    "settings": "Settings"
+    "settings": "Settings",
+    "users": "Users",
+    "roles": "Roles",
+    "admins": "Administrators",
+    "profile": "Profile",
+    "changePassword": "Change Password",
+    "signOut": "Sign out",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "sidebar": {
+      "management": "Management",
+      "system": "System",
+      "overview": "Overview",
+      "tenants": "Tenants",
+      "admins": "Platform Admins",
+      "settings": "Settings",
+      "dashboard": "Dashboard",
+      "apps": "Apps",
+      "users": "Users",
+      "roles": "Roles",
+      "branding": "Branding",
+      "email": "Email",
+      "domain": "Domain"
+    }
   },
   "header": {
     "platform": "Platform Administration",
     "logout": "Sign out"
   },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "confirm": "Confirm",
+    "actions": "Actions",
+    "name": "Name",
+    "description": "Description",
+    "email": "Email",
+    "status": "Status",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "invite": "Invite",
+    "remove": "Remove",
+    "add": "Add",
+    "back": "Back",
+    "noDescription": "No description",
+    "required": "Required",
+    "optional": "Optional",
+    "createdAt": "Created"
+  },
+  "roles": {
+    "title": "Roles",
+    "create": "Create Role",
+    "tableHeaders": {
+      "name": "Name",
+      "description": "Description",
+      "type": "Type",
+      "members": "Members",
+      "actions": "Actions"
+    },
+    "typeLabels": {
+      "system": "System",
+      "custom": "Custom"
+    },
+    "emptyState": {
+      "title": "No roles created yet",
+      "description": "Create a role to manage user permissions."
+    },
+    "noDescription": "No description",
+    "actionsMenu": {
+      "label": "Actions for {name}",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "deleteDialog": {
+      "title": "Delete Role",
+      "description": "Do you really want to delete the role {name}? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    },
+    "createDialog": {
+      "title": "Create Role",
+      "description": "Create a new role to group user permissions.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Editor",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Optional description of the role",
+      "cancel": "Cancel",
+      "submit": "Create"
+    },
+    "editForm": {
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Editor",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Optional description of the role",
+      "submit": "Save"
+    },
+    "detailPage": {
+      "breadcrumbList": "Roles",
+      "breadcrumbLoading": "Loading...",
+      "breadcrumbNotFound": "Not Found",
+      "breadcrumbDetail": "Details",
+      "backLabel": "Back to Roles",
+      "editSection": "Edit Role",
+      "tabAssignees": "Assigned Users ({count})",
+      "tabPermissions": "Permissions",
+      "addUsers": "Add Users",
+      "notFoundTitle": "Role not found",
+      "notFoundDescription": "The requested role does not exist or has been deleted.",
+      "backToRoles": "Back to Roles"
+    },
+    "assigneesTable": {
+      "nameHeader": "Name",
+      "emailHeader": "Email",
+      "actionsHeader": "Actions",
+      "removeLabel": "{name} remove",
+      "emptyTitle": "No users assigned",
+      "emptyDescription": "Assign users to this role to manage their permissions.",
+      "removeDialog": {
+        "title": "Remove User",
+        "description": "Do you want to remove {name} from this role?",
+        "cancel": "Cancel",
+        "confirm": "Remove"
+      }
+    },
+    "addAssigneesDialog": {
+      "title": "Add Users",
+      "description": "Select users to be assigned to this role.",
+      "nameHeader": "Name",
+      "emailHeader": "Email",
+      "selectLabel": "Select {name}",
+      "allAssignedTitle": "All users assigned",
+      "allAssignedDescription": "There are no more users that can be added.",
+      "cancel": "Cancel",
+      "addCount": "Add {count} user(s)",
+      "add": "Add"
+    },
+    "permissions": {
+      "title": "Permissions",
+      "readonlyNotice": "Permissions cannot be edited at this time.",
+      "systemRoleNotice": "Permissions for system roles cannot be changed.",
+      "escalationTooltip": "You do not have this permission yourself",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saveSuccess": "Permissions updated",
+      "saveError": "Failed to update permissions",
+      "emptyTitle": "No Permissions",
+      "emptyDescription": "No permissions are assigned to this role.",
+      "resourceTypes": {
+        "user_management": "User Management",
+        "role_management": "Role Management",
+        "tenant_config": "Tenant Configuration"
+      },
+      "actions": {
+        "reader": "Read",
+        "editor": "Edit",
+        "creator": "Create",
+        "deleter": "Delete",
+        "inviter": "Invite"
+      }
+    },
+    "toasts": {
+      "created": "Role \"{name}\" has been created.",
+      "updated": "Role has been updated.",
+      "deleted": "Role has been deleted.",
+      "createError": "Failed to create role. Please try again.",
+      "updateError": "Failed to update role. Please try again.",
+      "deleteError": "Failed to delete role. Please try again.",
+      "assigneesUpdated": "{firstName} {lastName} has been removed from the role.",
+      "assigneesAdded": "{count} user(s) have been assigned to the role.",
+      "assigneeRemoveError": "Failed to remove user. Please try again.",
+      "assigneeAddError": "Failed to add users. Please try again.",
+      "assigneesSetSuccess": "Role members have been updated.",
+      "assigneesSetError": "Failed to update role members. Please try again.",
+      "nameAlreadyExists": "A role with this name already exists."
+    }
+  },
+  "users": {
+    "title": "Users",
+    "invite": "Invite",
+    "detailPage": {
+      "breadcrumb": "Users",
+      "fallbackName": "User",
+      "backLabel": "Back to Users",
+      "profileSection": "Profile",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "status": "Status",
+      "createdAt": "Created",
+      "updatedAt": "Updated",
+      "invitedBy": "Invited by",
+      "actionsSection": "Actions",
+      "resendInvite": "Resend Invitation",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "delete": "Delete",
+      "rolesSection": "Roles",
+      "noRoles": "No roles assigned.",
+      "notFoundTitle": "User not found",
+      "notFoundDescription": "The user does not exist or has been deleted.",
+      "backToOverview": "Back to overview",
+      "deleteDialogTitle": "Delete User",
+      "deleteDialogDescription": "Do you really want to delete <strong>{name}</strong>? This action cannot be undone.",
+      "deleteDialogCancel": "Cancel",
+      "deleteDialogConfirm": "Delete"
+    },
+    "tableHeaders": {
+      "name": "Name",
+      "email": "Email",
+      "status": "Status",
+      "invitedAt": "Invited",
+      "actions": "Actions"
+    },
+    "emptyState": {
+      "title": "No users yet",
+      "description": "Invite users to start collaborating."
+    },
+    "statusValues": {
+      "INVITED": "Invited",
+      "ACTIVE": "Active",
+      "DEACTIVATED": "Deactivated"
+    },
+    "actionsMenu": {
+      "label": "Actions for {name}",
+      "resendInvite": "Resend Invitation",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "cloneRoles": "Invite with same roles",
+      "delete": "Delete"
+    },
+    "deleteDialog": {
+      "title": "Delete User",
+      "description": "Do you really want to delete {name}? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    },
+    "inviteDialog": {
+      "title": "Invite User",
+      "description": "Invite a new user to your workspace.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "max@example.com",
+      "firstNameLabel": "First Name",
+      "firstNamePlaceholder": "Max",
+      "lastNameLabel": "Last Name",
+      "lastNamePlaceholder": "Doe",
+      "rolesLabel": "Roles",
+      "rolesEmptyState": "No roles available.",
+      "copyRolesLabel": "Pre-fill from user",
+      "copyRolesPlaceholder": "Select user (optional)",
+      "copyRolesNone": "None",
+      "cancel": "Cancel",
+      "submit": "Invite"
+    },
+    "toasts": {
+      "invited": "{name} has been invited.",
+      "inviteError": "Failed to invite user. Please try again.",
+      "deleted": "User has been deleted.",
+      "deleteError": "Failed to delete user. Please try again.",
+      "activated": "User has been activated.",
+      "deactivated": "User has been deactivated.",
+      "statusError": "Failed to update user status. Please try again.",
+      "inviteResent": "Invitation has been resent.",
+      "resendError": "Failed to resend invitation. Please try again.",
+      "emailAlreadyExists": "This email address is already taken."
+    }
+  },
+  "admins": {
+    "title": "Administrators",
+    "invite": "Invite Admin",
+    "tableHeaders": {
+      "name": "Name",
+      "email": "Email",
+      "status": "Status",
+      "createdAt": "Created",
+      "actions": "Actions"
+    },
+    "statusValues": {
+      "active": "Active",
+      "deactivated": "Deactivated"
+    },
+    "emptyState": {
+      "title": "No administrators yet",
+      "description": "Invite an administrator to manage the platform together."
+    },
+    "actionsMenu": {
+      "label": "Actions for {name}",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "resetPassword": "Force Password Reset",
+      "delete": "Remove"
+    },
+    "deleteDialog": {
+      "title": "Remove Administrator",
+      "description": "Do you really want to remove {name} as an administrator? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Remove"
+    },
+    "inviteDialog": {
+      "title": "Invite Administrator",
+      "description": "Invite a person as a Platform Administrator. They will receive an email with an invitation link.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "name@example.com",
+      "firstNameLabel": "First Name",
+      "firstNamePlaceholder": "Max",
+      "lastNameLabel": "Last Name",
+      "lastNamePlaceholder": "Doe",
+      "cancel": "Cancel",
+      "submit": "Invite"
+    },
+    "toasts": {
+      "invited": "Administrator \"{name}\" has been invited.",
+      "inviteError": "Failed to invite administrator. Please try again.",
+      "deleted": "Administrator has been removed.",
+      "deleteError": "Failed to remove administrator. Please try again.",
+      "activated": "Administrator has been activated.",
+      "deactivated": "Administrator has been deactivated.",
+      "statusError": "Failed to update administrator status. Please try again.",
+      "passwordReset": "Password reset has been triggered.",
+      "passwordResetError": "Failed to trigger password reset. Please try again.",
+      "emailAlreadyExists": "An administrator with this email address already exists."
+    }
+  },
+  "errors": {
+    "forbidden": "You do not have permission for this action",
+    "noAccess": "You do not have access to this area",
+    "tenant": {
+      "not_found": "Tenant not found.",
+      "name_already_exists": "A tenant with this name already exists.",
+      "slug_already_exists": "A tenant with this slug already exists."
+    },
+    "user": {
+      "not_found": "User not found.",
+      "email_already_exists": "A user with this email address already exists.",
+      "invalid_status_transition": "This status change is not permitted.",
+      "cannot_deactivate_self": "You cannot deactivate your own account.",
+      "cannot_delete_self": "You cannot delete your own account.",
+      "not_invited": "This user has not been invited yet.",
+      "last_admin_cannot_be_removed": "The last administrator cannot be removed."
+    },
+    "role": {
+      "not_found": "Role not found.",
+      "name_already_exists": "A role with this name already exists.",
+      "system_role_cannot_be_modified": "System roles cannot be modified.",
+      "system_role_cannot_be_deleted": "System roles cannot be deleted.",
+      "has_assignees": "This role still has assigned users.",
+      "assignee_not_found": "One or more users were not found.",
+      "last_admin_cannot_be_removed": "The last administrator cannot be removed from the Admin role."
+    },
+    "admin": {
+      "not_found": "Administrator not found.",
+      "email_already_exists": "An administrator with this email address already exists.",
+      "cannot_modify_self": "You cannot modify your own account.",
+      "cannot_delete_self": "You cannot delete your own account.",
+      "last_admin_cannot_be_deactivated": "The last administrator cannot be deactivated.",
+      "last_admin_cannot_be_deleted": "The last administrator cannot be deleted.",
+      "use_account_console_for_own_password": "Please use the Account Console to change your own password."
+    },
+    "invite": {
+      "source_user_not_found": "The source user for copying roles was not found."
+    },
+    "generic": "An unexpected error occurred. Please try again."
+  },
+  "profile": {
+    "title": "Profile",
+    "avatar": {
+      "title": "Profile Picture",
+      "upload": "Upload",
+      "delete": "Remove",
+      "maxSize": "Max 2MB, JPEG or PNG",
+      "uploadSuccess": "Profile picture updated",
+      "deleteSuccess": "Profile picture removed",
+      "error": "Failed to upload profile picture",
+      "tooLarge": "File is too large (max 2MB)",
+      "invalidType": "Only JPEG and PNG files are allowed"
+    },
+    "name": {
+      "title": "Display Name",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "save": "Save",
+      "saved": "Name updated",
+      "error": "Failed to update name"
+    },
+    "password": {
+      "title": "Password",
+      "change": "Change Password",
+      "description": "You will be redirected to the login provider to change your password."
+    },
+    "preferences": {
+      "title": "Preferences",
+      "language": "Language",
+      "theme": "Theme",
+      "saved": "Preferences saved"
+    },
+    "languages": {
+      "de": "Deutsch",
+      "en": "English"
+    },
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
+  },
   "tenants": {
     "title": "Tenants",
     "create": "Create Tenant",
+    "description": "Manage all tenants on the platform.",
     "name": "Name",
     "slug": "Slug",
     "status": "Status",
     "createdAt": "Created",
     "actions": "Actions",
     "noTenants": "No tenants found",
+    "emptyState": {
+      "title": "No tenants yet",
+      "description": "Create your first tenant to get started."
+    },
+    "actionsMenu": {
+      "label": "Actions for {name}",
+      "viewDetails": "View details"
+    },
     "createDialog": {
       "title": "Create Tenant",
       "description": "Create a new tenant for the platform.",
@@ -28,8 +442,18 @@
       "slugLabel": "Slug",
       "slugPlaceholder": "my-tenant",
       "slugHint": "Lowercase letters, numbers and hyphens only",
+      "adminSection": "Initial Administrator",
+      "adminEmailLabel": "Email",
+      "adminEmailPlaceholder": "admin@acme.com",
+      "adminFirstNameLabel": "First Name",
+      "adminFirstNamePlaceholder": "Max",
+      "adminLastNameLabel": "Last Name",
+      "adminLastNamePlaceholder": "Doe",
       "cancel": "Cancel",
-      "submit": "Create"
+      "submit": "Create",
+      "nameAlreadyExists": "This name is already taken. Please choose another.",
+      "creatingToast": "Tenant is being created...",
+      "createError": "Failed to create tenant. Please try again."
     },
     "detail": {
       "title": "Tenant Details",
@@ -42,18 +466,39 @@
       "activate": "Activate",
       "suspend": "Suspend",
       "deactivate": "Deactivate",
-      "config": "Configuration"
+      "config": "Configuration",
+      "slugLabel": "Slug",
+      "idLabel": "ID"
     },
     "statusValues": {
       "ACTIVE": "Active",
       "INACTIVE": "Inactive",
       "SUSPENDED": "Suspended"
+    },
+    "provisioning": {
+      "title": "Setting up tenant",
+      "spinnerLabel": "Setup in progress",
+      "progress": "{completed} of {total} steps completed",
+      "retry": "Retry",
+      "stepLabels": {
+        "S3_BUCKET": "Storage",
+        "KEYCLOAK_REALM": "Authentication",
+        "OPENFGA_STORE": "Permission System",
+        "INITIAL_ADMIN": "Initial Admin"
+      },
+      "statusText": {
+        "COMPLETED": "Completed",
+        "IN_PROGRESS": "Setting up...",
+        "FAILED": "Failed",
+        "PENDING": "Pending"
+      }
     }
   },
   "settings": {
     "title": "Settings",
     "branding": {
-      "title": "Branding"
+      "title": "Branding",
+      "description": "Customize the appearance of your workspace."
     }
   },
   "config": {
@@ -64,12 +509,76 @@
       "primaryColorHint": "Hex color code (e.g. #3b82f6)",
       "secondaryColor": "Secondary Color",
       "secondaryColorHint": "Hex color code (e.g. #64748b)",
+      "accentColor": "Accent Color",
+      "accentColorHint": "Hex color code (e.g. #10B981)",
+      "colorPickerLabel": "{label} color picker",
       "save": "Save Branding",
       "saved": "Branding saved",
-      "error": "Failed to save branding"
+      "error": "Failed to save branding",
+      "advanced": "Advanced",
+      "advancedDescription": "Additional customization options",
+      "fontFamily": "Font Family",
+      "fontCategoryModern": "Modern",
+      "fontCategoryClassic": "Classic",
+      "fontCategoryFriendly": "Friendly",
+      "fontCategorySerif": "Serif",
+      "fontFamilyOptions": {
+        "system": "System Default",
+        "inter": "Inter",
+        "geist": "Geist",
+        "plus-jakarta-sans": "Plus Jakarta Sans",
+        "dm-sans": "DM Sans",
+        "roboto": "Roboto",
+        "source-sans-3": "Source Sans 3",
+        "ibm-plex-sans": "IBM Plex Sans",
+        "open-sans": "Open Sans",
+        "lato": "Lato",
+        "nunito-sans": "Nunito Sans",
+        "poppins": "Poppins",
+        "merriweather": "Merriweather"
+      },
+      "borderRadius": "Border Radius",
+      "borderRadiusOptions": {
+        "0": "Sharp (0)",
+        "0_25rem": "Subtle (0.25rem)",
+        "0_5rem": "Default (0.5rem)",
+        "0_75rem": "Rounded (0.75rem)",
+        "1rem": "Very Rounded (1rem)"
+      },
+      "resetDefaults": "Reset to Defaults",
+      "resetConfirm": "Branding reset to defaults",
+      "preview": "Preview",
+      "previewButton": "Button",
+      "previewSecondaryButton": "Secondary",
+      "previewBadge": "Badge",
+      "previewCard": "Sample Card",
+      "previewCardDescription": "This is how your content will look.",
+      "dangerColor": "Danger Color",
+      "dangerColorHint": "Hex color code (e.g. #EF4444)",
+      "successColor": "Success Color",
+      "successColorHint": "Hex color code (e.g. #059669)",
+      "warningColor": "Warning Color",
+      "warningColorHint": "Hex color code (e.g. #F59E0B)",
+      "severityColors": "Severity Colors",
+      "previewDanger": "Danger",
+      "previewSuccess": "Success",
+      "previewWarning": "Warning",
+      "logoSvgOnly": "Only SVG files are supported",
+      "logoHint": "SVG, PNG or JPEG. Max 2 MB.",
+      "logo": "Logo",
+      "favicon": "Favicon",
+      "upload": "Upload",
+      "remove": "Remove",
+      "noImage": "No image",
+      "fileSizeError": "Maximum file size: {maxSizeMb} MB",
+      "tabLogoIdentity": "Logo & Identity",
+      "tabColors": "Colors",
+      "tabTypography": "Typography",
+      "previewFont": "Font Preview"
     },
     "email": {
       "title": "Email",
+      "comingSoon": "Email configuration coming soon.",
       "smtpHost": "SMTP Host",
       "smtpPort": "SMTP Port",
       "smtpUser": "SMTP User",
@@ -89,6 +598,7 @@
     },
     "domain": {
       "title": "Domain",
+      "comingSoon": "Domain configuration coming soon.",
       "customDomain": "Custom Domain",
       "customDomainHint": "e.g. app.example.com",
       "sslStatus": "SSL Status",

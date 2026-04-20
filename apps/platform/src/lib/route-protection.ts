@@ -8,6 +8,8 @@ const PROTECTED_PREFIXES = [
   "/users",
   "/roles",
   "/settings",
+  // Shared
+  "/profile",
 ];
 
 const PUBLIC_PREFIXES = ["/api/auth", "/signin", "/_next", "/favicon"];

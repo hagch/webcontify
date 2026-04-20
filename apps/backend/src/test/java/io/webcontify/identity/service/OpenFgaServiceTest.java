@@ -3,6 +3,7 @@ package io.webcontify.identity.service;
 import dev.openfga.sdk.api.client.ApiResponse;
 import dev.openfga.sdk.api.client.OpenFgaClient;
 import dev.openfga.sdk.api.client.model.*;
+import dev.openfga.sdk.api.configuration.ClientBatchCheckOptions;
 import dev.openfga.sdk.api.configuration.ClientCheckOptions;
 import dev.openfga.sdk.api.configuration.ClientDeleteTuplesOptions;
 import dev.openfga.sdk.api.configuration.ClientListObjectsOptions;
@@ -10,6 +11,7 @@ import dev.openfga.sdk.api.configuration.ClientWriteOptions;
 import dev.openfga.sdk.api.model.*;
 import io.webcontify.identity.model.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -134,5 +137,43 @@ class OpenFgaServiceTest {
         var result = openFgaService.listObjects(request);
 
         assertThat(result).containsExactly("user_management:tenant-1", "user_management:tenant-2");
+    }
+
+    @Nested
+    class BatchCheck {
+
+        @Test
+        void batchCheck_shouldReturnResultsMapWithCorrectKeysAndValues() throws Exception {
+            var userId = UUID.randomUUID();
+            var checkAllowed = new OpenFgaCheckRequest("store-123", userId, "reader", "user_management", null);
+            var checkDenied = new OpenFgaCheckRequest("store-123", userId, "editor", "user_management", null);
+            var batchRequest = new OpenFgaBatchCheckRequest("store-123", List.of(checkAllowed, checkDenied));
+
+            var reqAllowed = new ClientCheckRequest()
+                    .user("user:" + userId)
+                    .relation("reader")
+                    ._object("user_management:*");
+            var reqDenied = new ClientCheckRequest()
+                    .user("user:" + userId)
+                    .relation("editor")
+                    ._object("user_management:*");
+
+            ClientBatchCheckResponse resp1 = mock(ClientBatchCheckResponse.class);
+            when(resp1.getRequest()).thenReturn(reqAllowed);
+            when(resp1.getAllowed()).thenReturn(true);
+
+            ClientBatchCheckResponse resp2 = mock(ClientBatchCheckResponse.class);
+            when(resp2.getRequest()).thenReturn(reqDenied);
+            when(resp2.getAllowed()).thenReturn(false);
+
+            when(openFgaClient.batchCheck(anyList(), any(ClientBatchCheckOptions.class)))
+                    .thenReturn(CompletableFuture.completedFuture(List.of(resp1, resp2)));
+
+            var result = openFgaService.batchCheck(batchRequest);
+
+            assertThat(result.results()).hasSize(2);
+            assertThat(result.results()).containsEntry("reader:user_management", true);
+            assertThat(result.results()).containsEntry("editor:user_management", false);
+        }
     }
 }

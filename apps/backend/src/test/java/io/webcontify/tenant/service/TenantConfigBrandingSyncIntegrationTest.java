@@ -84,7 +84,7 @@ class TenantConfigBrandingSyncIntegrationTest {
 
     @Test
     void shouldPublishTenantBrandingUpdatedEventAfterBrandingUpdate() {
-        BrandingConfig branding = new BrandingConfig(null, null, "#1a2b3c", "#4d5e6f");
+        BrandingConfig branding = new BrandingConfig(null, null, "#1a2b3c", "#4d5e6f", null, null, null, null, null, null);
 
         tenantConfigService.updateBranding(tenantId, branding);
 
@@ -97,7 +97,7 @@ class TenantConfigBrandingSyncIntegrationTest {
 
     @Test
     void shouldPublishEventWithCorrectTenantId() {
-        BrandingConfig branding = new BrandingConfig(null, null, "#aabbcc", null);
+        BrandingConfig branding = new BrandingConfig(null, null, "#aabbcc", null, null, null, null, null, null, null);
 
         tenantConfigService.updateBranding(tenantId, branding);
 
@@ -112,7 +112,7 @@ class TenantConfigBrandingSyncIntegrationTest {
     @Test
     void shouldPublishEventWithCorrectTenantNameAndRealmName() {
         String shortId = tenantId.toString().substring(0, 8);
-        BrandingConfig branding = new BrandingConfig(null, null, "#aabbcc", null);
+        BrandingConfig branding = new BrandingConfig(null, null, "#aabbcc", null, null, null, null, null, null, null);
 
         tenantConfigService.updateBranding(tenantId, branding);
 
@@ -127,7 +127,7 @@ class TenantConfigBrandingSyncIntegrationTest {
 
     @Test
     void shouldPublishEventWithCorrectColors() {
-        BrandingConfig branding = new BrandingConfig(null, null, "#112233", "#445566");
+        BrandingConfig branding = new BrandingConfig(null, null, "#112233", "#445566", null, null, null, null, null, null);
 
         tenantConfigService.updateBranding(tenantId, branding);
 
@@ -142,7 +142,7 @@ class TenantConfigBrandingSyncIntegrationTest {
 
     @Test
     void shouldPublishEventWithNullLogoUrlWhenNoLogoStorageKey() {
-        BrandingConfig branding = new BrandingConfig(null, null, "#aabbcc", null);
+        BrandingConfig branding = new BrandingConfig(null, null, "#aabbcc", null, null, null, null, null, null, null);
 
         tenantConfigService.updateBranding(tenantId, branding);
 

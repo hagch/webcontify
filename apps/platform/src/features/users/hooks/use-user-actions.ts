@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   useResendInvite,
@@ -14,15 +15,16 @@ import {
 
 export function useUserActions() {
   const queryClient = useQueryClient();
+  const t = useTranslations("users");
 
   const resendInviteMutation = useResendInvite({
     mutation: {
       onSuccess: () => {
-        toast.success("Einladung wurde erneut gesendet.");
+        toast.success(t("toasts.inviteResent"));
         queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
       },
       onError: () => {
-        toast.error("Fehler beim Senden der Einladung. Bitte versuche es erneut.");
+        toast.error(t("toasts.resendError"));
       },
     },
   });
@@ -32,11 +34,11 @@ export function useUserActions() {
       onSuccess: (response) => {
         if (response.status === 200) {
           const user = response.data;
-          const label =
+          toast.success(
             user.status === UserStatus.ACTIVE
-              ? "aktiviert"
-              : "deaktiviert";
-          toast.success(`Benutzer wurde ${label}.`);
+              ? t("toasts.activated")
+              : t("toasts.deactivated")
+          );
           queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
           queryClient.invalidateQueries({
             queryKey: getGetUserQueryKey(user.id),
@@ -44,7 +46,7 @@ export function useUserActions() {
         }
       },
       onError: () => {
-        toast.error("Fehler beim Aktualisieren des Status. Bitte versuche es erneut.");
+        toast.error(t("toasts.statusError"));
       },
     },
   });
@@ -52,11 +54,11 @@ export function useUserActions() {
   const deleteUserMutation = useDeleteUser({
     mutation: {
       onSuccess: () => {
-        toast.success("Benutzer wurde geloescht.");
+        toast.success(t("toasts.deleted"));
         queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
       },
       onError: () => {
-        toast.error("Fehler beim Loeschen des Benutzers. Bitte versuche es erneut.");
+        toast.error(t("toasts.deleteError"));
       },
     },
   });

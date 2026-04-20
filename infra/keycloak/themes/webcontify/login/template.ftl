@@ -1,25 +1,25 @@
-<#import "field.ftl" as field>
-<#import "footer.ftl" as loginFooter>
 <#macro username>
 <#assign label>
     <#if !realm.loginWithEmailAllowed>${msg("username")}<#elseif !realm.registrationEmailAsUsername>${msg("usernameOrEmail")}<#else>${msg("email")}</#if>
 </#assign>
-<@field.group name="username" label=label>
-<div class="${properties.kcInputGroup}">
-  <div class="${properties.kcInputGroupItemClass} ${properties.kcFill}">
-        <span class="${properties.kcInputClass} ${properties.kcFormReadOnlyClass}">
-          <input id="kc-attempted-username" value="${auth.attemptedUsername}" readonly>
-        </span>
-  </div>
-  <div class="${properties.kcInputGroupItemClass}">
-    <button id="reset-login" class="${properties.kcFormPasswordVisibilityButtonClass} kc-login-tooltip" type="button"
-            aria-label="${msg('restartLoginTooltip')}" onclick="location.href='${url.loginRestartFlowUrl}'">
-      <i class="fa-sync-alt fas" aria-hidden="true"></i>
-      <span class="kc-tooltip-text">${msg("restartLoginTooltip")}</span>
-    </button>
-  </div>
-    </@field.group>
-    </#macro>
+<div class="${properties.kcFormGroupClass!}">
+    <label for="kc-attempted-username" class="${properties.kcLabelClass!}">${label}</label>
+    <div class="${properties.kcInputGroup}">
+      <div class="${properties.kcInputGroupItemClass} ${properties.kcFill}">
+            <span class="${properties.kcInputClass} ${properties.kcFormReadOnlyClass}">
+              <input id="kc-attempted-username" value="${auth.attemptedUsername}" readonly>
+            </span>
+      </div>
+      <div class="${properties.kcInputGroupItemClass}">
+        <button id="reset-login" class="${properties.kcFormPasswordVisibilityButtonClass} kc-login-tooltip" type="button"
+                aria-label="${msg('restartLoginTooltip')}" onclick="location.href='${url.loginRestartFlowUrl}'">
+          <i class="fa-sync-alt fas" aria-hidden="true"></i>
+          <span class="kc-tooltip-text">${msg("restartLoginTooltip")}</span>
+        </button>
+      </div>
+    </div>
+</div>
+</#macro>
 
     <#macro registrationLayout bodyClass="" displayInfo=false displayMessage=true displayRequiredFields=false>
       <!DOCTYPE html>
@@ -36,7 +36,11 @@
               </#list>
           </#if>
         <title>${msg("loginTitle",(realm.displayName!''))}</title>
+        <#if realm.attributes['brandFavicon']?? && realm.attributes['brandFavicon'] != ''>
+        <link rel="icon" href="${realm.attributes['brandFavicon']}" />
+        <#else>
         <link rel="icon" href="${url.resourcesPath}/img/favicon.ico" />
+        </#if>
           <#if properties.stylesCommon?has_content>
               <#list properties.stylesCommon?split(' ') as style>
                 <link href="${url.resourcesCommonPath}/${style}" rel="stylesheet" />
@@ -72,30 +76,41 @@
               "${url.ssoLoginInOtherTabsUrl?no_esc}"
           );
 
-          const DARK_MODE_CLASS = "pf-v5-theme-dark";
-          const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-          updateDarkMode(mediaQuery.matches);
-          mediaQuery.addEventListener("change", (event) =>
-              updateDarkMode(event.matches),
-          );
-          function updateDarkMode(isEnabled) {
-            const { classList } = document.documentElement;
-            if (isEnabled) {
-              classList.add(DARK_MODE_CLASS);
-            } else {
-              classList.remove(DARK_MODE_CLASS);
-            }
-          }
         </script>
 
           <#-- Tenant Branding: CSS Variables aus Realm-Attributes -->
         <style>
           :root {
+            /* Dynamic (from Realm Attributes) */
             --wc-primary: ${(realm.attributes['brandPrimaryColor']!'#6366F1')?no_esc};
             --wc-primary-hover: color-mix(in srgb, var(--wc-primary) 85%, black);
             --wc-secondary: ${(realm.attributes['brandSecondaryColor']!'#10B981')?no_esc};
+            --wc-accent: ${(realm.attributes['brandAccentColor']!'#10B981')?no_esc};
+            --wc-radius: ${(realm.attributes['brandBorderRadius']!'0.5rem')?no_esc};
+            --wc-font: ${(realm.attributes['brandFontFamily']!'system-ui, sans-serif')?no_esc};
+
+            /* Static (design system tokens) */
+            --wc-bg: #FAFAF9;
+            --wc-card: #FFFFFF;
+            --wc-card-border: #E7E5E4;
+            --wc-text: #1C1917;
+            --wc-text-muted: #78716C;
+            --wc-input-border: #D6D3D1;
+            --wc-input-bg: #FFFFFF;
+            --wc-focus-ring: var(--wc-primary);
+            --wc-link: var(--wc-primary);
+            --wc-error: #EF4444;
           }
         </style>
+          <#-- Load Google Fonts if a non-system font is configured -->
+          <#if realm.attributes['brandFontFamily']?? && realm.attributes['brandFontFamily'] != 'system-ui, sans-serif'>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+              <#assign fontName = realm.attributes['brandFontFamily']?replace("'", "")?split(",")?first?trim>
+              <#if fontName != "system-ui">
+        <link href="https://fonts.googleapis.com/css2?family=${fontName?url('UTF-8')}:wght@400;500;600;700&display=swap" rel="stylesheet">
+              </#if>
+          </#if>
       </head>
 
       <body id="keycloak-bg" class="${properties.kcBodyClass!}">
@@ -227,8 +242,6 @@
                 <#nested "socialProviders">
             </div>
           </main>
-
-            <@loginFooter.content/>
         </div>
       </div>
       </body>

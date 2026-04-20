@@ -7,8 +7,10 @@ import io.webcontify.generated.model.RoleDetailResponse;
 import io.webcontify.generated.model.RoleListResponse;
 import io.webcontify.generated.model.RolePermissionPreviewResponse;
 import io.webcontify.generated.model.RoleResponse;
+import io.webcontify.generated.model.SetRolePermissionsRequest;
 import io.webcontify.generated.model.UpdateRoleRequest;
 import io.webcontify.identity.mapper.RoleMapper;
+import io.webcontify.identity.model.RolePermissionEntry;
 import io.webcontify.identity.security.RequiresPermission;
 import io.webcontify.identity.service.RoleService;
 import org.springframework.http.ResponseEntity;
@@ -105,5 +107,15 @@ public class RoleController implements TenantRolesApi {
     public ResponseEntity<Void> deleteRole(UUID roleId) {
         roleService.delete(roleId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @RequiresPermission(action = "editor", resource = "role_management")
+    public ResponseEntity<RoleDetailResponse> setRolePermissions(UUID roleId, SetRolePermissionsRequest setRolePermissionsRequest) {
+        var entries = setRolePermissionsRequest.getPermissions().stream()
+                .map(p -> new RolePermissionEntry(p.getResourceType(), p.getActions()))
+                .toList();
+        roleService.setPermissions(roleId, entries);
+        return getRole(roleId);
     }
 }

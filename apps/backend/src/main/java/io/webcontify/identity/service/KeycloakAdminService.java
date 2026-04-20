@@ -7,6 +7,7 @@ import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.keycloak.representations.userprofile.config.UPConfig;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -72,12 +73,17 @@ public class KeycloakAdminService {
         client.setPublicClient(true);
         client.setStandardFlowEnabled(true);
         client.setDirectAccessGrantsEnabled(false);
-        client.setRedirectUris(List.of("http://" + request.tenantSlug() + ".localhost/*"));
-        client.setWebOrigins(List.of("http://" + request.tenantSlug() + ".localhost"));
-        client.setAttributes(Map.of("pkce.code.challenge.method", "S256"));
+        var tenantBaseUrl = "http://" + request.tenantSlug() + ".localhost";
+        client.setRedirectUris(List.of(tenantBaseUrl + "/*"));
+        client.setWebOrigins(List.of(tenantBaseUrl));
+        client.setAttributes(Map.of(
+                "pkce.code.challenge.method", "S256",
+                "post.logout.redirect.uris", tenantBaseUrl + "/*"
+        ));
         client.setProtocolMappers(List.of(tenantIdMapper));
         realm.setClients(List.of(client));
         keycloak.realms().create(realm);
+        enableUnmanagedAttributes(realmName);
         if (request.initialAttributes() != null) {
             updateRealmLocalizationTexts(realmName, request.initialAttributes());
         }
@@ -103,11 +109,18 @@ public class KeycloakAdminService {
         return new CreateKeycloakUserResponse(UUID.fromString(userId));
     }
 
+    private static final int INVITE_LINK_EXPIRATION_SECONDS = 86400; // 24 hours
+
     public void sendInviteEmail(SendInviteEmailRequest request) {
         keycloak.realm(request.realmName())
                 .users()
                 .get(request.userId().toString())
-                .executeActionsEmail(List.of("UPDATE_PASSWORD"));
+                .executeActionsEmail(
+                        "tenant-ui",
+                        request.redirectUri(),
+                        INVITE_LINK_EXPIRATION_SECONDS,
+                        List.of("UPDATE_PASSWORD")
+                );
     }
 
     public void updateRealmSmtp(UpdateRealmSmtpRequest request) {
@@ -231,5 +244,23 @@ public class KeycloakAdminService {
         }
         user.setRequiredActions(actions);
         userResource.update(user);
+    }
+
+    public void updateUserAttributes(String realmName, UUID userId, Map<String, List<String>> attributes) {
+        var userResource = keycloak.realm(realmName).users().get(userId.toString());
+        var user = userResource.toRepresentation();
+        var existing = user.getAttributes() != null
+                ? new HashMap<>(user.getAttributes())
+                : new HashMap<String, List<String>>();
+        existing.putAll(attributes);
+        user.setAttributes(existing);
+        userResource.update(user);
+    }
+
+    public void enableUnmanagedAttributes(String realmName) {
+        var profileResource = keycloak.realm(realmName).users().userProfile();
+        var config = profileResource.getConfiguration();
+        config.setUnmanagedAttributePolicy(UPConfig.UnmanagedAttributePolicy.ADMIN_EDIT);
+        profileResource.update(config);
     }
 }

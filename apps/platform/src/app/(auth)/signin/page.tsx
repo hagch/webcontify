@@ -1,4 +1,5 @@
 import { signIn } from "@/auth";
+import { AutoSubmit } from "./auto-submit";
 
 export default async function SignInPage({
   searchParams,
@@ -20,15 +21,5 @@ export default async function SignInPage({
       </noscript>
       <AutoSubmit />
     </form>
-  );
-}
-
-function AutoSubmit() {
-  return (
-    <script
-      dangerouslySetInnerHTML={{
-        __html: `document.forms[0].requestSubmit()`,
-      }}
-    />
   );
 }

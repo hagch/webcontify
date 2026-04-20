@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,8 @@ export function CreateRoleDialog({ children }: CreateRoleDialogProps) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const createRole = useCreateRole();
+  const t = useTranslations("roles");
+  const te = useTranslations("errors");
 
   const form = useForm<CreateRoleFormValues>({
     resolver: zodResolver(createRoleSchema),
@@ -63,13 +66,13 @@ export function CreateRoleDialog({ children }: CreateRoleDialogProps) {
         },
       });
       if (response.status === 201) {
-        toast.success(`Rolle "${values.name}" wurde erstellt.`);
+        toast.success(t("toasts.created", { name: values.name }));
         setOpen(false);
         form.reset();
         queryClient.invalidateQueries({ queryKey: getListRolesQueryKey() });
       }
     } catch (error: unknown) {
-      const err = error as { status?: number } & (ValidationProblemDetail | ProblemDetail);
+      const err = error as { status?: number; code?: string } & (ValidationProblemDetail | ProblemDetail);
       if (err.status === 400) {
         const validationErr = err as ValidationProblemDetail;
         if (validationErr.errors && validationErr.errors.length > 0) {
@@ -83,11 +86,11 @@ export function CreateRoleDialog({ children }: CreateRoleDialogProps) {
       }
       if (err.status === 409) {
         form.setError("name", {
-          message: "Eine Rolle mit diesem Namen existiert bereits.",
+          message: te.has(err.code ?? "") ? te(err.code!) : te("role.name_already_exists"),
         });
         return;
       }
-      toast.error("Fehler beim Erstellen der Rolle. Bitte versuche es erneut.");
+      toast.error(te.has(err.code ?? "") ? te(err.code!) : te("generic"));
     }
   }
 
@@ -96,9 +99,9 @@ export function CreateRoleDialog({ children }: CreateRoleDialogProps) {
       <DialogTrigger render={children as React.ReactElement} />
       <DialogContent data-testid="create-role-dialog" className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Rolle erstellen</DialogTitle>
+          <DialogTitle>{t("createDialog.title")}</DialogTitle>
           <DialogDescription>
-            Erstelle eine neue Rolle, um Benutzerberechtigungen zu gruppieren.
+            {t("createDialog.description")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -109,10 +112,10 @@ export function CreateRoleDialog({ children }: CreateRoleDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Name <span className="text-destructive">*</span>
+                    {t("createDialog.nameLabel")} <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input data-testid="role-name-input" placeholder="z.B. Redakteur" {...field} />
+                    <Input data-testid="role-name-input" placeholder={t("createDialog.namePlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -123,11 +126,11 @@ export function CreateRoleDialog({ children }: CreateRoleDialogProps) {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Beschreibung</FormLabel>
+                  <FormLabel>{t("createDialog.descriptionLabel")}</FormLabel>
                   <FormControl>
                     <Textarea
                       data-testid="role-description-input"
-                      placeholder="Optionale Beschreibung der Rolle"
+                      placeholder={t("createDialog.descriptionPlaceholder")}
                       rows={3}
                       {...field}
                     />
@@ -143,13 +146,13 @@ export function CreateRoleDialog({ children }: CreateRoleDialogProps) {
                 variant="outline"
                 onClick={() => setOpen(false)}
               >
-                Abbrechen
+                {t("createDialog.cancel")}
               </Button>
               <Button data-testid="create-role-submit" type="submit" aria-busy={createRole.isPending}>
                 {createRole.isPending && (
                   <Loader2 className="mr-2 size-4 animate-spin" />
                 )}
-                Erstellen
+                {t("createDialog.submit")}
               </Button>
             </DialogFooter>
           </form>

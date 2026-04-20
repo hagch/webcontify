@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -71,9 +72,13 @@ public class S3FileStorageService implements FileStorageService {
 
     @Override
     public void createBucket(String bucketName) {
-        s3Client.createBucket(CreateBucketRequest.builder()
-                .bucket(bucketName)
-                .build());
+        try {
+            s3Client.createBucket(CreateBucketRequest.builder()
+                    .bucket(bucketName)
+                    .build());
+        } catch (BucketAlreadyOwnedByYouException e) {
+            log.info("Bucket already exists and is owned by us, continuing: {}", bucketName);
+        }
 
         String policy = """
                 {

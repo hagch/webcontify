@@ -4,6 +4,15 @@ import { UserTable } from "../user-table";
 import type { UserResponse } from "@/generated/identity";
 import { UserStatus } from "@/generated/identity";
 
+// Mock next-intl
+vi.mock("next-intl", () => ({
+  useTranslations: (ns: string) => {
+    const translator = (key: string) => `${ns}.${key}`;
+    translator.has = () => false;
+    return translator;
+  },
+}));
+
 // Mock use-user-actions
 vi.mock("../../hooks/use-user-actions", () => ({
   useUserActions: vi.fn(),
@@ -26,6 +35,20 @@ vi.mock("@/generated/identity", () => ({
 vi.mock("@tanstack/react-query", () => ({
   useQueryClient: vi.fn().mockReturnValue({
     invalidateQueries: vi.fn(),
+  }),
+  useQuery: vi.fn().mockReturnValue({
+    data: undefined,
+    isLoading: false,
+  }),
+}));
+
+// Mock usePermissions
+vi.mock("@/hooks/use-permissions", () => ({
+  usePermissions: () => ({
+    can: () => true,
+    canAccess: () => true,
+    isLoading: false,
+    isTenantAdmin: false,
   }),
 }));
 
@@ -104,12 +127,8 @@ describe("UserTable", () => {
   it("should show empty state when no users", () => {
     render(<UserTable users={[]} isLoading={false} isRefetching={false} />);
 
-    expect(screen.getByText("Noch keine Benutzer")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Lade Benutzer ein, um mit der Zusammenarbeit zu beginnen."
-      )
-    ).toBeInTheDocument();
+    expect(screen.getByText("users.emptyState.title")).toBeInTheDocument();
+    expect(screen.getByText("users.emptyState.description")).toBeInTheDocument();
   });
 
   it("should render user data correctly", () => {
@@ -121,46 +140,47 @@ describe("UserTable", () => {
     expect(screen.getByText("Erika Musterfrau")).toBeInTheDocument();
     expect(screen.getByText("max@beispiel.de")).toBeInTheDocument();
     expect(screen.getByText("erika@beispiel.de")).toBeInTheDocument();
-    expect(screen.getByText("Aktiv")).toBeInTheDocument();
-    expect(screen.getByText("Eingeladen")).toBeInTheDocument();
+    // Status badges now show translation keys
+    expect(screen.getByText("users.statusValues.ACTIVE")).toBeInTheDocument();
+    expect(screen.getByText("users.statusValues.INVITED")).toBeInTheDocument();
   });
 
   it("should show skeleton when loading", () => {
     render(<UserTable users={[]} isLoading={true} isRefetching={false} />);
 
-    expect(screen.queryByText("Noch keine Benutzer")).not.toBeInTheDocument();
+    expect(screen.queryByText("users.emptyState.title")).not.toBeInTheDocument();
     const skeletonRows = document.querySelectorAll(".animate-pulse");
     expect(skeletonRows.length).toBeGreaterThan(0);
   });
 
-  it("should show 'Mit gleichen Rollen einladen' action only for ACTIVE users", async () => {
+  it("should show clone roles action only for ACTIVE users", async () => {
     render(
       <UserTable users={sampleUsers} isLoading={false} isRefetching={false} />
     );
 
     // Open actions menu for Max Mustermann (ACTIVE)
-    const actionButtons = screen.getAllByRole("button", { name: /aktionen fuer/i });
+    const actionButtons = screen.getAllByRole("button", { name: /users\.actionsMenu\.label/i });
     fireEvent.click(actionButtons[0]); // Max Mustermann — ACTIVE
 
     await waitFor(() => {
       expect(
-        screen.getByText("Mit gleichen Rollen einladen")
+        screen.getByText("users.actionsMenu.cloneRoles")
       ).toBeInTheDocument();
     });
   });
 
-  it("should NOT show 'Mit gleichen Rollen einladen' for INVITED users", async () => {
+  it("should NOT show clone roles action for INVITED users", async () => {
     render(
       <UserTable users={sampleUsers} isLoading={false} isRefetching={false} />
     );
 
     // Open actions menu for Erika Musterfrau (INVITED)
-    const actionButtons = screen.getAllByRole("button", { name: /aktionen fuer/i });
+    const actionButtons = screen.getAllByRole("button", { name: /users\.actionsMenu\.label/i });
     fireEvent.click(actionButtons[1]); // Erika Musterfrau — INVITED
 
     await waitFor(() => {
       expect(
-        screen.queryByText("Mit gleichen Rollen einladen")
+        screen.queryByText("users.actionsMenu.cloneRoles")
       ).not.toBeInTheDocument();
     });
   });
