@@ -494,6 +494,91 @@
       }
     }
   },
+  "apps": {
+    "title": "Apps",
+    "description": "Manage your applications",
+    "create": "Create App",
+    "name": "Name",
+    "slug": "Slug",
+    "description_label": "Description",
+    "status": "Status",
+    "hasDraft": "Draft",
+    "actions": "Actions",
+    "statusValues": { "DRAFT": "Draft", "ACTIVE": "Active", "INACTIVE": "Inactive" },
+    "emptyState": { "title": "No apps yet", "description": "Create your first app to get started." },
+    "createDialog": {
+      "title": "Create App", "description": "Create a new application in your workspace.",
+      "nameLabel": "Name", "namePlaceholder": "My App",
+      "descriptionLabel": "Description", "descriptionPlaceholder": "Optional description for your app",
+      "nameAlreadyExists": "An app with this name already exists",
+      "submit": "Create", "cancel": "Cancel", "successToast": "App created successfully"
+    },
+    "detail": {
+      "slugLabel": "Slug", "descriptionLabel": "Description", "statusLabel": "Status",
+      "createdAtLabel": "Created", "updatedAtLabel": "Last updated",
+      "overviewSection": "Overview", "actionsSection": "Actions", "noDescription": "No description",
+      "activate": "Activate", "deactivate": "Deactivate", "delete": "Delete",
+      "deleteConfirm": { "title": "Delete App", "description": "Are you sure you want to delete this app? This action cannot be undone.", "confirm": "Delete", "cancel": "Cancel" },
+      "statusChangeConfirm": {
+        "activateTitle": "Activate App", "activateDescription": "This will make the app active and usable.",
+        "deactivateTitle": "Deactivate App", "deactivateDescription": "This will make the app read-only. Existing entries remain accessible.",
+        "confirm": "Confirm", "cancel": "Cancel"
+      },
+      "overview": "Overview",
+      "statusChangeSuccess": "App status updated successfully",
+      "statusChangeError": "Failed to update app status",
+      "deleteSuccess": "App deleted successfully",
+      "deleteError": "Failed to delete app"
+    },
+    "viewDetails": "View Details", "edit": "Edit",
+    "versions": {
+      "title": "Versions",
+      "publish": "Publish",
+      "rollback": "Rollback",
+      "noVersions": "No versions published yet",
+      "publishDialog": {
+        "title": "Publish Version",
+        "description": "Create an immutable snapshot of the current app state.",
+        "versionLabel": "Version",
+        "versionPlaceholder": "e.g. 1.0.0",
+        "releaseNotesLabel": "Release Notes",
+        "releaseNotesPlaceholder": "What changed in this version?",
+        "submit": "Publish",
+        "cancel": "Cancel",
+        "successToast": "Version published successfully",
+        "versionExists": "This version already exists"
+      },
+      "rollbackDialog": {
+        "title": "Rollback to Version",
+        "description": "This will load version {version} as a new draft. Any existing unpublished changes will be overwritten.",
+        "confirm": "Rollback",
+        "cancel": "Cancel",
+        "successToast": "Rolled back successfully"
+      },
+      "publishedAt": "Published",
+      "publishedBy": "By",
+      "releaseNotes": "Release Notes",
+      "export": "Export",
+      "unpublishedChanges": "Unpublished changes"
+    },
+    "revisions": {
+      "title": "Revisions",
+      "noRevisions": "No changes since last publish",
+      "revert": "Revert",
+      "revertDialog": {
+        "title": "Revert Revision",
+        "description": "This will undo this specific change. A new revision will be created for the revert.",
+        "confirm": "Revert",
+        "cancel": "Cancel",
+        "successToast": "Revision reverted successfully"
+      },
+      "diffLabels": {
+        "added": "Added",
+        "removed": "Removed",
+        "replaced": "Changed"
+      }
+    }
+  },
   "settings": {
     "title": "Settings",
     "branding": {

@@ -4,6 +4,7 @@ import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
 import io.webcontify.shared.model.ProvisioningStatus;
 import io.webcontify.shared.model.SystemUser;
+import io.webcontify.shared.util.SlugGenerator;
 import io.webcontify.shared.util.UuidGenerator;
 import io.webcontify.tenant.event.TenantCreatedEvent;
 import io.webcontify.tenant.mapper.TenantMapper;

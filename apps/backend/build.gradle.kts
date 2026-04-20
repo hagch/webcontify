@@ -83,6 +83,9 @@ dependencies {
     // Structured Logging
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
 
+    // JSON Patch (RFC 6902)
+    implementation("com.flipkart.zjsonpatch:zjsonpatch:0.4.16")
+
     // OpenAPI generated code dependencies
     implementation("jakarta.validation:jakarta.validation-api")
     implementation("jakarta.annotation:jakarta.annotation-api")
@@ -166,8 +169,18 @@ tasks.register<GenerateTask>("openApiGenerateAuth") {
     typeMappings.set(openApiTypeMappings)
 }
 
+tasks.register<GenerateTask>("openApiGenerateApp") {
+    generatorName.set("spring")
+    inputSpec.set("$openApiSpecDir/app-api.yaml")
+    outputDir.set(openApiOutputDir)
+    apiPackage.set("io.webcontify.generated.api")
+    modelPackage.set("io.webcontify.generated.model")
+    configOptions.set(openApiConfigOptions)
+    typeMappings.set(openApiTypeMappings)
+}
+
 tasks.named("compileJava") {
-    dependsOn("openApiGenerate", "openApiGenerateIdentity", "openApiGeneratePlatformAdmin", "openApiGenerateAuth")
+    dependsOn("openApiGenerate", "openApiGenerateIdentity", "openApiGeneratePlatformAdmin", "openApiGenerateAuth", "openApiGenerateApp")
 }
 
 tasks.register<Copy>("syncOpenFgaModel") {

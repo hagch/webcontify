@@ -21,4 +21,11 @@ public class TenantSlugResolverImpl implements TenantSlugResolver {
                 .findBySlugAndAuditInfoDeletedAtIsNull(slug)
                 .map(entity -> entity.getId());
     }
+
+    @Override
+    public Optional<String> resolveSlugByTenantId(UUID tenantId) {
+        return tenantRepository
+                .findByIdAndAuditInfoDeletedAtIsNull(tenantId)
+                .map(entity -> entity.getSlug());
+    }
 }

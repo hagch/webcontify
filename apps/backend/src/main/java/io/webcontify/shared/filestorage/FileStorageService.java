@@ -13,5 +13,7 @@ public interface FileStorageService {
 
     void deleteAsset(String bucketName, String path);
 
+    InputStream getObject(String bucketName, String key);
+
     void createBucket(String bucketName);
 }

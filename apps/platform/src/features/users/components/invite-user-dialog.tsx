@@ -270,7 +270,14 @@ export function InviteUserDialog({
                     >
                       <FormControl>
                         <SelectTrigger data-testid="copy-roles-select">
-                          <SelectValue placeholder={t("inviteDialog.copyRolesPlaceholder")} />
+                          <SelectValue>
+                            {field.value
+                              ? (() => {
+                                  const u = users.find((u) => u.id === field.value);
+                                  return u ? `${u.firstName} ${u.lastName} (${u.email})` : t("inviteDialog.copyRolesPlaceholder");
+                                })()
+                              : t("inviteDialog.copyRolesNone")}
+                          </SelectValue>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

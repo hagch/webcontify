@@ -25,6 +25,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -283,7 +284,9 @@ export function BrandingForm() {
                       <Select onValueChange={field.onChange} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
-                            {field.value ? t(`borderRadiusOptions.${field.value.replace(/\./g, "_")}`) : t("borderRadiusOptions.0_5rem")}
+                            <SelectValue>
+                              {field.value ? t(`borderRadiusOptions.${field.value.replace(/\./g, "_")}`) : t("borderRadiusOptions.0_5rem")}
+                            </SelectValue>
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

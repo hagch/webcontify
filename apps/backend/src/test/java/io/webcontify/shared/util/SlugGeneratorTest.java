@@ -1,4 +1,4 @@
-package io.webcontify.tenant.service;
+package io.webcontify.shared.util;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

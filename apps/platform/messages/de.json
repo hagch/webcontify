@@ -494,6 +494,91 @@
       }
     }
   },
+  "apps": {
+    "title": "Apps",
+    "description": "Anwendungen verwalten",
+    "create": "App erstellen",
+    "name": "Name",
+    "slug": "Slug",
+    "description_label": "Beschreibung",
+    "status": "Status",
+    "hasDraft": "Entwurf",
+    "actions": "Aktionen",
+    "statusValues": { "DRAFT": "Entwurf", "ACTIVE": "Aktiv", "INACTIVE": "Inaktiv" },
+    "emptyState": { "title": "Noch keine Apps", "description": "Erstelle deine erste App um loszulegen." },
+    "createDialog": {
+      "title": "App erstellen", "description": "Erstelle eine neue Anwendung in deinem Workspace.",
+      "nameLabel": "Name", "namePlaceholder": "Meine App",
+      "descriptionLabel": "Beschreibung", "descriptionPlaceholder": "Optionale Beschreibung fuer deine App",
+      "nameAlreadyExists": "Eine App mit diesem Namen existiert bereits",
+      "submit": "Erstellen", "cancel": "Abbrechen", "successToast": "App erfolgreich erstellt"
+    },
+    "detail": {
+      "slugLabel": "Slug", "descriptionLabel": "Beschreibung", "statusLabel": "Status",
+      "createdAtLabel": "Erstellt", "updatedAtLabel": "Zuletzt aktualisiert",
+      "overviewSection": "Uebersicht", "actionsSection": "Aktionen", "noDescription": "Keine Beschreibung",
+      "activate": "Aktivieren", "deactivate": "Deaktivieren", "delete": "Loeschen",
+      "deleteConfirm": { "title": "App loeschen", "description": "Bist du sicher, dass du diese App loeschen moechtest? Diese Aktion kann nicht rueckgaengig gemacht werden.", "confirm": "Loeschen", "cancel": "Abbrechen" },
+      "statusChangeConfirm": {
+        "activateTitle": "App aktivieren", "activateDescription": "Die App wird aktiv und nutzbar.",
+        "deactivateTitle": "App deaktivieren", "deactivateDescription": "Die App wird schreibgeschuetzt. Bestehende Eintraege bleiben lesbar.",
+        "confirm": "Bestaetigen", "cancel": "Abbrechen"
+      },
+      "overview": "Uebersicht",
+      "statusChangeSuccess": "App-Status erfolgreich aktualisiert",
+      "statusChangeError": "App-Status konnte nicht aktualisiert werden",
+      "deleteSuccess": "App erfolgreich geloescht",
+      "deleteError": "App konnte nicht geloescht werden"
+    },
+    "viewDetails": "Details anzeigen", "edit": "Bearbeiten",
+    "versions": {
+      "title": "Versionen",
+      "publish": "Veroeffentlichen",
+      "rollback": "Zuruecksetzen",
+      "noVersions": "Noch keine Versionen veroeffentlicht",
+      "publishDialog": {
+        "title": "Version veroeffentlichen",
+        "description": "Erstellt einen unveraenderlichen Snapshot des aktuellen App-Zustands.",
+        "versionLabel": "Version",
+        "versionPlaceholder": "z.B. 1.0.0",
+        "releaseNotesLabel": "Release Notes",
+        "releaseNotesPlaceholder": "Was hat sich in dieser Version geaendert?",
+        "submit": "Veroeffentlichen",
+        "cancel": "Abbrechen",
+        "successToast": "Version erfolgreich veroeffentlicht",
+        "versionExists": "Diese Version existiert bereits"
+      },
+      "rollbackDialog": {
+        "title": "Auf Version zuruecksetzen",
+        "description": "Version {version} wird als neuer Entwurf geladen. Bestehende unveroeffenlichte Aenderungen werden ueberschrieben.",
+        "confirm": "Zuruecksetzen",
+        "cancel": "Abbrechen",
+        "successToast": "Erfolgreich zurueckgesetzt"
+      },
+      "publishedAt": "Veroeffentlicht",
+      "publishedBy": "Von",
+      "releaseNotes": "Release Notes",
+      "export": "Exportieren",
+      "unpublishedChanges": "Unveroeffenlichte Aenderungen"
+    },
+    "revisions": {
+      "title": "Revisionen",
+      "noRevisions": "Keine Aenderungen seit der letzten Veroeffentlichung",
+      "revert": "Rueckgaengig",
+      "revertDialog": {
+        "title": "Revision rueckgaengig machen",
+        "description": "Diese spezifische Aenderung wird rueckgaengig gemacht. Eine neue Revision wird erstellt.",
+        "confirm": "Rueckgaengig machen",
+        "cancel": "Abbrechen",
+        "successToast": "Revision erfolgreich rueckgaengig gemacht"
+      },
+      "diffLabels": {
+        "added": "Hinzugefuegt",
+        "removed": "Entfernt",
+        "replaced": "Geaendert"
+      }
+    }
+  },
   "settings": {
     "title": "Einstellungen",
     "branding": {

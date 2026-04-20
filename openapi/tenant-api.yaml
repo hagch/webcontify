@@ -670,14 +670,7 @@ components:
           nullable: true
 
     NameAvailabilityResponse:
-      type: object
-      required:
-        - available
-      properties:
-        available:
-          type: boolean
-        suggestedSlug:
-          type: string
+      $ref: './common-schemas.yaml#/components/schemas/NameAvailabilityResponse'
 
     PageInfo:
       type: object

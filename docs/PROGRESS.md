@@ -298,10 +298,60 @@
 | 3j.13 | Done | Page Migration: 15 Seiten auf neue AppHeader API, Actions in Top-Bar |
 | 3j.14 | Done | Zod Schema: fontFamily Enum auf 13 Werte erweitert |
 
+## Phase 4a — App CRUD + Lifecycle
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 4a.1 | Done | SlugGenerator nach shared.util verschoben (Cross-Module Reuse) |
+| 4a.2 | Done | Flyway Migration: app Table mit RLS (NULLIF Pattern) |
+| 4a.3 | Done | OpenAPI Spec: app-api.yaml (8 Endpoints), NameAvailabilityResponse nach common-schemas |
+| 4a.4 | Done | Domain Model: App, AppStatus, AppEntity (extends TenantAwareBaseEntity) |
+| 4a.5 | Done | AppRepository + AppMapper (MapStruct, 6 Query Methods) |
+| 4a.6 | Done | AppService mit CRUD + Lifecycle, TenantContext Pattern (TDD, 9 Unit Tests) |
+| 4a.7 | Done | AppController (implementiert generiertes AppApi Interface) |
+| 4a.8 | Done | Integration Tests (7 Tests: CRUD, Status, Duplicate, Name-Check) |
+| 4a.9 | Done | Frontend: Orval Config + Generation + i18n Keys (EN+DE) |
+| 4a.10 | Done | Frontend: CreateAppDialog (Zod Schema, RHF, Name-Check) |
+| 4a.11 | Done | Frontend: AppTable + AppTableSkeleton (Status Badges, Draft Indicator) |
+| 4a.12 | Done | Frontend: App List Page + Sidebar Navigation |
+| 4a.13 | Done | Frontend: App Detail Page (Status Management, Delete mit Confirmation) |
+| 4a.14 | Done | Frontend: Vitest Tests (5 Tests) |
+| 4a.15 | Done | Final Verification: Backend + Frontend Tests gruen, Build OK |
+
+## Phase 4b — App Versioning + Snapshots
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 4b.1 | Done | Flyway Migration: app_version + change_record Tabellen mit Indexes + RLS |
+| 4b.2 | Done | OpenAPI Spec: 5 Version-Endpoints (publish, list, detail, rollback, suggest) |
+| 4b.3 | Done | Shared ChangeRecord Infrastructure (Model, Entity, Repo, Service, TDD 3 Tests) |
+| 4b.4 | Done | AppVersion Model, AppSnapshot Record, Entity, Repository, Mapper |
+| 4b.5 | Done | AppSnapshotService (S3 Upload/Download), getObject auf FileStorageService (TDD 4 Tests) |
+| 4b.6 | Done | AppVersionService (Publish, Rollback, Suggest), TenantSlugResolver.resolveSlugByTenantId, hasDraft Auto-Set (TDD 8 Tests) |
+| 4b.7 | Done | AppVersionController (implementiert generiertes AppVersionApi Interface) |
+| 4b.8 | Done | Integration Tests (7 Tests: Publish, List, Detail, Duplicate, Rollback, Suggest, hasDraft) |
+| 4b.9 | Done | Frontend: Publish Dialog, Version List (Collapsible), Rollback Dialog, Tabs auf Detail Page |
+| 4b.10 | Done | Final Verification: Backend + Frontend Tests gruen, Build OK |
+
+## Phase 4c — Draft Revisions + Unified Diff
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 4c.1 | Done | zjsonpatch Library (RFC 6902) hinzugefuegt |
+| 4c.2 | Done | OpenAPI Spec: 3 Revision-Endpoints (list, detail, revert) |
+| 4c.3 | Done | AppService: JSON Patch Revision-Tracking bei update() (zjsonpatch + DiffFlags) |
+| 4c.4 | Done | AppRevisionService: list, get, revert, generateSummary (TDD, 5 Tests) |
+| 4c.5 | Done | AppRevisionController + Integration Tests (5 Tests) |
+| 4c.6 | Done | Frontend: RevisionDiffView, AppRevisionList, RevertDialog, Revisions Tab |
+| 4c.7 | Done | Final Verification: 368 BE + 133 FE Tests gruen, Build OK |
+
 ## Naechste Schritte
 
-- Phase 4: App Domain (Content Definitions, Content Entries, App Management)
-- Voraussetzung: Phase 3 abgeschlossen
+- Sub-Plan 4d: App Dependencies + React Flow + Problems View
+- Sub-Plan 4e: App Permissions (OpenFGA) + Permission Matrix UI
+- Sub-Plan 4f: App Import/Export
+- Sub-Plan 4g: E2E Tests (Playwright)
+- Design Doc: `docs/plans/2026-04-04-app-domain-design.md`
 - **Offen:** E2E Tests fuer Keycloak Theme + Invite Flow (erfordert Docker/Infrastruktur)
 
 ## Lokale Entwicklung

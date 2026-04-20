@@ -6,4 +6,6 @@ import java.util.UUID;
 public interface TenantSlugResolver {
 
     Optional<UUID> resolveTenantIdBySlug(String slug);
+
+    Optional<String> resolveSlugByTenantId(UUID tenantId);
 }

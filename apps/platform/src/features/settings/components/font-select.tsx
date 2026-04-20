@@ -35,7 +35,9 @@ export function FontSelect({ value, onChange, disabled }: FontSelectProps) {
   return (
     <Select value={value} onValueChange={(v) => { if (v !== null) onChange(v); }} disabled={disabled}>
       <SelectTrigger style={fontStyle(value)}>
-        <SelectValue />
+        <SelectValue>
+          {value ? t(`fontFamilyOptions.${value}` as Parameters<typeof t>[0]) : t("fontFamilyOptions.system")}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="system">{t("fontFamilyOptions.system")}</SelectItem>

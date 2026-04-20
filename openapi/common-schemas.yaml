@@ -69,3 +69,13 @@ components:
           format: int64
         totalPages:
           type: integer
+
+    NameAvailabilityResponse:
+      type: object
+      required:
+        - available
+      properties:
+        available:
+          type: boolean
+        suggestedSlug:
+          type: string

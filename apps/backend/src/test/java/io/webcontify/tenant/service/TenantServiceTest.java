@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.webcontify.shared.exception.ConflictException;
+import io.webcontify.shared.util.SlugGenerator;
 import io.webcontify.shared.exception.NotFoundException;
 import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.model.SystemUser;

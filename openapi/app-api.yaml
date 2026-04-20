@@ -1,0 +1,668 @@
+openapi: 3.1.0
+info:
+  title: Webcontify App API
+  version: 1.0.0
+  description: Tenant-scoped endpoints for app management
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: App
+    description: App Management
+  - name: AppVersion
+    description: App Versioning
+  - name: AppRevision
+    description: App Revision History
+
+paths:
+  /api/v1/apps:
+    post:
+      operationId: createApp
+      summary: Create a new app
+      tags:
+        - App
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAppRequest'
+      responses:
+        '201':
+          description: App created
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '409':
+          description: Name/slug already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    get:
+      operationId: listApps
+      summary: List all apps
+      tags:
+        - App
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/AppStatus'
+      responses:
+        '200':
+          description: App list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppListResponse'
+
+  /api/v1/apps/{appId}:
+    get:
+      operationId: getApp
+      summary: Get app by ID
+      tags:
+        - App
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: App details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppResponse'
+        '404':
+          description: App not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    put:
+      operationId: updateApp
+      summary: Update app
+      tags:
+        - App
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAppRequest'
+      responses:
+        '200':
+          description: App updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '404':
+          description: App not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Name/slug already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    delete:
+      operationId: deleteApp
+      summary: Soft delete app
+      tags:
+        - App
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: App deleted
+        '404':
+          description: App not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/apps/{appId}/status:
+    put:
+      operationId: updateAppStatus
+      summary: Update app status
+      tags:
+        - App
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAppStatusRequest'
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppResponse'
+        '404':
+          description: App not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/apps/name-available:
+    get:
+      operationId: checkNewAppNameAvailability
+      summary: Check if app name is available for a new app
+      tags:
+        - App
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Name availability result
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/NameAvailabilityResponse'
+
+  /api/v1/apps/{appId}/name-available:
+    get:
+      operationId: checkAppNameAvailability
+      summary: Check if app name is available (excluding current app)
+      tags:
+        - App
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Name availability result
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/NameAvailabilityResponse'
+
+  /api/v1/apps/{appId}/publish:
+    post:
+      operationId: publishApp
+      summary: Publish a new version of the app
+      tags:
+        - AppVersion
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishAppRequest'
+      responses:
+        '201':
+          description: App version published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppVersionResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: App not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/apps/{appId}/versions:
+    get:
+      operationId: listAppVersions
+      summary: List all versions of an app
+      tags:
+        - AppVersion
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Version list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppVersionListResponse'
+
+  /api/v1/apps/{appId}/versions/suggest:
+    get:
+      operationId: suggestNextVersion
+      summary: Suggest the next version number
+      tags:
+        - AppVersion
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Version suggestion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionSuggestionResponse'
+
+  /api/v1/apps/{appId}/versions/{versionId}:
+    get:
+      operationId: getAppVersion
+      summary: Get a specific app version
+      tags:
+        - AppVersion
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Version details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppVersionResponse'
+        '404':
+          description: Version not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/apps/{appId}/versions/{versionId}/rollback:
+    post:
+      operationId: rollbackAppVersion
+      summary: Rollback app to a specific version
+      tags:
+        - AppVersion
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: App rolled back
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppResponse'
+        '404':
+          description: Version not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/apps/{appId}/revisions:
+    get:
+      operationId: listAppRevisions
+      summary: List all revisions of an app
+      tags:
+        - AppRevision
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Revision list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppRevisionListResponse'
+
+  /api/v1/apps/{appId}/revisions/{revisionId}:
+    get:
+      operationId: getAppRevision
+      summary: Get a specific app revision
+      tags:
+        - AppRevision
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: revisionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Revision details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppRevisionResponse'
+        '404':
+          description: Revision not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/apps/{appId}/revisions/{revisionId}/revert:
+    post:
+      operationId: revertAppRevision
+      summary: Revert app to a specific revision
+      tags:
+        - AppRevision
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: revisionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: App reverted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppResponse'
+        '404':
+          description: Revision not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Conflict — revert not possible in current state
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    AppStatus:
+      type: string
+      enum:
+        - DRAFT
+        - ACTIVE
+        - INACTIVE
+
+    CreateAppRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+
+    UpdateAppRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+
+    UpdateAppStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/AppStatus'
+
+    AppResponse:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/AppStatus'
+        hasDraft:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
+
+    AppListResponse:
+      type: object
+      required:
+        - items
+        - pageInfo
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppResponse'
+        pageInfo:
+          $ref: './common-schemas.yaml#/components/schemas/PageInfo'
+
+    PublishAppRequest:
+      type: object
+      required:
+        - version
+      properties:
+        version:
+          type: string
+          pattern: '^\d+\.\d+\.\d+$'
+          description: Semver version string
+        releaseNotes:
+          type: string
+          maxLength: 5000
+
+    AppVersionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        appId:
+          type: string
+          format: uuid
+        version:
+          type: string
+        s3Key:
+          type: string
+        releaseNotes:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        publishedBy:
+          type: string
+          format: uuid
+
+    AppVersionListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppVersionResponse'
+
+    VersionSuggestionResponse:
+      type: object
+      properties:
+        suggestedVersion:
+          type: string
+        currentVersion:
+          type: string
+        hasUnpublishedChanges:
+          type: boolean
+
+    AppRevisionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        changeType:
+          type: string
+        patch:
+          type: object
+          description: JSON Patch (RFC 6902)
+        source:
+          type: string
+        summary:
+          type: string
+          description: Human-readable summary of changes
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          format: uuid
+
+    AppRevisionListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppRevisionResponse'

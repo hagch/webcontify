@@ -62,6 +62,15 @@ public class S3FileStorageService implements FileStorageService {
     }
 
     @Override
+    public InputStream getObject(String bucketName, String key) {
+        GetObjectRequest request = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+        return s3Client.getObject(request);
+    }
+
+    @Override
     public void deleteAsset(String bucketName, String path) {
         s3Client.deleteObject(DeleteObjectRequest.builder()
                 .bucket(bucketName)

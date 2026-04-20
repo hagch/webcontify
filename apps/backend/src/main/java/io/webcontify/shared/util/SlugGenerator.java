@@ -1,4 +1,4 @@
-package io.webcontify.tenant.service;
+package io.webcontify.shared.util;
 
 import org.springframework.stereotype.Component;
 import java.text.Normalizer;

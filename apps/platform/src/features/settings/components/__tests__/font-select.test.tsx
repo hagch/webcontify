@@ -70,7 +70,7 @@ describe("FontSelect", () => {
 
     await user.click(screen.getByRole("combobox"));
 
-    expect(screen.getByText("System Default")).toBeInTheDocument();
+    expect(screen.getAllByText("System Default").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows all font options in the dropdown", async () => {
