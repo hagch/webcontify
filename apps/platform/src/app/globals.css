@@ -178,3 +178,54 @@
     left: 1rem;
     top: 1rem;
 }
+
+/* React Flow — theme integration
+ * ReactFlow adds its own .dark class on the .react-flow element when
+ * colorMode="dark". This would match our .dark {} block and re-declare
+ * CSS variables with the stylesheet defaults, overriding the inline
+ * branding overrides set on <html> by BrandingProvider.
+ * Fix: inherit all branding-relevant variables from the parent so the
+ * inline overrides on <html> always win.
+ */
+.react-flow.dark {
+  --background: inherit;
+  --foreground: inherit;
+  --card: inherit;
+  --card-foreground: inherit;
+  --primary: inherit;
+  --primary-foreground: inherit;
+  --accent: inherit;
+  --accent-foreground: inherit;
+  --destructive: inherit;
+  --muted: inherit;
+  --muted-foreground: inherit;
+  --border: inherit;
+  --ring: inherit;
+  --success: inherit;
+  --warning: inherit;
+  /* Override ReactFlow's internal dark background with our themed background */
+  --xy-background-color: var(--background);
+  --xy-background-pattern-color: var(--muted-foreground);
+}
+
+.react-flow__controls {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1) !important;
+}
+
+.react-flow__controls-button {
+  background: var(--card) !important;
+  color: var(--card-foreground) !important;
+  border-color: var(--border) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+}
+
+.react-flow__controls-button svg {
+  fill: currentColor;
+}

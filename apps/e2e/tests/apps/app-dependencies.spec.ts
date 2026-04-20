@@ -1,12 +1,12 @@
 /**
  * E2E Tests: App Dependencies
  *
- * Tests the app dependency management:
+ * Tests the app dependency management via the interactive React Flow graph:
  * 1. Create two apps via API
- * 2. Add a dependency between them via UI
- * 3. Verify the dependency is shown
+ * 2. Add a dependency via the graph's add-dependency node + popover
+ * 3. Verify the dependency appears as a node in the graph
  * 4. Attempt to deactivate the dependency target — expect a problem/warning
- * 5. Remove the dependency
+ * 5. Remove the dependency via the edge delete button on hover
  *
  * Setup:
  * - Creates a tenant via Platform Admin API
@@ -121,7 +121,7 @@ test.describe.serial("App Dependencies", () => {
     await loginAsTenantUser(page, tenantSlug, adminEmail, ADMIN_PASSWORD);
   });
 
-  test("should add a dependency via the UI", async ({ page }) => {
+  test("should add a dependency via the graph", async ({ page }) => {
     await page.goto(`${tenantBaseUrl}/apps`);
     await page.waitForLoadState("networkidle");
 
@@ -144,32 +144,33 @@ test.describe.serial("App Dependencies", () => {
       await page.waitForLoadState("networkidle");
     }
 
-    // Click add dependency button
-    await page
-      .getByRole("button", {
-        name: /add dependency|abh[aä]ngigkeit hinzuf[uü]gen/i,
-      })
-      .click();
+    // Wait for the dependency graph to render
+    const graph = page.getByTestId("app-dependency-graph");
+    await expect(graph).toBeVisible({ timeout: 15000 });
 
-    const dialog = page.getByTestId("add-dependency-dialog");
-    await expect(dialog).toBeVisible({ timeout: 10000 });
+    // Click the add dependency node in the React Flow graph
+    const addNode = page.getByTestId("add-dependency-node");
+    await expect(addNode).toBeVisible({ timeout: 10000 });
+    await addNode.click();
 
-    // Select the dependency app — could be a select/combobox
-    const appSelect = dialog.getByTestId("dependency-app-select");
-    await appSelect.click();
+    // Wait for the popover to appear
+    const popover = page.getByTestId("add-dependency-popover");
+    await expect(popover).toBeVisible({ timeout: 10000 });
 
-    // Select the dependency app from the dropdown
-    await page.getByRole("option", { name: dependencyAppName }).click();
+    // Search for the dependency app
+    const searchField = page.getByTestId("add-dependency-search");
+    await searchField.fill(dependencyAppName);
 
-    // Submit
-    await dialog.getByTestId("add-dependency-submit").click();
+    // Click the matching app option
+    const appOption = page.getByTestId(/^add-dep-option-/);
+    await expect(appOption).toBeVisible({ timeout: 10000 });
+    await appOption.click();
 
-    // Dialog closes
-    await expect(dialog).not.toBeVisible({ timeout: 10000 });
+    // Popover should close
+    await expect(popover).not.toBeVisible({ timeout: 10000 });
 
-    // Dependency should appear in the list
-    const depList = page.getByTestId("app-dependency-list");
-    await expect(depList.getByText(dependencyAppName)).toBeVisible({
+    // Dependency app name should appear as a node in the graph
+    await expect(graph.getByText(dependencyAppName)).toBeVisible({
       timeout: 10000,
     });
   });
@@ -252,7 +253,7 @@ test.describe.serial("App Dependencies", () => {
     }
   });
 
-  test("should remove a dependency", async ({ page }) => {
+  test("should remove a dependency via the graph", async ({ page }) => {
     await page.goto(`${tenantBaseUrl}/apps`);
     await page.waitForLoadState("networkidle");
 
@@ -274,32 +275,39 @@ test.describe.serial("App Dependencies", () => {
       await page.waitForLoadState("networkidle");
     }
 
-    // Find the dependency and remove it
-    const depList = page.getByTestId("app-dependency-list");
-    await expect(depList).toBeVisible({ timeout: 10000 });
+    // Wait for the dependency graph to render
+    const graph = page.getByTestId("app-dependency-graph");
+    await expect(graph).toBeVisible({ timeout: 15000 });
 
-    const depEntry = depList.getByText(dependencyAppName);
-    await expect(depEntry).toBeVisible({ timeout: 10000 });
-
-    // Click remove button next to the dependency
-    const removeButton = depList.getByRole("button", {
-      name: /remove|entfernen/i,
+    // Verify the dependency node is present before removal
+    await expect(graph.getByText(dependencyAppName)).toBeVisible({
+      timeout: 10000,
     });
-    await removeButton.click();
 
-    // Confirm removal
-    const confirmButton = page.getByRole("button", {
-      name: /confirm|best[aä]tigen|bestaetigen|remove|entfernen/i,
-    });
-    const hasConfirm = await confirmButton
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-    if (hasConfirm) {
-      await confirmButton.click();
-    }
+    // Hover over the edge connecting the apps to reveal the delete button
+    const edge = graph.locator(".react-flow__edge").first();
+    await expect(edge).toBeVisible({ timeout: 10000 });
+    await edge.hover({ force: true });
 
-    // Dependency should be gone
-    await expect(depList.getByText(dependencyAppName)).not.toBeVisible({
+    // Click the delete button that appears on the edge
+    const deleteButton = page.locator("[data-testid^='edge-delete-']");
+    await expect(deleteButton).toBeVisible({ timeout: 5000 });
+    await deleteButton.click();
+
+    // Confirm removal in the dialog
+    const removeDialog = page.getByTestId("remove-dependency-dialog");
+    await expect(removeDialog).toBeVisible({ timeout: 10000 });
+    await removeDialog
+      .getByRole("button", {
+        name: /confirm|best[aä]tigen|bestaetigen|remove|entfernen/i,
+      })
+      .click();
+
+    // Dialog should close
+    await expect(removeDialog).not.toBeVisible({ timeout: 10000 });
+
+    // Dependency node should no longer be visible in the graph
+    await expect(graph.getByText(dependencyAppName)).not.toBeVisible({
       timeout: 10000,
     });
   });

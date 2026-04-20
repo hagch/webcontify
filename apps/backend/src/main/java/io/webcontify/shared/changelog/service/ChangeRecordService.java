@@ -41,7 +41,7 @@ public class ChangeRecordService {
         entity.setSource(source);
         entity.setDraftVersion(draftVersion);
         entity.setCreatedAt(OffsetDateTime.now());
-        entity.setCreatedBy(tenantInfo.tenantId());
+        entity.setCreatedBy(TenantContext.getCurrentUserId());
 
         ChangeRecordEntity saved = changeRecordRepository.save(entity);
         return toModel(saved);
@@ -58,7 +58,7 @@ public class ChangeRecordService {
     @Transactional(readOnly = true)
     public List<ChangeRecord> getDraftRecords(String entityType, UUID entityId) {
         return changeRecordRepository
-                .findByEntityTypeAndEntityIdAndDraftVersionIsNotNullOrderByCreatedAtAsc(
+                .findByEntityTypeAndEntityIdAndDraftVersionIsNotNullOrderByCreatedAtDesc(
                         entityType, entityId)
                 .stream()
                 .map(this::toModel)

@@ -41,7 +41,7 @@ class PlatformAdminServiceTest {
         platformAdminService = new PlatformAdminService(keycloakAdminService, PLATFORM_REALM);
 
         var tenantInfo = new TenantInformation(null, true);
-        var auth = new TenantAwareAuthentication(tenantInfo, CURRENT_USER_ID.toString(), List.of());
+        var auth = new TenantAwareAuthentication(tenantInfo, CURRENT_USER_ID, List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 

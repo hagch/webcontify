@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface ChangeRecordRepository extends JpaRepository<ChangeRecordEntity, UUID> {
 
-    List<ChangeRecordEntity> findByEntityTypeAndEntityIdAndDraftVersionIsNotNullOrderByCreatedAtAsc(
+    List<ChangeRecordEntity> findByEntityTypeAndEntityIdAndDraftVersionIsNotNullOrderByCreatedAtDesc(
             String entityType, UUID entityId);
 
     List<ChangeRecordEntity> findByEntityTypeAndEntityIdOrderByCreatedAtDesc(

@@ -47,17 +47,17 @@ function getOperationColorClasses(op: string): {
   switch (op) {
     case "add":
       return {
-        badge: "bg-emerald-900/50 text-emerald-400 border-emerald-700",
+        badge: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/50 dark:text-emerald-400 dark:border-emerald-700",
         line: "border-l-emerald-500",
       };
     case "remove":
       return {
-        badge: "bg-red-900/50 text-red-400 border-red-700",
+        badge: "bg-red-100 text-red-800 border-red-300 dark:bg-red-900/50 dark:text-red-400 dark:border-red-700",
         line: "border-l-red-500",
       };
     case "replace":
       return {
-        badge: "bg-amber-900/50 text-amber-400 border-amber-700",
+        badge: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-700",
         line: "border-l-amber-500",
       };
     default:
@@ -84,7 +84,7 @@ export function RevisionDiffView({ patch }: RevisionDiffViewProps) {
   }
 
   return (
-    <div className="rounded-md border bg-stone-950 p-3 font-mono text-xs">
+    <div className="rounded-md border bg-muted/50 p-3 font-mono text-xs">
       <div className="space-y-2">
         {operations.map((op, index) => {
           const colors = getOperationColorClasses(op.op);
@@ -99,30 +99,30 @@ export function RevisionDiffView({ patch }: RevisionDiffViewProps) {
                 >
                   {getOperationLabel(op.op, t)}
                 </span>
-                <span className="text-stone-400">{formatPath(op.path)}</span>
+                <span className="text-muted-foreground">{formatPath(op.path)}</span>
               </div>
               <div className="mt-1 pl-0.5">
                 {op.op === "replace" && (
                   <>
-                    <div className="text-red-400">
-                      <span className="select-none text-red-600">- </span>
+                    <div className="text-red-700 dark:text-red-400">
+                      <span className="select-none text-red-400 dark:text-red-600">- </span>
                       {formatValue(op.fromValue)}
                     </div>
-                    <div className="text-emerald-400">
-                      <span className="select-none text-emerald-600">+ </span>
+                    <div className="text-emerald-700 dark:text-emerald-400">
+                      <span className="select-none text-emerald-400 dark:text-emerald-600">+ </span>
                       {formatValue(op.value)}
                     </div>
                   </>
                 )}
                 {op.op === "add" && (
-                  <div className="text-emerald-400">
-                    <span className="select-none text-emerald-600">+ </span>
+                  <div className="text-emerald-700 dark:text-emerald-400">
+                    <span className="select-none text-emerald-400 dark:text-emerald-600">+ </span>
                     {formatValue(op.value)}
                   </div>
                 )}
                 {op.op === "remove" && (
-                  <div className="text-red-400">
-                    <span className="select-none text-red-600">- </span>
+                  <div className="text-red-700 dark:text-red-400">
+                    <span className="select-none text-red-400 dark:text-red-600">- </span>
                     {formatValue(op.fromValue ?? op.value)}
                   </div>
                 )}

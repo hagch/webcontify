@@ -35,11 +35,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class AppRevisionServiceTest {
 
     private static final UUID TEST_TENANT_ID = UUID.randomUUID();
+    private static final UUID TEST_USER_ID = UUID.randomUUID();
     private static final UUID TEST_APP_ID = UUID.randomUUID();
     private static final UUID TEST_REVISION_ID = UUID.randomUUID();
 
     @Mock private ChangeRecordService changeRecordService;
     @Mock private AppService appService;
+    @Mock private AppDependencyService dependencyService;
     @Mock private AppRepository appRepository;
     @Mock private AppMapper appMapper;
 
@@ -49,10 +51,10 @@ class AppRevisionServiceTest {
     void setUp() {
         TenantInformation info = new TenantInformation(TEST_TENANT_ID, false);
         var auth = new TenantAwareAuthentication(
-                info, "test-user", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                info, TEST_USER_ID, List.of(new SimpleGrantedAuthority("ROLE_USER")));
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        appRevisionService = new AppRevisionService(changeRecordService, appService, appRepository, appMapper);
+        appRevisionService = new AppRevisionService(changeRecordService, appService, dependencyService, appRepository, appMapper);
     }
 
     @AfterEach

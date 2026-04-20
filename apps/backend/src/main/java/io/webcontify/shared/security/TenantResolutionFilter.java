@@ -67,19 +67,6 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
         Optional<String> subdomain = extractSubdomain(host);
 
         if (subdomain.isEmpty()) {
-            // Self-Service Endpoints (/api/v1/tenant/** and /api/v1/auth/**) do not require
-            // Subdomain validation. The TenantId is resolved from the JWT.
-            // /api/v1/auth/** endpoints (e.g. effective-permissions) are called from the
-            // browser with Host: api.localhost — subdomain validation would always fail.
-            String path = request.getRequestURI();
-            if (path != null && (path.startsWith("/api/v1/tenant/") || path.startsWith("/api/v1/auth/"))) {
-                log.debug(
-                        "Self-service/auth endpoint without subdomain — tenantId from JWT: principal={}",
-                        tenantAuth.getPrincipal());
-                filterChain.doFilter(request, response);
-                return;
-            }
-
             log.warn(
                     "Tenant user request without subdomain: host={}, principal={}",
                     host,
@@ -124,34 +111,41 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Extrahiert die Subdomain aus dem Host-Header.
+     * Extracts the tenant slug from the Host header.
      *
-     * <p>Beispiele:
+     * <p>Supported patterns:
      * <ul>
-     *   <li>{@code acme.api.localhost} -> {@code Optional.of("acme")}
-     *   <li>{@code acme.webcontify.io} -> {@code Optional.of("acme")}
-     *   <li>{@code api.localhost} -> {@code Optional.empty()} (nur ein Punkt, keine echte Subdomain)
-     *   <li>{@code localhost} -> {@code Optional.empty()} (kein Punkt)
-     *   <li>{@code null} -> {@code Optional.empty()}
+     *   <li>{@code api.acme.localhost} -> {@code Optional.of("acme")} (API with tenant subdomain)
+     *   <li>{@code acme.localhost} -> {@code Optional.of("acme")} (direct tenant subdomain)
+     *   <li>{@code acme.webcontify.io} -> {@code Optional.of("acme")} (production)
+     *   <li>{@code api.localhost} -> {@code Optional.empty()} (API without tenant)
+     *   <li>{@code localhost} -> {@code Optional.empty()} (no subdomain)
      * </ul>
-     *
-     * <p>Als Subdomain gilt der erste Teil, wenn der Host mindestens zwei Punkte enthaelt.
      */
     private Optional<String> extractSubdomain(String host) {
         if (host == null || host.isBlank()) {
             return Optional.empty();
         }
 
-        // Port entfernen (z.B. "acme.api.localhost:8080" -> "acme.api.localhost")
         String hostWithoutPort = host.contains(":") ? host.substring(0, host.indexOf(':')) : host;
+        String[] parts = hostWithoutPort.split("\\.");
 
-        long dotCount = hostWithoutPort.chars().filter(c -> c == '.').count();
-        if (dotCount < 2) {
-            return Optional.empty();
+        // api.{slug}.localhost → slug is parts[1]
+        if (parts.length == 3 && "api".equals(parts[0])) {
+            return Optional.of(parts[1]);
         }
 
-        String subdomain = hostWithoutPort.substring(0, hostWithoutPort.indexOf('.'));
-        return subdomain.isBlank() ? Optional.empty() : Optional.of(subdomain);
+        // {slug}.localhost or {slug}.webcontify.io → slug is parts[0]
+        if (parts.length >= 2) {
+            String candidate = parts[0];
+            if ("api".equals(candidate) || "platform".equals(candidate)
+                    || "auth".equals(candidate) || "localhost".equals(candidate)) {
+                return Optional.empty();
+            }
+            return Optional.of(candidate);
+        }
+
+        return Optional.empty();
     }
 
     private void writeForbiddenResponse(HttpServletResponse response, String detail)

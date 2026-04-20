@@ -1,9 +1,17 @@
 /**
  * Orval custom instance — used by generated API hooks.
  * Token management is handled by setClientAccessToken() at runtime.
+ * BASE_URL is built dynamically from the current hostname to include the tenant subdomain.
+ * e.g. 123123123.localhost → http://api.123123123.localhost
+ *      platform.localhost  → http://api.localhost
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://api.localhost";
+import { getApiBaseUrl } from "@/lib/auth-utils";
+
+function getBaseUrl(): string {
+  if (typeof window === "undefined") return "http://api.localhost";
+  return getApiBaseUrl(window.location.hostname);
+}
 
 let clientAccessToken: string | undefined;
 
@@ -26,7 +34,7 @@ export const customInstance = async <T>(
     ? {}
     : { "Content-Type": "application/json" };
 
-  const response = await fetch(`${BASE_URL}${url}`, {
+  const response = await fetch(`${getBaseUrl()}${url}`, {
     ...options,
     headers: {
       ...contentTypeHeaders,

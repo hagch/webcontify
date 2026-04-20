@@ -4,12 +4,11 @@ import io.webcontify.identity.model.*;
 import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
-import io.webcontify.shared.security.TenantAwareAuthentication;
+import io.webcontify.shared.security.TenantContext;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -79,7 +78,7 @@ public class PlatformAdminService {
     }
 
     public void updateStatus(UUID adminId, boolean enabled) {
-        if (resolveCurrentUserId().equals(adminId)) {
+        if (TenantContext.getCurrentUserId().equals(adminId)) {
             throw new BadRequestException("admin.cannot_modify_self");
         }
 
@@ -100,7 +99,7 @@ public class PlatformAdminService {
     }
 
     public void delete(UUID adminId) {
-        if (resolveCurrentUserId().equals(adminId)) {
+        if (TenantContext.getCurrentUserId().equals(adminId)) {
             throw new BadRequestException("admin.cannot_delete_self");
         }
 
@@ -126,7 +125,7 @@ public class PlatformAdminService {
     }
 
     public void resetPassword(UUID adminId) {
-        if (resolveCurrentUserId().equals(adminId)) {
+        if (TenantContext.getCurrentUserId().equals(adminId)) {
             throw new BadRequestException("admin.use_account_console_for_own_password");
         }
 
@@ -134,9 +133,4 @@ public class PlatformAdminService {
         log.info("Password reset requested for platform admin: id={}", adminId);
     }
 
-    private UUID resolveCurrentUserId() {
-        var authentication = (TenantAwareAuthentication)
-                SecurityContextHolder.getContext().getAuthentication();
-        return UUID.fromString((String) authentication.getPrincipal());
-    }
 }

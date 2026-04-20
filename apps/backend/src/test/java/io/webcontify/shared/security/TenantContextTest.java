@@ -28,7 +28,7 @@ class TenantContextTest {
     void shouldReturnTenantInformationFromSecurityContext() {
         UUID tenantId = UUID.randomUUID();
         TenantInformation info = new TenantInformation(tenantId, false);
-        var auth = new TenantAwareAuthentication(info, "user", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        var auth = new TenantAwareAuthentication(info, UUID.randomUUID(), List.of(new SimpleGrantedAuthority("ROLE_USER")));
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         TenantInformation result = TenantContext.getTenantInformation();

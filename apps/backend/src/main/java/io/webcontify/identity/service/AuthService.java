@@ -77,7 +77,7 @@ public class AuthService {
 
     public UserRepresentation getMe() {
         var realm = extractRealmFromIssuer();
-        var userId = resolveCurrentUserId();
+        var userId = TenantContext.getCurrentUserId();
         log.debug("Fetching profile for userId={} in realm={}", userId, realm);
         return keycloakAdminService.getUserById(realm, userId);
     }
@@ -93,7 +93,7 @@ public class AuthService {
 
     public UserRepresentation updateProfile(String firstName, String lastName) {
         var realm = resolveCurrentRealm();
-        var userId = resolveCurrentUserId();
+        var userId = TenantContext.getCurrentUserId();
         var existing = keycloakAdminService.getUserById(realm, userId);
         keycloakAdminService.updateUser(new UpdateKeycloakUserRequest(
                 realm, userId, existing.getEmail(), firstName, lastName));
@@ -108,7 +108,7 @@ public class AuthService {
     public String uploadAvatar(MultipartFile file) {
         validateAvatarFile(file);
 
-        var userId = resolveCurrentUserId();
+        var userId = TenantContext.getCurrentUserId();
         var realm = resolveCurrentRealm();
         var bucket = determineBucket();
         var extension = resolveExtension(file.getContentType());
@@ -143,7 +143,7 @@ public class AuthService {
     // -----------------------------------------------------------------------
 
     public void deleteAvatar() {
-        var userId = resolveCurrentUserId();
+        var userId = TenantContext.getCurrentUserId();
         var realm = resolveCurrentRealm();
         var bucket = determineBucket();
 
@@ -168,7 +168,7 @@ public class AuthService {
     // -----------------------------------------------------------------------
 
     public String getAvatarRedirectUrl() {
-        var userId = resolveCurrentUserId();
+        var userId = TenantContext.getCurrentUserId();
         var realm = resolveCurrentRealm();
         var bucket = determineBucket();
 
@@ -186,7 +186,7 @@ public class AuthService {
     // -----------------------------------------------------------------------
 
     public UserPreferences getPreferences() {
-        var userId = resolveCurrentUserId();
+        var userId = TenantContext.getCurrentUserId();
         var realm = resolveCurrentRealm();
 
         var user = keycloakAdminService.getUserById(realm, userId);
@@ -201,7 +201,7 @@ public class AuthService {
     // -----------------------------------------------------------------------
 
     public UserPreferences updatePreferences(String theme, String locale) {
-        var userId = resolveCurrentUserId();
+        var userId = TenantContext.getCurrentUserId();
         var realm = resolveCurrentRealm();
 
         var attrs = new HashMap<String, List<String>>();
@@ -239,7 +239,7 @@ public class AuthService {
         }
 
         var infrastructure = tenantInfrastructureLookupService.getInfrastructure(tenantInfo.tenantId());
-        var userId = resolveCurrentUserId();
+        var userId = TenantContext.getCurrentUserId();
 
         var checks = new ArrayList<OpenFgaCheckRequest>();
         NAVIGATION_RESOURCE_ACTIONS.forEach((resourceType, actions) ->
@@ -295,15 +295,6 @@ public class AuthService {
             return issuer.substring(issuer.lastIndexOf("/") + 1);
         }
         throw new IllegalStateException("Cannot extract realm — no realm name in TenantInformation and no JWT authentication");
-    }
-
-    private UUID resolveCurrentUserId() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof JwtAuthenticationToken jwtAuth) {
-            return UUID.fromString(jwtAuth.getToken().getSubject());
-        }
-        var tenantAuth = (TenantAwareAuthentication) authentication;
-        return UUID.fromString((String) tenantAuth.getPrincipal());
     }
 
     private String resolveCurrentRealm() {

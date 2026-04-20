@@ -371,6 +371,39 @@ paths:
               schema:
                 $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
 
+  /api/v1/apps/{appId}/versions/{versionId}/diff:
+    get:
+      operationId: getVersionDiff
+      summary: Get diff between current app state and a specific version
+      tags:
+        - AppVersion
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Diff between current state and version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionDiffResponse'
+        '404':
+          description: Version not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
   /api/v1/apps/{appId}/versions/{versionId}/rollback:
     post:
       operationId: rollbackAppVersion
@@ -839,6 +872,9 @@ components:
           $ref: '#/components/schemas/AppStatus'
         hasDraft:
           type: boolean
+        currentVersion:
+          type: string
+          description: Latest published version (semver)
         createdAt:
           type: string
           format: date-time
@@ -849,6 +885,15 @@ components:
           format: date-time
         updatedBy:
           type: string
+        effectiveActions:
+          type: array
+          items:
+            type: string
+            enum:
+              - viewer
+              - editor
+              - admin
+          description: Actions the current user is allowed to perform on this app
 
     AppListResponse:
       type: object
@@ -897,6 +942,8 @@ components:
         publishedBy:
           type: string
           format: uuid
+        publishedByUser:
+          $ref: './common-schemas.yaml#/components/schemas/UserSummary'
 
     AppVersionListResponse:
       type: object
@@ -905,6 +952,37 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AppVersionResponse'
+
+    VersionDiffResponse:
+      type: object
+      properties:
+        versionId:
+          type: string
+          format: uuid
+        version:
+          type: string
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionDiffEntry'
+        hasChanges:
+          type: boolean
+
+    VersionDiffEntry:
+      type: object
+      properties:
+        field:
+          type: string
+        changeType:
+          type: string
+          enum:
+            - added
+            - removed
+            - modified
+        currentValue:
+          type: string
+        versionValue:
+          type: string
 
     VersionSuggestionResponse:
       type: object
@@ -938,6 +1016,8 @@ components:
         createdBy:
           type: string
           format: uuid
+        createdByUser:
+          $ref: './common-schemas.yaml#/components/schemas/UserSummary'
 
     AppRevisionListResponse:
       type: object

@@ -1,12 +1,12 @@
 import { auth } from "@/auth";
 import type { ServerTenantConfig } from "@/providers/branding-provider";
+import { headers } from "next/headers";
+import { getApiBaseUrl } from "@/lib/auth-utils";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://api.localhost";
-
-async function resolveFileUrl(storageKey: string, accessToken: string): Promise<string | undefined> {
+async function resolveFileUrl(storageKey: string, accessToken: string, apiUrl: string): Promise<string | undefined> {
   try {
     const params = new URLSearchParams({ storageKey });
-    const response = await fetch(`${API_URL}/api/v1/tenant/files/resolve?${params}`, {
+    const response = await fetch(`${apiUrl}/api/v1/tenant/files/resolve?${params}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -33,7 +33,10 @@ export async function fetchTenantConfig(): Promise<ServerTenantConfig | null> {
     const session = await auth();
     if (!session?.accessToken) return null;
 
-    const response = await fetch(`${API_URL}/api/v1/tenant/config`, {
+    const headersList = await headers();
+    const host = headersList.get("host")?.split(":")[0] ?? "platform.localhost";
+    const apiUrl = getApiBaseUrl(host);
+    const response = await fetch(`${apiUrl}/api/v1/tenant/config`, {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
         "Content-Type": "application/json",
@@ -48,10 +51,10 @@ export async function fetchTenantConfig(): Promise<ServerTenantConfig | null> {
     // Resolve logo and favicon URLs in parallel
     const [resolvedLogoUrl, resolvedFaviconUrl] = await Promise.all([
       config.branding?.logoStorageKey
-        ? resolveFileUrl(config.branding.logoStorageKey, session.accessToken)
+        ? resolveFileUrl(config.branding.logoStorageKey, session.accessToken, apiUrl)
         : undefined,
       config.branding?.faviconStorageKey
-        ? resolveFileUrl(config.branding.faviconStorageKey, session.accessToken)
+        ? resolveFileUrl(config.branding.faviconStorageKey, session.accessToken, apiUrl)
         : undefined,
     ]);
 

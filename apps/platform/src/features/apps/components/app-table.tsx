@@ -75,6 +75,7 @@ export function AppTable({
           <TableRow>
             <TableHead>{t("name")}</TableHead>
             <TableHead>{t("status")}</TableHead>
+            <TableHead>{t("version")}</TableHead>
             <TableHead>{t("hasDraft")}</TableHead>
             <TableHead>{t("description_label")}</TableHead>
             <TableHead className="text-right">{t("actions")}</TableHead>
@@ -95,6 +96,9 @@ export function AppTable({
                 <Badge variant={statusBadgeVariant(app.status)}>
                   {t(`statusValues.${app.status}`)}
                 </Badge>
+              </TableCell>
+              <TableCell className="font-mono text-sm text-muted-foreground">
+                {app.currentVersion ?? "—"}
               </TableCell>
               <TableCell>
                 {app.hasDraft && (

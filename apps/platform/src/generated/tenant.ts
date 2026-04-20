@@ -319,6 +319,13 @@ export interface PageInfoE54eabf {
   totalPages: number;
 }
 
+export interface UserSummary {
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
+
 export type ListTenantsParams = {
 page?: number;
 size?: number;

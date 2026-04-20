@@ -2,14 +2,13 @@ package io.webcontify.app.service;
 
 import io.webcontify.app.event.AppPublishedEvent;
 import io.webcontify.app.mapper.AppVersionMapper;
-import io.webcontify.app.model.App;
-import io.webcontify.app.model.AppSnapshot;
-import io.webcontify.app.model.AppStatus;
-import io.webcontify.app.model.AppVersion;
+import io.webcontify.app.model.*;
 import io.webcontify.app.repository.AppRepository;
 import io.webcontify.app.repository.AppVersionRepository;
 import io.webcontify.app.repository.entity.AppEntity;
 import io.webcontify.app.repository.entity.AppVersionEntity;
+import io.webcontify.generated.model.VersionDiffEntry;
+import io.webcontify.generated.model.VersionDiffResponse;
 import io.webcontify.shared.changelog.service.ChangeRecordService;
 import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
@@ -18,8 +17,12 @@ import io.webcontify.shared.security.TenantContext;
 import io.webcontify.shared.security.TenantSlugResolver;
 import io.webcontify.shared.util.UuidGenerator;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +35,7 @@ public class AppVersionService {
     private final AppVersionRepository appVersionRepository;
     private final AppVersionMapper appVersionMapper;
     private final AppSnapshotService appSnapshotService;
+    private final AppDependencyService dependencyService;
     private final AppService appService;
     private final AppValidationService validationService;
     private final ChangeRecordService changeRecordService;
@@ -43,6 +47,7 @@ public class AppVersionService {
             AppVersionRepository appVersionRepository,
             AppVersionMapper appVersionMapper,
             AppSnapshotService appSnapshotService,
+            AppDependencyService dependencyService,
             AppService appService,
             AppValidationService validationService,
             ChangeRecordService changeRecordService,
@@ -52,6 +57,7 @@ public class AppVersionService {
         this.appVersionRepository = appVersionRepository;
         this.appVersionMapper = appVersionMapper;
         this.appSnapshotService = appSnapshotService;
+        this.dependencyService = dependencyService;
         this.appService = appService;
         this.validationService = validationService;
         this.changeRecordService = changeRecordService;
@@ -87,7 +93,7 @@ public class AppVersionService {
         entity.setS3Key(s3Key);
         entity.setReleaseNotes(releaseNotes);
         entity.setPublishedAt(OffsetDateTime.now());
-        entity.setPublishedBy(tenantInfo.tenantId());
+        entity.setPublishedBy(TenantContext.getCurrentUserId());
         entity = appVersionRepository.save(entity);
 
         AppEntity appEntity = appRepository.findByIdAndAuditInfoDeletedAtIsNull(appId)
@@ -138,6 +144,83 @@ public class AppVersionService {
         return appVersionRepository.findTopByAppIdOrderByPublishedAtDesc(appId)
                 .map(entity -> incrementPatchVersion(entity.getVersion()))
                 .orElse("0.1.0");
+    }
+
+    @Transactional(readOnly = true)
+    public VersionDiffResponse getVersionDiff(UUID appId, UUID versionId) {
+        var tenantInfo = TenantContext.getTenantInformation();
+        AppVersionEntity versionEntity = appVersionRepository.findByIdAndAppId(versionId, appId)
+                .orElseThrow(() -> new NotFoundException("app.version.not_found"));
+
+        String tenantSlug = tenantSlugResolver.resolveSlugByTenantId(tenantInfo.tenantId())
+                .orElseThrow(() -> new NotFoundException("tenant.not_found"));
+        String bucketName = "tenant-" + tenantSlug;
+
+        AppSnapshot snapshot = appSnapshotService.downloadSnapshot(bucketName, versionEntity.getS3Key());
+        App currentApp = appService.getById(appId);
+        var currentDeps = dependencyService.listDependencies(appId).stream()
+                .filter(AppDependency::isDirect)
+                .collect(Collectors.toList());
+
+        List<VersionDiffEntry> changes = new ArrayList<>();
+
+        // Compare name
+        String versionName = snapshot.metadata().name();
+        if (!Objects.equals(currentApp.getName(), versionName)) {
+            var entry = new VersionDiffEntry();
+            entry.setField("name");
+            entry.setChangeType(VersionDiffEntry.ChangeTypeEnum.MODIFIED);
+            entry.setCurrentValue(currentApp.getName());
+            entry.setVersionValue(versionName);
+            changes.add(entry);
+        }
+
+        // Compare description
+        String versionDesc = snapshot.metadata().description();
+        String currentDesc = currentApp.getDescription() != null ? currentApp.getDescription() : "";
+        String snapshotDesc = versionDesc != null ? versionDesc : "";
+        if (!Objects.equals(currentDesc, snapshotDesc)) {
+            var entry = new VersionDiffEntry();
+            entry.setField("description");
+            entry.setChangeType(VersionDiffEntry.ChangeTypeEnum.MODIFIED);
+            entry.setCurrentValue(currentDesc);
+            entry.setVersionValue(snapshotDesc);
+            changes.add(entry);
+        }
+
+        // Compare dependencies
+        Set<String> currentDepSlugs = currentDeps.stream()
+                .map(AppDependency::getDependsOnAppSlug)
+                .collect(Collectors.toSet());
+        Set<String> versionDepSlugs = snapshot.dependencies().stream()
+                .map(AppSnapshot.AppSnapshotDependency::appSlug)
+                .collect(Collectors.toSet());
+
+        for (String slug : currentDepSlugs) {
+            if (!versionDepSlugs.contains(slug)) {
+                var entry = new VersionDiffEntry();
+                entry.setField("dependency:" + slug);
+                entry.setChangeType(VersionDiffEntry.ChangeTypeEnum.ADDED);
+                entry.setCurrentValue(slug);
+                changes.add(entry);
+            }
+        }
+        for (String slug : versionDepSlugs) {
+            if (!currentDepSlugs.contains(slug)) {
+                var entry = new VersionDiffEntry();
+                entry.setField("dependency:" + slug);
+                entry.setChangeType(VersionDiffEntry.ChangeTypeEnum.REMOVED);
+                entry.setVersionValue(slug);
+                changes.add(entry);
+            }
+        }
+
+        var response = new VersionDiffResponse();
+        response.setVersionId(versionId);
+        response.setVersion(versionEntity.getVersion());
+        response.setChanges(changes);
+        response.setHasChanges(!changes.isEmpty());
+        return response;
     }
 
     private String incrementPatchVersion(String version) {

@@ -108,7 +108,7 @@ export function ImportBlueprintDialog({ children }: ImportBlueprintDialogProps) 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={children as React.ReactElement} />
-      <DialogContent data-testid="import-blueprint-dialog" className="sm:max-w-lg">
+      <DialogContent data-testid="import-blueprint-dialog" className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("importExport.importDialog.title")}</DialogTitle>
           <DialogDescription>
@@ -127,7 +127,7 @@ export function ImportBlueprintDialog({ children }: ImportBlueprintDialogProps) 
                 setJsonError(null);
               }}
               rows={10}
-              className="font-mono text-sm"
+              className="max-h-[40vh] resize-none font-mono text-sm"
             />
             {jsonError && (
               <p className="text-sm text-destructive">{jsonError}</p>

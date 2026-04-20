@@ -1,6 +1,9 @@
 package io.webcontify.identity.service;
 
 import com.fasterxml.uuid.Generators;
+import io.webcontify.app.repository.AppRepository;
+import io.webcontify.generated.model.AppPermissionEntry;
+import io.webcontify.generated.model.SetRoleAppPermissionsRequestAppPermissionsInner;
 import io.webcontify.identity.mapper.RoleMapper;
 import io.webcontify.identity.model.*;
 import io.webcontify.identity.repository.TenantRoleRepository;
@@ -11,12 +14,11 @@ import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
 import io.webcontify.shared.model.AuditInfo;
-import io.webcontify.shared.security.TenantAwareAuthentication;
 import io.webcontify.shared.security.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,8 +39,11 @@ public class RoleService {
             "app_management", List.of("viewer", "editor", "admin")
     );
 
+    private static final List<String> APP_ACTIONS = List.of("viewer", "editor", "admin");
+
     private final TenantRoleRepository roleRepository;
     private final TenantUserRepository userRepository;
+    private final AppRepository appRepository;
     private final OpenFgaService openFgaService;
     private final TenantInfrastructureLookupService lookupService;
     private final RoleMapper roleMapper;
@@ -47,12 +52,14 @@ public class RoleService {
     public RoleService(
             TenantRoleRepository roleRepository,
             TenantUserRepository userRepository,
+            AppRepository appRepository,
             OpenFgaService openFgaService,
             TenantInfrastructureLookupService lookupService,
             RoleMapper roleMapper,
             PermissionService permissionService) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
+        this.appRepository = appRepository;
         this.openFgaService = openFgaService;
         this.lookupService = lookupService;
         this.roleMapper = roleMapper;
@@ -67,7 +74,7 @@ public class RoleService {
 
         var tenantInfo = TenantContext.getTenantInformation();
         var infrastructure = lookupService.getInfrastructure(tenantInfo.tenantId());
-        UUID currentUserId = resolveCurrentUserId();
+        UUID currentUserId = TenantContext.getCurrentUserId();
 
         var entity = new TenantRoleEntity();
         entity.setId(Generators.timeBasedEpochGenerator().generate());
@@ -194,7 +201,7 @@ public class RoleService {
 
         // Privilege Escalation Guard (Platform Admins ueberspringen)
         if (!tenantInfo.platformAdmin()) {
-            UUID currentUserId = resolveCurrentUserId();
+            UUID currentUserId = TenantContext.getCurrentUserId();
             for (var entry : permissions) {
                 for (var action : entry.actions()) {
                     boolean hasPermission = permissionService.check(
@@ -272,7 +279,7 @@ public class RoleService {
             });
         }
 
-        UUID currentUserId = resolveCurrentUserId();
+        UUID currentUserId = TenantContext.getCurrentUserId();
         entity.setName(name);
         entity.setDescription(description);
         entity.getAuditInfo().setUpdatedAt(OffsetDateTime.now());
@@ -302,7 +309,7 @@ public class RoleService {
             throw new ConflictException("role.has_assignees");
         }
 
-        UUID currentUserId = resolveCurrentUserId();
+        UUID currentUserId = TenantContext.getCurrentUserId();
         entity.getAuditInfo().setDeletedAt(OffsetDateTime.now());
         entity.getAuditInfo().setDeletedBy(currentUserId);
         roleRepository.save(entity);
@@ -510,9 +517,105 @@ public class RoleService {
         }
     }
 
-    private UUID resolveCurrentUserId() {
-        var authentication = (TenantAwareAuthentication)
-                SecurityContextHolder.getContext().getAuthentication();
-        return UUID.fromString((String) authentication.getPrincipal());
+    @Transactional(readOnly = true)
+    public List<AppPermissionEntry> getAppPermissions(UUID roleId) {
+        roleRepository.findActiveById(roleId)
+                .orElseThrow(() -> new NotFoundException("role.not_found"));
+
+        var tenantInfo = TenantContext.getTenantInformation();
+        var infrastructure = lookupService.getInfrastructure(tenantInfo.tenantId());
+        String roleSubject = "role:" + roleId + "#assignee";
+
+        var apps = appRepository.findByAuditInfoDeletedAtIsNull(Pageable.unpaged()).getContent();
+
+        return apps.stream().map(app -> {
+            var grantedActions = new ArrayList<AppPermissionEntry.ActionsEnum>();
+            for (var action : APP_ACTIONS) {
+                var tuples = openFgaService.readTuples(new OpenFgaReadTuplesRequest(
+                        infrastructure.openfgaStoreId(), "app", app.getId().toString(), action));
+                boolean hasAction = tuples.stream().anyMatch(t -> t.user().equals(roleSubject));
+                if (hasAction) {
+                    grantedActions.add(AppPermissionEntry.ActionsEnum.fromValue(action));
+                }
+            }
+            var entry = new AppPermissionEntry();
+            entry.setAppId(app.getId());
+            entry.setAppName(app.getName());
+            entry.setAppSlug(app.getSlug());
+            entry.setActions(grantedActions);
+            return entry;
+        }).toList();
     }
+
+    @Transactional
+    public void setAppPermissions(UUID roleId, List<SetRoleAppPermissionsRequestAppPermissionsInner> permissions) {
+        var entity = roleRepository.findActiveById(roleId)
+                .orElseThrow(() -> new NotFoundException("role.not_found"));
+
+        if (entity.isSystemRole()) {
+            throw new BadRequestException("role.system_role_permissions_cannot_be_modified");
+        }
+
+        var tenantInfo = TenantContext.getTenantInformation();
+        var infrastructure = lookupService.getInfrastructure(tenantInfo.tenantId());
+
+        // Privilege Escalation Guard (Platform Admins ueberspringen)
+        if (!tenantInfo.platformAdmin()) {
+            UUID currentUserId = TenantContext.getCurrentUserId();
+            for (var entry : permissions) {
+                for (var action : entry.getActions()) {
+                    boolean hasPermission = permissionService.check(
+                            new CheckPermissionRequest(currentUserId, action.getValue(), "app", entry.getAppId()));
+                    if (!hasPermission) {
+                        throw new AccessDeniedException("role.privilege_escalation");
+                    }
+                }
+            }
+        }
+
+        String roleSubject = "role:" + roleId + "#assignee";
+
+        // Ziel-Tuples berechnen
+        var targetTuples = permissions.stream()
+                .flatMap(entry -> entry.getActions().stream()
+                        .map(action -> new RelationshipTuple(
+                                roleSubject,
+                                action.getValue(),
+                                "app:" + entry.getAppId())))
+                .collect(Collectors.toSet());
+
+        // Aktuelle per-app Tuples lesen
+        var appIds = permissions.stream()
+                .map(SetRoleAppPermissionsRequestAppPermissionsInner::getAppId)
+                .collect(Collectors.toSet());
+
+        var currentTuples = new HashSet<RelationshipTuple>();
+        for (var appId : appIds) {
+            for (var action : APP_ACTIONS) {
+                var readResult = openFgaService.readTuples(new OpenFgaReadTuplesRequest(
+                        infrastructure.openfgaStoreId(), "app", appId.toString(), action));
+                readResult.stream()
+                        .filter(t -> t.user().equals(roleSubject))
+                        .forEach(currentTuples::add);
+            }
+        }
+
+        // Delta berechnen
+        var toAdd = new HashSet<>(targetTuples);
+        toAdd.removeAll(currentTuples);
+
+        var toRemove = new HashSet<>(currentTuples);
+        toRemove.removeAll(targetTuples);
+
+        // Erst schreiben, dann loeschen
+        if (!toAdd.isEmpty()) {
+            openFgaService.write(new OpenFgaWriteRequest(infrastructure.openfgaStoreId(), List.copyOf(toAdd)));
+        }
+        if (!toRemove.isEmpty()) {
+            openFgaService.delete(new OpenFgaDeleteRequest(infrastructure.openfgaStoreId(), List.copyOf(toRemove)));
+        }
+
+        log.info("Role app permissions updated: roleId={}, added={}, removed={}", roleId, toAdd.size(), toRemove.size());
+    }
+
 }

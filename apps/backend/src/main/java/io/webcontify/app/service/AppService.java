@@ -9,6 +9,7 @@ import io.webcontify.app.model.App;
 import io.webcontify.app.model.AppStatus;
 import io.webcontify.app.repository.AppDependencyRepository;
 import io.webcontify.app.repository.AppRepository;
+import io.webcontify.app.repository.AppVersionRepository;
 import io.webcontify.app.repository.entity.AppEntity;
 import io.webcontify.identity.model.RelationshipTuple;
 import io.webcontify.identity.service.PermissionService;
@@ -32,6 +33,7 @@ public class AppService {
 
     private final AppRepository appRepository;
     private final AppDependencyRepository dependencyRepository;
+    private final AppVersionRepository versionRepository;
     private final AppMapper appMapper;
     private final SlugGenerator slugGenerator;
     private final ChangeRecordService changeRecordService;
@@ -41,12 +43,14 @@ public class AppService {
     public AppService(
             AppRepository appRepository,
             AppDependencyRepository dependencyRepository,
+            AppVersionRepository versionRepository,
             AppMapper appMapper,
             SlugGenerator slugGenerator,
             ChangeRecordService changeRecordService,
             PermissionService permissionService) {
         this.appRepository = appRepository;
         this.dependencyRepository = dependencyRepository;
+        this.versionRepository = versionRepository;
         this.appMapper = appMapper;
         this.slugGenerator = slugGenerator;
         this.changeRecordService = changeRecordService;
@@ -70,7 +74,7 @@ public class AppService {
         App created = appMapper.toDomain(entity);
 
         permissionService.grantRelation(new RelationshipTuple(
-                "app_management:" + tenantId + "#management",
+                "app_management:" + tenantId,
                 "management",
                 "app:" + created.getId()
         ));
@@ -82,7 +86,9 @@ public class AppService {
     public App getById(UUID id) {
         AppEntity entity = appRepository.findByIdAndAuditInfoDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException("app.not_found"));
-        return appMapper.toDomain(entity);
+        App app = appMapper.toDomain(entity);
+        enrichCurrentVersion(app);
+        return app;
     }
 
     @Transactional(readOnly = true)
@@ -93,7 +99,11 @@ public class AppService {
         } else {
             entities = appRepository.findByAuditInfoDeletedAtIsNull(pageable);
         }
-        return entities.map(appMapper::toDomain);
+        return entities.map(e -> {
+            App app = appMapper.toDomain(e);
+            enrichCurrentVersion(app);
+            return app;
+        });
     }
 
     public App update(UUID id, App update) {
@@ -134,7 +144,7 @@ public class AppService {
 
         var tenantInfo = TenantContext.getTenantInformation();
         permissionService.revokeRelation(new RelationshipTuple(
-                "app_management:" + tenantInfo.tenantId() + "#management",
+                "app_management:" + tenantInfo.tenantId(),
                 "management",
                 "app:" + entity.getId()
         ));
@@ -147,6 +157,11 @@ public class AppService {
     public boolean isNameAvailable(String name) {
         var tenantInfo = TenantContext.getTenantInformation();
         return !appRepository.existsByNameAndTenantIdAndAuditInfoDeletedAtIsNull(name, tenantInfo.tenantId());
+    }
+
+    private void enrichCurrentVersion(App app) {
+        versionRepository.findTopByAppIdOrderByPublishedAtDesc(app.getId())
+                .ifPresent(v -> app.setCurrentVersion(v.getVersion()));
     }
 
     private void checkNameUniqueness(String name, UUID tenantId) {

@@ -64,11 +64,16 @@ function VersionRow({
           <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
             v{version.version}
           </Badge>
-          {version.publishedAt && (
-            <span className="text-sm text-muted-foreground">
-              {t("versions.publishedAt")} {formatDate(version.publishedAt)}
-            </span>
-          )}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {version.publishedAt && (
+              <span>{t("versions.publishedAt")} {formatDate(version.publishedAt)}</span>
+            )}
+            {version.publishedByUser && (
+              <span>
+                {t("versions.publishedBy")} {version.publishedByUser.firstName} {version.publishedByUser.lastName}
+              </span>
+            )}
+          </div>
         </div>
         <ChevronDown
           className={`size-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}

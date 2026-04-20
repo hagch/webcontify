@@ -2,7 +2,7 @@ package io.webcontify.app.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import io.webcontify.app.model.App;
@@ -11,8 +11,10 @@ import io.webcontify.app.model.AppStatus;
 import io.webcontify.app.repository.AppDependencyRepository;
 import io.webcontify.app.repository.AppRepository;
 import io.webcontify.app.repository.entity.AppDependencyEntity;
+import io.webcontify.app.repository.entity.AppEntity;
 import io.webcontify.generated.model.DependencyGraphResponse;
 import io.webcontify.generated.model.DependencyImpactResponse;
+import io.webcontify.shared.changelog.service.ChangeRecordService;
 import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
@@ -34,6 +36,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class AppDependencyServiceTest {
 
     private static final UUID TEST_TENANT_ID = UUID.randomUUID();
+    private static final UUID TEST_USER_ID = UUID.randomUUID();
 
     @Mock
     private AppDependencyRepository dependencyRepository;
@@ -44,15 +47,18 @@ class AppDependencyServiceTest {
     @Mock
     private AppService appService;
 
+    @Mock
+    private ChangeRecordService changeRecordService;
+
     private AppDependencyService dependencyService;
 
     @BeforeEach
     void setUp() {
         TenantInformation info = new TenantInformation(TEST_TENANT_ID, false);
-        var auth = new TenantAwareAuthentication(info, "test-user", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        var auth = new TenantAwareAuthentication(info, TEST_USER_ID, List.of(new SimpleGrantedAuthority("ROLE_USER")));
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        dependencyService = new AppDependencyService(dependencyRepository, appService);
+        dependencyService = new AppDependencyService(dependencyRepository, appRepository, appService, changeRecordService);
     }
 
     @AfterEach
@@ -79,6 +85,11 @@ class AppDependencyServiceTest {
         savedEntity.setTenantId(TEST_TENANT_ID);
         when(dependencyRepository.save(any(AppDependencyEntity.class))).thenReturn(savedEntity);
 
+        AppEntity appAEntity = new AppEntity();
+        appAEntity.setId(appAId);
+        appAEntity.setStatus("ACTIVE");
+        when(appRepository.findByIdAndAuditInfoDeletedAtIsNull(appAId)).thenReturn(java.util.Optional.of(appAEntity));
+
         AppDependency result = dependencyService.addDependency(appAId, appBId);
 
         assertThat(result.getAppId()).isEqualTo(appAId);
@@ -87,6 +98,8 @@ class AppDependencyServiceTest {
         assertThat(result.getDependsOnAppSlug()).isEqualTo("app-b");
         assertThat(result.isDirect()).isTrue();
         verify(dependencyRepository).save(any(AppDependencyEntity.class));
+        verify(changeRecordService).create(eq("app"), eq(appAId), eq("updated"), contains("app-b"), anyString(), eq("draft"));
+        assertThat(appAEntity.isHasDraft()).isTrue();
     }
 
     @Test
@@ -158,11 +171,20 @@ class AppDependencyServiceTest {
         UUID appAId = UUID.randomUUID();
         UUID appBId = UUID.randomUUID();
 
+        App appB = createApp(appBId, "App B", "app-b", AppStatus.ACTIVE);
+        when(appService.getById(appBId)).thenReturn(appB);
         when(dependencyRepository.existsByAppIdAndDependsOnId(appAId, appBId)).thenReturn(true);
+
+        AppEntity appAEntity = new AppEntity();
+        appAEntity.setId(appAId);
+        appAEntity.setStatus("ACTIVE");
+        when(appRepository.findByIdAndAuditInfoDeletedAtIsNull(appAId)).thenReturn(java.util.Optional.of(appAEntity));
 
         dependencyService.removeDependency(appAId, appBId);
 
         verify(dependencyRepository).deleteByAppIdAndDependsOnId(appAId, appBId);
+        verify(changeRecordService).create(eq("app"), eq(appAId), eq("updated"), contains("app-b"), anyString(), eq("draft"));
+        assertThat(appAEntity.isHasDraft()).isTrue();
     }
 
     @Test

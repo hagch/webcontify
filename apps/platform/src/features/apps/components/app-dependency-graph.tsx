@@ -1,96 +1,78 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { useTheme } from "next-themes";
 import {
   ReactFlow,
   Background,
+  BackgroundVariant,
   Controls,
+  MarkerType,
+  useNodesState,
+  useEdgesState,
   type Node,
   type Edge,
-  type NodeProps,
-  Handle,
-  Position,
+  type Connection,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Plus, Trash2, Network } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Network } from "lucide-react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useGetAppDependencyGraph,
-  type DependencyGraphNode,
-  type AppStatus,
+  useAddAppDependency,
+  getListAppDependenciesQueryKey,
+  getGetAppDependencyGraphQueryKey,
+  getListAppProblemsQueryKey,
+  getListAppRevisionsQueryKey,
+  getGetAppQueryKey,
+  type ProblemDetail,
 } from "@/generated/app";
-import { AddDependencyDialog } from "./add-dependency-dialog";
+import { AppNode, type AppNodeData } from "./app-node";
+import {
+  AddDependencyNode,
+  type AddDependencyNodeData,
+} from "./add-dependency-node";
+import {
+  DependencyEdge,
+  type DependencyEdgeData,
+} from "./dependency-edge";
+import { AddDependencyPopoverContent } from "./add-dependency-popover";
 import { RemoveDependencyDialog } from "./remove-dependency-dialog";
+import { computeElkLayout } from "../hooks/use-elk-layout";
 
-function statusBadgeVariant(
-  status: AppStatus
-): "default" | "outline" | "secondary" {
-  switch (status) {
-    case "DRAFT":
-      return "outline";
-    case "ACTIVE":
-      return "default";
-    case "INACTIVE":
-      return "secondary";
-    default:
-      return "outline";
-  }
-}
+const ADD_NODE_ID = "__add_dependency__";
 
-type AppNodeData = DependencyGraphNode & { [key: string]: unknown };
+const nodeTypes = {
+  appNode: AppNode,
+  addNode: AddDependencyNode,
+};
 
-function AppNode({ data }: NodeProps<Node<AppNodeData>>) {
-  const t = useTranslations("apps");
-
-  return (
-    <div
-      className={`rounded-lg border bg-card px-4 py-3 shadow-sm min-w-[180px] ${
-        data.isCurrent
-          ? "border-emerald-500 ring-2 ring-emerald-500/20"
-          : "border-border"
-      }`}
-    >
-      <Handle type="target" position={Position.Left} className="!bg-border" />
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium truncate max-w-[150px]">
-            {data.name}
-          </span>
-          {data.isCurrent && (
-            <Badge
-              variant="outline"
-              className="border-emerald-500 text-emerald-600 text-[10px] px-1 py-0"
-            >
-              {t("dependencies.graph.currentApp")}
-            </Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={statusBadgeVariant(data.status)} className="text-xs">
-            {t(`statusValues.${data.status}`)}
-          </Badge>
-          <span className="text-xs text-muted-foreground">
-            {data.definitionCount} defs
-          </span>
-        </div>
-      </div>
-      <Handle type="source" position={Position.Right} className="!bg-border" />
-    </div>
-  );
-}
-
-const nodeTypes = { appNode: AppNode };
+const edgeTypes = {
+  dependency: DependencyEdge,
+};
 
 interface AppDependencyGraphProps {
   appId: string;
+  canEdit?: boolean;
 }
 
-export function AppDependencyGraph({ appId }: AppDependencyGraphProps) {
+export function AppDependencyGraph({ appId, canEdit = false }: AppDependencyGraphProps) {
   const t = useTranslations("apps");
+  const { resolvedTheme } = useTheme();
+  const queryClient = useQueryClient();
   const { data, isLoading } = useGetAppDependencyGraph(appId);
+  const addDependency = useAddAppDependency();
+
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    depAppId: string;
+    depAppName: string;
+  } | null>(null);
 
   const graphData = data?.data;
   const graphNodes =
@@ -98,146 +80,232 @@ export function AppDependencyGraph({ appId }: AppDependencyGraphProps) {
   const graphEdges =
     graphData && "edges" in graphData ? graphData.edges : [];
 
-  const { nodes, edges } = useMemo(() => {
-    if (graphNodes.length === 0) return { nodes: [], edges: [] };
+  // Determine which nodes are transitive (not directly connected)
+  const directNodeIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const edge of graphEdges) {
+      if (edge.direct) {
+        ids.add(edge.source);
+        ids.add(edge.target);
+      }
+    }
+    return ids;
+  }, [graphEdges]);
 
-    // Find the current app node
+  // Build React Flow nodes and edges from API data
+  const { flowNodes, flowEdges } = useMemo(() => {
+    if (graphNodes.length === 0) return { flowNodes: [], flowEdges: [] };
+
     const currentNode = graphNodes.find((n) => n.isCurrent);
-    const depNodes = graphNodes.filter((n) => !n.isCurrent);
 
-    // Simple tree layout: current app on the right, dependencies to the left
-    const HORIZONTAL_SPACING = 280;
-    const VERTICAL_SPACING = 100;
+    const appNodes: Node<AppNodeData>[] = graphNodes.map((node) => ({
+      id: node.id,
+      type: "appNode",
+      position: { x: 0, y: 0 },
+      data: {
+        ...node,
+        isTransitive: !node.isCurrent && !directNodeIds.has(node.id),
+        onDelete: canEdit && !node.isCurrent && directNodeIds.has(node.id)
+          ? (appId: string, appName: string) => {
+              setDeleteTarget({ depAppId: appId, depAppName: appName });
+            }
+          : undefined,
+      },
+    }));
 
-    const flowNodes: Node<AppNodeData>[] = [];
+    const allNodes: Node[] = [...appNodes];
 
-    // Position current app on the right
-    if (currentNode) {
-      const yCenter = ((depNodes.length - 1) * VERTICAL_SPACING) / 2;
-      flowNodes.push({
-        id: currentNode.id,
-        type: "appNode",
-        position: { x: HORIZONTAL_SPACING, y: Math.max(0, yCenter) },
-        data: { ...currentNode },
+    // Add the plus-node only for editors
+    if (canEdit) {
+      const addNode: Node<AddDependencyNodeData> = {
+        id: ADD_NODE_ID,
+        type: "addNode",
+        position: { x: 0, y: 0 },
+        data: { onAdd: () => setPopoverOpen(true) },
+      };
+      allNodes.push(addNode);
+    }
+
+    // Build edges
+    const depEdges: Edge<DependencyEdgeData>[] = graphEdges.map(
+      (edge, index) => ({
+        id: `dep-${index}`,
+        source: edge.source,
+        target: edge.target,
+        type: "dependency",
+        data: {
+          direct: edge.direct,
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: "var(--muted-foreground)",
+        },
+      })
+    );
+
+    // Edge from current app to plus-node (dashed, visual only)
+    if (canEdit && currentNode) {
+      depEdges.push({
+        id: "edge-add-node",
+        source: currentNode.id,
+        target: ADD_NODE_ID,
+        type: "dependency",
+        data: { direct: false },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: "var(--muted-foreground)",
+        },
       });
     }
 
-    // Position dependencies to the left
-    depNodes.forEach((node, index) => {
-      flowNodes.push({
-        id: node.id,
-        type: "appNode",
-        position: { x: 0, y: index * VERTICAL_SPACING },
-        data: { ...node },
-      });
+    return { flowNodes: allNodes, flowEdges: depEdges };
+  }, [graphNodes, graphEdges, directNodeIds, canEdit]);
+
+  // Run ELK layout when data changes
+  useEffect(() => {
+    if (flowNodes.length === 0) return;
+
+    computeElkLayout(flowNodes, flowEdges).then((layoutedNodes) => {
+      setNodes(layoutedNodes);
+      setEdges(flowEdges);
     });
+  }, [flowNodes, flowEdges, setNodes, setEdges]);
 
-    const flowEdges: Edge[] = graphEdges.map((edge, index) => ({
-      id: `edge-${index}`,
-      source: edge.source,
-      target: edge.target,
-      style: edge.direct ? {} : { strokeDasharray: "5 5" },
-      label: edge.direct
-        ? t("dependencies.direct")
-        : t("dependencies.transitive"),
-      labelStyle: { fontSize: 10, fill: "hsl(var(--muted-foreground))" },
-    }));
+  const invalidateQueries = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: getListAppDependenciesQueryKey(appId),
+    });
+    queryClient.invalidateQueries({
+      queryKey: getGetAppDependencyGraphQueryKey(appId),
+    });
+    queryClient.invalidateQueries({
+      queryKey: getListAppProblemsQueryKey(appId),
+    });
+    queryClient.invalidateQueries({
+      queryKey: getListAppRevisionsQueryKey(appId),
+    });
+    queryClient.invalidateQueries({
+      queryKey: getGetAppQueryKey(appId),
+    });
+  }, [queryClient, appId]);
 
-    return { nodes: flowNodes, edges: flowEdges };
-  }, [graphNodes, graphEdges, t]);
-
-  const directDeps = graphNodes.filter(
-    (n) =>
-      !n.isCurrent &&
-      graphEdges.some((e) => e.target === n.id && e.direct)
+  // Drag-to-connect: validate connection
+  const isValidConnection = useCallback(
+    (connection: Edge | Connection) => {
+      if (connection.source === connection.target) return false;
+      if (
+        connection.source === ADD_NODE_ID ||
+        connection.target === ADD_NODE_ID
+      )
+        return false;
+      const exists = edges.some(
+        (e) =>
+          e.source === connection.source && e.target === connection.target
+      );
+      return !exists;
+    },
+    [edges]
   );
 
-  const onInit = useCallback(() => {
-    // noop — React Flow initializes itself
-  }, []);
+  // Drag-to-connect: create dependency
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      if (!connection.source || !connection.target) return;
+      addDependency.mutate(
+        { appId, data: { dependsOnAppId: connection.target } },
+        {
+          onSuccess: () => {
+            toast.success(t("dependencies.addPopover.successToast"));
+            invalidateQueries();
+          },
+          onError: (error: unknown) => {
+            const err = error as ProblemDetail;
+            if (err.status === 409) {
+              toast.error(t("dependencies.addPopover.cyclicError"));
+            } else {
+              toast.error(err.detail ?? err.title);
+            }
+          },
+        }
+      );
+    },
+    [appId, addDependency, t, invalidateQueries]
+  );
 
   if (isLoading) {
     return (
-      <div data-testid="app-dependency-graph" className="space-y-4">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-[400px] w-full rounded-lg" />
+      <div data-testid="app-dependency-graph" className="flex h-full items-center justify-center">
+        <Skeleton className="h-full w-full rounded-lg" />
+      </div>
+    );
+  }
+
+  if (graphNodes.length === 0) {
+    return (
+      <div
+        data-testid="app-dependency-graph"
+        className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center"
+      >
+        <Network className="size-10 text-muted-foreground/50" />
+        <p className="mt-3 text-sm text-muted-foreground">
+          {t("dependencies.noDependencies")}
+        </p>
       </div>
     );
   }
 
   return (
-    <div data-testid="app-dependency-graph" className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-          {t("dependencies.title")}
-        </h3>
-        <AddDependencyDialog appId={appId}>
-          <Button size="sm">
-            <Plus className="mr-2 size-4" />
-            {t("dependencies.addDependency")}
-          </Button>
-        </AddDependencyDialog>
-      </div>
+    <div data-testid="app-dependency-graph" className="relative h-full overflow-hidden rounded-lg border">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={canEdit ? onConnect : undefined}
+        isValidConnection={canEdit ? isValidConnection : undefined}
+        colorMode={resolvedTheme === "dark" ? "dark" : "light"}
+        fitView
+        fitViewOptions={{ padding: 0.2, maxZoom: 1.5, duration: 300 }}
+        proOptions={{ hideAttribution: true }}
+        nodesDraggable={false}
+        nodesConnectable={canEdit}
+        zoomOnScroll={false}
+        panOnScroll
+      >
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
+        <Controls showInteractive={false} />
+      </ReactFlow>
 
-      {nodes.length <= 1 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-          <Network className="size-10 text-muted-foreground/50" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            {t("dependencies.noDependencies")}
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="h-[400px] rounded-lg border bg-muted/20">
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              nodeTypes={nodeTypes}
-              onInit={onInit}
-              fitView
-              proOptions={{ hideAttribution: true }}
-              nodesDraggable={false}
-              nodesConnectable={false}
-              zoomOnScroll={false}
-              panOnScroll
-            >
-              <Background />
-              <Controls showInteractive={false} />
-            </ReactFlow>
-          </div>
-
-          {/* Direct dependencies list with remove buttons */}
-          {directDeps.length > 0 && (
-            <div className="space-y-2">
-              {directDeps.map((dep) => (
-                <div
-                  key={dep.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium">{dep.name}</span>
-                    <Badge
-                      variant={statusBadgeVariant(dep.status)}
-                      className="text-xs"
-                    >
-                      {t(`statusValues.${dep.status}`)}
-                    </Badge>
-                  </div>
-                  <RemoveDependencyDialog
-                    appId={appId}
-                    depAppId={dep.id}
-                    depAppName={dep.name}
-                  >
-                    <Button variant="ghost" size="sm">
-                      <Trash2 className="mr-1 size-3.5" />
-                      {t("dependencies.removeDependency")}
-                    </Button>
-                  </RemoveDependencyDialog>
-                </div>
-              ))}
+      {/* Popover for add dependency */}
+      {popoverOpen && (
+        <div className="absolute inset-0 z-10" onClick={() => setPopoverOpen(false)}>
+          <div
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="rounded-xl border bg-background p-4 shadow-md">
+              <AddDependencyPopoverContent
+                appId={appId}
+                onSuccess={() => setPopoverOpen(false)}
+              />
             </div>
-          )}
-        </>
+          </div>
+        </div>
+      )}
+
+      {/* Remove dependency dialog */}
+      {deleteTarget && (
+        <RemoveDependencyDialog
+          appId={appId}
+          depAppId={deleteTarget.depAppId}
+          depAppName={deleteTarget.depAppName}
+          open
+          onOpenChange={(open) => {
+            if (!open) setDeleteTarget(null);
+          }}
+        />
       )}
     </div>
   );

@@ -55,7 +55,7 @@ class RoleServiceTest {
     @BeforeEach
     void setUp() {
         var tenantInfo = new TenantInformation(TENANT_ID, false);
-        var auth = new TenantAwareAuthentication(tenantInfo, CURRENT_USER_ID.toString(), List.of());
+        var auth = new TenantAwareAuthentication(tenantInfo, CURRENT_USER_ID, List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         var infra = new TenantInfrastructureInfo(STORE_ID, "tenant-test");

@@ -187,7 +187,18 @@ tasks.register<Copy>("syncOpenFgaModel") {
     from(file("${projectDir}/../../infra/openfga/model.fga"))
     into("src/main/resources/openfga/")
 }
-tasks.named("processResources") { dependsOn("syncOpenFgaModel") }
+
+tasks.register<Exec>("transformOpenFgaModel") {
+    dependsOn("syncOpenFgaModel")
+    val fgaFile = file("src/main/resources/openfga/model.fga")
+    val jsonFile = file("src/main/resources/openfga/model.json")
+    inputs.file(fgaFile)
+    outputs.file(jsonFile)
+    workingDir(rootProject.projectDir.parentFile.parentFile)
+    commandLine("node", "tools/fga-transform.mjs", fgaFile.absolutePath, jsonFile.absolutePath)
+}
+
+tasks.named("processResources") { dependsOn("transformOpenFgaModel") }
 
 tasks.withType<Test> {
     useJUnitPlatform()

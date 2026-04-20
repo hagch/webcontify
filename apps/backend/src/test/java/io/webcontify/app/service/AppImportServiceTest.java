@@ -27,6 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class AppImportServiceTest {
 
     private static final UUID TEST_TENANT_ID = UUID.randomUUID();
+    private static final UUID TEST_USER_ID = UUID.randomUUID();
 
     @Mock private AppService appService;
     @Mock private AppVersionService appVersionService;
@@ -42,7 +43,7 @@ class AppImportServiceTest {
     void setUp() {
         TenantInformation info = new TenantInformation(TEST_TENANT_ID, false);
         var auth = new TenantAwareAuthentication(
-                info, "test-user", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                info, TEST_USER_ID, List.of(new SimpleGrantedAuthority("ROLE_USER")));
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         appImportService = new AppImportService(

@@ -35,7 +35,7 @@ class JwtToTenantAuthenticationConverterTest {
     @Test
     void shouldConvertPlatformAdminJwtToAuthentication() {
         Jwt jwt = mock(Jwt.class);
-        when(jwt.getSubject()).thenReturn("admin-user-sub");
+        when(jwt.getSubject()).thenReturn("00000000-0000-0000-0000-000000000001");
         when(jwt.getClaim("realm_access"))
                 .thenReturn(Map.of("roles", List.of("PLATFORM_ADMIN", "default-roles-webcontify")));
 
@@ -43,7 +43,7 @@ class JwtToTenantAuthenticationConverterTest {
 
         assertThat(result).isInstanceOf(TenantAwareAuthentication.class);
         TenantAwareAuthentication auth = (TenantAwareAuthentication) result;
-        assertThat(auth.getPrincipal()).isEqualTo("admin-user-sub");
+        assertThat(auth.getPrincipal()).isEqualTo(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         assertThat(auth.getTenantInformation().platformAdmin()).isTrue();
         assertThat(auth.getTenantInformation().tenantId()).isNull();
         assertThat(auth.getAuthorities())
@@ -55,7 +55,7 @@ class JwtToTenantAuthenticationConverterTest {
     void shouldConvertTenantUserJwtWithTenantIdClaim() {
         UUID tenantId = UUID.randomUUID();
         Jwt jwt = mock(Jwt.class);
-        when(jwt.getSubject()).thenReturn("tenant-user-sub");
+        when(jwt.getSubject()).thenReturn("00000000-0000-0000-0000-000000000002");
         when(jwt.getClaim("realm_access"))
                 .thenReturn(Map.of("roles", List.of("default-roles-webcontify")));
         when(jwt.getClaim("tenant_id")).thenReturn(tenantId.toString());
@@ -64,7 +64,7 @@ class JwtToTenantAuthenticationConverterTest {
 
         assertThat(result).isInstanceOf(TenantAwareAuthentication.class);
         TenantAwareAuthentication auth = (TenantAwareAuthentication) result;
-        assertThat(auth.getPrincipal()).isEqualTo("tenant-user-sub");
+        assertThat(auth.getPrincipal()).isEqualTo(UUID.fromString("00000000-0000-0000-0000-000000000002"));
         assertThat(auth.getTenantInformation().platformAdmin()).isFalse();
         assertThat(auth.getTenantInformation().tenantId()).isEqualTo(tenantId);
         assertThat(auth.getAuthorities()).isEmpty();
@@ -75,7 +75,7 @@ class JwtToTenantAuthenticationConverterTest {
     void shouldFallbackToIssuerWhenTenantIdClaimMissing() throws Exception {
         UUID tenantId = UUID.randomUUID();
         Jwt jwt = mock(Jwt.class);
-        when(jwt.getSubject()).thenReturn("tenant-user-sub");
+        when(jwt.getSubject()).thenReturn("00000000-0000-0000-0000-000000000002");
         when(jwt.getClaim("realm_access"))
                 .thenReturn(Map.of("roles", List.of("default-roles-webcontify")));
         when(jwt.getClaim("tenant_id")).thenReturn(null);
@@ -92,7 +92,7 @@ class JwtToTenantAuthenticationConverterTest {
     @Test
     void shouldThrowWhenNoTenantIdAndNoIssuerFallback() {
         Jwt jwt = mock(Jwt.class);
-        when(jwt.getSubject()).thenReturn("tenant-user-sub");
+        when(jwt.getSubject()).thenReturn("00000000-0000-0000-0000-000000000002");
         when(jwt.getClaim("realm_access"))
                 .thenReturn(Map.of("roles", List.of("default-roles-webcontify")));
         when(jwt.getClaim("tenant_id")).thenReturn(null);
@@ -106,7 +106,7 @@ class JwtToTenantAuthenticationConverterTest {
     @Test
     void shouldThrowWhenIssuerIsNotTenantRealm() throws Exception {
         Jwt jwt = mock(Jwt.class);
-        when(jwt.getSubject()).thenReturn("tenant-user-sub");
+        when(jwt.getSubject()).thenReturn("00000000-0000-0000-0000-000000000002");
         when(jwt.getClaim("realm_access"))
                 .thenReturn(Map.of("roles", List.of("default-roles-webcontify")));
         when(jwt.getClaim("tenant_id")).thenReturn(null);
@@ -121,7 +121,7 @@ class JwtToTenantAuthenticationConverterTest {
     void shouldHandleMissingRealmAccessClaim() {
         UUID tenantId = UUID.randomUUID();
         Jwt jwt = mock(Jwt.class);
-        when(jwt.getSubject()).thenReturn("tenant-user-sub");
+        when(jwt.getSubject()).thenReturn("00000000-0000-0000-0000-000000000002");
         when(jwt.getClaim("realm_access")).thenReturn(null);
         when(jwt.getClaim("tenant_id")).thenReturn(tenantId.toString());
 
@@ -136,7 +136,7 @@ class JwtToTenantAuthenticationConverterTest {
     void shouldHandleInvalidTenantIdFormatWithIssuerFallback() throws Exception {
         UUID tenantId = UUID.randomUUID();
         Jwt jwt = mock(Jwt.class);
-        when(jwt.getSubject()).thenReturn("tenant-user-sub");
+        when(jwt.getSubject()).thenReturn("00000000-0000-0000-0000-000000000002");
         when(jwt.getClaim("realm_access"))
                 .thenReturn(Map.of("roles", List.of("default-roles-webcontify")));
         when(jwt.getClaim("tenant_id")).thenReturn("not-a-valid-uuid");
@@ -153,7 +153,7 @@ class JwtToTenantAuthenticationConverterTest {
     void shouldNotGrantPlatformAdminAuthorityToRegularTenantUser() {
         UUID tenantId = UUID.randomUUID();
         Jwt jwt = mock(Jwt.class);
-        when(jwt.getSubject()).thenReturn("tenant-user-sub");
+        when(jwt.getSubject()).thenReturn("00000000-0000-0000-0000-000000000002");
         when(jwt.getClaim("realm_access"))
                 .thenReturn(Map.of("roles", List.of("some-other-role")));
         when(jwt.getClaim("tenant_id")).thenReturn(tenantId.toString());

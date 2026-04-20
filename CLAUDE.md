@@ -185,6 +185,7 @@ src/messages/                       ← i18n (en.json, de.json)
 - Classic Layered: `api/service/mapper/model/repository`
 - DataSource Proxy für RLS (`SET LOCAL`)
 - Keycloak NUR für Auth, OpenFGA für ALLE Permissions
+- OpenFGA Modell: `infra/openfga/model.fga` ist Single Source of Truth — `model.json` wird beim Build automatisch generiert (`transformOpenFgaModel` Gradle-Task). **NUR `model.fga` editieren, niemals `model.json` manuell pflegen.**
 - UUIDv7 für alle Entity IDs
 - i18n Keys in Error Responses (RFC 7807 + `code`-Feld)
 - OpenAPI: Plural in URLs, Wrapper-Objekt für Listen, `201 + Location + Body`

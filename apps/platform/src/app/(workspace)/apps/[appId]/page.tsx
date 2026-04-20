@@ -23,18 +23,23 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useGetApp,
+  useUpdateApp,
   useUpdateAppStatus,
   useDeleteApp,
   getListAppsQueryKey,
   getGetAppQueryKey,
   type AppResponse,
 } from "@/generated/app";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Pencil, X } from "lucide-react";
 import { PublishAppDialog } from "@/features/apps/components/publish-app-dialog";
 import { AppVersionList } from "@/features/apps/components/app-version-list";
 import { AppRevisionList } from "@/features/apps/components/app-revision-list";
 import { AppDependencyGraph } from "@/features/apps/components/app-dependency-graph";
 import { AppProblemsPanel } from "@/features/apps/components/app-problems-panel";
 import { useListAppProblems } from "@/generated/app";
+import type { AppResponseEffectiveActionsItem } from "@/generated/app";
 
 function isAppResponse(data: unknown): data is AppResponse {
   return (
@@ -74,12 +79,15 @@ export default function AppDetailPage({
   const router = useRouter();
   const t = useTranslations("apps");
   const queryClient = useQueryClient();
-
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<"ACTIVE" | "INACTIVE" | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   const { data, isLoading, error } = useGetApp(appId);
+  const updateApp = useUpdateApp();
   const updateStatus = useUpdateAppStatus();
   const deleteApp = useDeleteApp();
   const { data: problemsData } = useListAppProblems(appId);
@@ -91,6 +99,10 @@ export default function AppDetailPage({
   const rawData = data?.data;
   const app = isAppResponse(rawData) ? rawData : undefined;
 
+  const actions = app?.effectiveActions ?? [];
+  const canEdit = actions.includes("editor" as AppResponseEffectiveActionsItem);
+  const canAdmin = actions.includes("admin" as AppResponseEffectiveActionsItem);
+
   if (error && !isLoading) {
     notFound();
   }
@@ -98,6 +110,39 @@ export default function AppDetailPage({
   function invalidateQueries() {
     queryClient.invalidateQueries({ queryKey: getListAppsQueryKey() });
     queryClient.invalidateQueries({ queryKey: getGetAppQueryKey(appId) });
+  }
+
+  function startEditing() {
+    if (!app) return;
+    setEditName(app.name);
+    setEditDescription(app.description ?? "");
+    setEditing(true);
+  }
+
+  function cancelEditing() {
+    setEditing(false);
+  }
+
+  function saveEdit() {
+    if (!editName.trim()) return;
+    updateApp.mutate(
+      { appId, data: { name: editName.trim(), description: editDescription.trim() || undefined } },
+      {
+        onSuccess: () => {
+          invalidateQueries();
+          setEditing(false);
+          toast.success(t("detail.editSuccess"));
+        },
+        onError: (error) => {
+          const err = error as { data?: { code?: string } };
+          if (err.data?.code === "app.name_already_exists") {
+            toast.error(t("createDialog.nameAlreadyExists"));
+          } else {
+            toast.error(t("detail.editError"));
+          }
+        },
+      }
+    );
   }
 
   function handleStatusChange(newStatus: "ACTIVE" | "INACTIVE") {
@@ -163,7 +208,7 @@ export default function AppDetailPage({
           },
         ]}
         actions={
-          app && !isLoading ? (
+          app && !isLoading && canAdmin ? (
             (app.status === "DRAFT" || app.hasDraft) ? (
               hasErrors ? (
                 <Button size="sm" disabled title={t("problems.publishBlocked")}>
@@ -210,16 +255,62 @@ export default function AppDetailPage({
               <div className="flex flex-col gap-6">
                 {/* Overview */}
                 <section className="rounded-lg border p-6">
-                  <h2 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                    {t("detail.overviewSection")}
-                  </h2>
+                  <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      {t("detail.overviewSection")}
+                    </h2>
+                    {!editing ? (
+                      canEdit && (
+                        <Button variant="ghost" size="sm" onClick={startEditing}>
+                          <Pencil className="mr-1.5 size-3.5" />
+                          {t("edit")}
+                        </Button>
+                      )
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" onClick={cancelEditing} disabled={updateApp.isPending}>
+                          <X className="mr-1.5 size-3.5" />
+                          {t("detail.cancelEdit")}
+                        </Button>
+                        <Button size="sm" onClick={saveEdit} disabled={updateApp.isPending || !editName.trim()}>
+                          {updateApp.isPending && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
+                          {t("detail.saveEdit")}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                   <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
+                    {editing && (
+                      <div className="sm:col-span-2">
+                        <dt className="text-sm text-muted-foreground mb-1">
+                          {t("name")}
+                        </dt>
+                        <dd>
+                          <Input
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            maxLength={255}
+                          />
+                        </dd>
+                      </div>
+                    )}
+                    <div className={editing ? "sm:col-span-2" : ""}>
                       <dt className="text-sm text-muted-foreground">
                         {t("detail.descriptionLabel")}
                       </dt>
-                      <dd className="mt-1 font-medium">
-                        {app.description || t("detail.noDescription")}
+                      <dd className="mt-1">
+                        {editing ? (
+                          <Textarea
+                            value={editDescription}
+                            onChange={(e) => setEditDescription(e.target.value)}
+                            maxLength={2000}
+                            rows={3}
+                          />
+                        ) : (
+                          <span className="font-medium">
+                            {app.description || t("detail.noDescription")}
+                          </span>
+                        )}
                       </dd>
                     </div>
                     <div>
@@ -240,6 +331,14 @@ export default function AppDetailPage({
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">
+                        {t("detail.versionLabel")}
+                      </dt>
+                      <dd className="mt-1 font-mono text-sm">
+                        {app.currentVersion ?? t("detail.noVersion")}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-muted-foreground">
                         {t("detail.createdAtLabel")}
                       </dt>
                       <dd className="mt-1 text-sm">{formatDate(app.createdAt)}</dd>
@@ -253,13 +352,14 @@ export default function AppDetailPage({
                   </dl>
                 </section>
 
-                {/* Actions */}
+                {/* Actions — only for admins */}
+                {canAdmin && (
                 <section className="rounded-lg border p-6">
                   <h2 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
                     {t("detail.actionsSection")}
                   </h2>
                   <div className="flex flex-wrap gap-3">
-                    {(app.status === "DRAFT" || app.status === "INACTIVE") && (
+                    {app.status === "INACTIVE" && (
                       <Button
                         variant="outline"
                         onClick={() => handleStatusChange("ACTIVE")}
@@ -293,11 +393,14 @@ export default function AppDetailPage({
                     </Button>
                   </div>
                 </section>
+                )}
               </div>
             </TabsContent>
 
-            <TabsContent value="dependencies">
-              <AppDependencyGraph appId={app.id} />
+            <TabsContent value="dependencies" className="flex-1">
+              <div className="h-[calc(100vh-9rem)]">
+                <AppDependencyGraph appId={app.id} canEdit={canEdit} />
+              </div>
             </TabsContent>
 
             <TabsContent value="versions">

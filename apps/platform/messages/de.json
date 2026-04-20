@@ -181,7 +181,14 @@
       "appManagement": {
         "title": "App-Verwaltung",
         "global": "Global — Alle Apps",
-        "globalDescription": "Gilt fuer alle bestehenden und zukuenftigen Apps"
+        "globalDescription": "Gilt fuer alle bestehenden und zukuenftigen Apps",
+        "perApp": "App-spezifische Berechtigungen",
+        "perAppDescription": "Berechtigungen fuer einzelne Apps ueberschreiben",
+        "appColumn": "App",
+        "searchApp": "App suchen und hinzufuegen...",
+        "noApps": "Keine app-spezifischen Berechtigungen konfiguriert",
+        "perAppSaveSuccess": "App-spezifische Berechtigungen gespeichert",
+        "perAppSaveError": "Fehler beim Speichern der App-spezifischen Berechtigungen"
       }
     },
     "toasts": {
@@ -485,7 +492,8 @@
     "statusValues": {
       "ACTIVE": "Aktiv",
       "INACTIVE": "Inaktiv",
-      "SUSPENDED": "Gesperrt"
+      "SUSPENDED": "Gesperrt",
+      "PROVISIONING": "In Bereitstellung"
     },
     "provisioning": {
       "title": "Mandant wird eingerichtet",
@@ -514,6 +522,7 @@
     "slug": "Slug",
     "description_label": "Beschreibung",
     "status": "Status",
+    "version": "Version",
     "hasDraft": "Entwurf",
     "actions": "Aktionen",
     "statusValues": { "DRAFT": "Entwurf", "ACTIVE": "Aktiv", "INACTIVE": "Inaktiv" },
@@ -526,7 +535,7 @@
       "submit": "Erstellen", "cancel": "Abbrechen", "successToast": "App erfolgreich erstellt"
     },
     "detail": {
-      "slugLabel": "Slug", "descriptionLabel": "Beschreibung", "statusLabel": "Status",
+      "slugLabel": "Slug", "descriptionLabel": "Beschreibung", "statusLabel": "Status", "versionLabel": "Version", "noVersion": "Nicht veroeffentlicht",
       "createdAtLabel": "Erstellt", "updatedAtLabel": "Zuletzt aktualisiert",
       "overviewSection": "Uebersicht", "actionsSection": "Aktionen", "noDescription": "Keine Beschreibung",
       "activate": "Aktivieren", "deactivate": "Deaktivieren", "delete": "Loeschen",
@@ -540,7 +549,11 @@
       "statusChangeSuccess": "App-Status erfolgreich aktualisiert",
       "statusChangeError": "App-Status konnte nicht aktualisiert werden",
       "deleteSuccess": "App erfolgreich geloescht",
-      "deleteError": "App konnte nicht geloescht werden"
+      "deleteError": "App konnte nicht geloescht werden",
+      "editSuccess": "App erfolgreich aktualisiert",
+      "editError": "App konnte nicht aktualisiert werden",
+      "cancelEdit": "Abbrechen",
+      "saveEdit": "Speichern"
     },
     "viewDetails": "Details anzeigen", "edit": "Bearbeiten",
     "versions": {
@@ -565,7 +578,13 @@
         "description": "Version {version} wird als neuer Entwurf geladen. Bestehende unveroeffenlichte Aenderungen werden ueberschrieben.",
         "confirm": "Zuruecksetzen",
         "cancel": "Abbrechen",
-        "successToast": "Erfolgreich zurueckgesetzt"
+        "successToast": "Erfolgreich zurueckgesetzt",
+        "errorToast": "Zuruecksetzen fehlgeschlagen",
+        "noChanges": "Keine Unterschiede zwischen aktuellem Stand und dieser Version",
+        "fields": {
+          "name": "Name",
+          "description": "Beschreibung"
+        }
       },
       "publishedAt": "Veroeffentlicht",
       "publishedBy": "Von",
@@ -592,31 +611,32 @@
     },
     "dependencies": {
       "title": "Abhaengigkeiten",
-      "addDependency": "Abhaengigkeit hinzufuegen",
-      "removeDependency": "Entfernen",
-      "noDependencies": "Keine Abhaengigkeiten",
+      "noDependencies": "Noch keine Abhaengigkeiten. Klicke auf den + Knoten um eine hinzuzufuegen.",
       "direct": "Direkt",
       "transitive": "Transitiv",
-      "addDialog": {
+      "addNode": {
+        "label": "Abhaengigkeit hinzufuegen"
+      },
+      "addPopover": {
         "title": "Abhaengigkeit hinzufuegen",
-        "description": "Waehle eine App als Abhaengigkeit. Nur aktive Apps koennen hinzugefuegt werden.",
-        "selectApp": "App waehlen",
-        "submit": "Hinzufuegen",
-        "cancel": "Abbrechen",
+        "searchPlaceholder": "Apps suchen...",
+        "noAppsAvailable": "Keine Apps verfuegbar",
         "successToast": "Abhaengigkeit hinzugefuegt",
         "cyclicError": "Diese Abhaengigkeit wuerde einen Zyklus erzeugen",
-        "draftError": "Kann nicht von einer Entwurfs-App abhaengen",
-        "noAppsAvailable": "Keine Apps zum Hinzufuegen verfuegbar"
+        "draftError": "Kann keine Draft-App als Abhaengigkeit verwenden"
       },
       "removeDialog": {
         "title": "Abhaengigkeit entfernen",
-        "description": "Bist du sicher, dass du diese Abhaengigkeit entfernen moechtest?",
+        "description": "Bist du sicher, dass du diese Abhaengigkeit entfernen willst?",
         "confirm": "Entfernen",
         "cancel": "Abbrechen",
-        "successToast": "Abhaengigkeit entfernt"
+        "successToast": "Abhaengigkeit entfernt",
+        "errorToast": "Fehler beim Entfernen der Abhaengigkeit"
       },
       "graph": {
-        "currentApp": "Aktuelle App"
+        "currentApp": "Aktuell",
+        "connectHint": "Vom Handle ziehen zum Verbinden",
+        "hoverHint": "Ueber Edge hovern zum Entfernen"
       }
     },
     "problems": {

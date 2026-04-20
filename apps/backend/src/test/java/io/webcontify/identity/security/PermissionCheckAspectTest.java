@@ -63,7 +63,7 @@ class PermissionCheckAspectTest {
         var tenantInfo = isPlatformAdmin
                 ? new TenantInformation(null, true)
                 : new TenantInformation(UUID.randomUUID(), false);
-        var auth = new TenantAwareAuthentication(tenantInfo, userId.toString(), List.of());
+        var auth = new TenantAwareAuthentication(tenantInfo, userId, List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 

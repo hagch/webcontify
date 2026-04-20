@@ -84,7 +84,7 @@ class AuthServiceTest {
         var tenantInfo = platformAdmin
                 ? new TenantInformation(null, true)
                 : new TenantInformation(TENANT_ID, false);
-        var auth = new TenantAwareAuthentication(tenantInfo, userId.toString(), List.of());
+        var auth = new TenantAwareAuthentication(tenantInfo, userId, List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
@@ -96,7 +96,9 @@ class AuthServiceTest {
 
         @Test
         void shouldUpdateFirstAndLastNameInKeycloak() {
-            withJwtAuth(USER_ID, "tenant-acme");
+            withTenantAuth(USER_ID, false);
+            when(tenantInfrastructureLookupService.getInfrastructure(TENANT_ID))
+                    .thenReturn(new TenantInfrastructureInfo(null, "tenant-acme"));
 
             var updatedUser = new UserRepresentation();
             updatedUser.setId(USER_ID.toString());

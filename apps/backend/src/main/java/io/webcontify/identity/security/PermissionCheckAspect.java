@@ -2,7 +2,6 @@ package io.webcontify.identity.security;
 
 import io.webcontify.identity.model.CheckPermissionRequest;
 import io.webcontify.identity.service.PermissionService;
-import io.webcontify.shared.security.TenantAwareAuthentication;
 import io.webcontify.shared.security.TenantContext;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -12,7 +11,6 @@ import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -37,9 +35,7 @@ public class PermissionCheckAspect {
             return joinPoint.proceed();
         }
 
-        var authentication = (TenantAwareAuthentication)
-                SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) authentication.getPrincipal());
+        UUID userId = TenantContext.getCurrentUserId();
 
         UUID resourceId;
         if (!requiresPermission.resourceId().isEmpty()) {

@@ -1,6 +1,7 @@
 package io.webcontify.shared.security;
 
 import io.webcontify.shared.model.TenantInformation;
+import java.util.UUID;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -14,5 +15,13 @@ public final class TenantContext {
             return tenantAuth.getTenantInformation();
         }
         throw new IllegalStateException("No tenant information available in SecurityContext");
+    }
+
+    public static UUID getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof TenantAwareAuthentication tenantAuth) {
+            return (UUID) tenantAuth.getPrincipal();
+        }
+        throw new IllegalStateException("No user information available in SecurityContext");
     }
 }

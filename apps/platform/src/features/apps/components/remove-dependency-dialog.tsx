@@ -20,13 +20,17 @@ import {
   getListAppDependenciesQueryKey,
   getGetAppDependencyGraphQueryKey,
   getListAppProblemsQueryKey,
+  getListAppRevisionsQueryKey,
+  getGetAppQueryKey,
 } from "@/generated/app";
 
 interface RemoveDependencyDialogProps {
   appId: string;
   depAppId: string;
   depAppName: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function RemoveDependencyDialog({
@@ -34,11 +38,19 @@ export function RemoveDependencyDialog({
   depAppId,
   depAppName,
   children,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: RemoveDependencyDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const removeDependency = useRemoveAppDependency();
   const t = useTranslations("apps");
   const queryClient = useQueryClient();
+
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const onOpenChange = isControlled
+    ? controlledOnOpenChange!
+    : setInternalOpen;
 
   function invalidateQueries() {
     queryClient.invalidateQueries({
@@ -50,6 +62,12 @@ export function RemoveDependencyDialog({
     queryClient.invalidateQueries({
       queryKey: getListAppProblemsQueryKey(appId),
     });
+    queryClient.invalidateQueries({
+      queryKey: getListAppRevisionsQueryKey(appId),
+    });
+    queryClient.invalidateQueries({
+      queryKey: getGetAppQueryKey(appId),
+    });
   }
 
   function handleConfirm() {
@@ -59,18 +77,20 @@ export function RemoveDependencyDialog({
         onSuccess: () => {
           toast.success(t("dependencies.removeDialog.successToast"));
           invalidateQueries();
-          setOpen(false);
+          onOpenChange(false);
         },
         onError: () => {
-          toast.error(t("dependencies.removeDialog.successToast"));
+          toast.error(t("dependencies.removeDialog.errorToast"));
         },
       }
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={children as React.ReactElement} />
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {children && (
+        <DialogTrigger render={children as React.ReactElement} />
+      )}
       <DialogContent
         data-testid="remove-dependency-dialog"
         showCloseButton={false}
@@ -85,7 +105,7 @@ export function RemoveDependencyDialog({
           <Button
             type="button"
             variant="outline"
-            onClick={() => setOpen(false)}
+            onClick={() => onOpenChange(false)}
             disabled={removeDependency.isPending}
           >
             {t("dependencies.removeDialog.cancel")}

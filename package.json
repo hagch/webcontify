@@ -18,6 +18,8 @@
   },
   "devDependencies": {
     "@nx/js": "^22.5.3",
+    "@openfga/sdk": "^0.9.4",
+    "@openfga/syntax-transformer": "^0.2.1",
     "nx": "^22.5.3"
   }
 }

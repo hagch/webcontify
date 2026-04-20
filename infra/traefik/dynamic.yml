@@ -15,6 +15,13 @@ http:
     api:
       rule: "Host(`api.localhost`)"
       service: api
+      priority: 10
+      entryPoints:
+        - web
+    api-tenant:
+      rule: "HostRegexp(`^api\\.[a-z0-9-]+\\.localhost$`)"
+      service: api
+      priority: 5
       entryPoints:
         - web
     s3-api:

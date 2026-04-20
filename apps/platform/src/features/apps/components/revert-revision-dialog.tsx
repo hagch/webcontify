@@ -20,6 +20,8 @@ import {
   getListAppsQueryKey,
   getGetAppQueryKey,
   getListAppRevisionsQueryKey,
+  getListAppDependenciesQueryKey,
+  getGetAppDependencyGraphQueryKey,
 } from "@/generated/app";
 
 interface RevertRevisionDialogProps {
@@ -41,9 +43,9 @@ export function RevertRevisionDialog({
   function invalidateQueries() {
     queryClient.invalidateQueries({ queryKey: getListAppsQueryKey() });
     queryClient.invalidateQueries({ queryKey: getGetAppQueryKey(appId) });
-    queryClient.invalidateQueries({
-      queryKey: getListAppRevisionsQueryKey(appId),
-    });
+    queryClient.invalidateQueries({ queryKey: getListAppRevisionsQueryKey(appId) });
+    queryClient.invalidateQueries({ queryKey: getListAppDependenciesQueryKey(appId) });
+    queryClient.invalidateQueries({ queryKey: getGetAppDependencyGraphQueryKey(appId) });
   }
 
   function handleConfirm() {
@@ -56,7 +58,7 @@ export function RevertRevisionDialog({
           setOpen(false);
         },
         onError: () => {
-          toast.error(t("revisions.revertDialog.successToast"));
+          toast.error(t("revisions.revertDialog.errorToast"));
         },
       },
     );

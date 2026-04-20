@@ -10,6 +10,7 @@ import io.webcontify.app.mapper.AppMapper;
 import io.webcontify.app.model.App;
 import io.webcontify.app.model.AppStatus;
 import io.webcontify.app.repository.AppDependencyRepository;
+import io.webcontify.app.repository.AppVersionRepository;
 import io.webcontify.app.repository.AppRepository;
 import io.webcontify.app.repository.entity.AppDependencyEntity;
 import io.webcontify.app.repository.entity.AppEntity;
@@ -45,12 +46,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class AppServiceTest {
 
     private static final UUID TEST_TENANT_ID = UUID.randomUUID();
+    private static final UUID TEST_USER_ID = UUID.randomUUID();
 
     @Mock
     private AppRepository appRepository;
 
     @Mock
     private AppDependencyRepository dependencyRepository;
+
+    @Mock
+    private AppVersionRepository versionRepository;
 
     @Mock
     private AppMapper appMapper;
@@ -69,10 +74,10 @@ class AppServiceTest {
     @BeforeEach
     void setUp() {
         TenantInformation info = new TenantInformation(TEST_TENANT_ID, false);
-        var auth = new TenantAwareAuthentication(info, "test-user", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        var auth = new TenantAwareAuthentication(info, TEST_USER_ID, List.of(new SimpleGrantedAuthority("ROLE_USER")));
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        appService = new AppService(appRepository, dependencyRepository, appMapper, slugGenerator, changeRecordService, permissionService);
+        appService = new AppService(appRepository, dependencyRepository, versionRepository, appMapper, slugGenerator, changeRecordService, permissionService);
     }
 
     @AfterEach

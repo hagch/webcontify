@@ -181,7 +181,14 @@
       "appManagement": {
         "title": "App Management",
         "global": "Global — All Apps",
-        "globalDescription": "Applies to all existing and future apps"
+        "globalDescription": "Applies to all existing and future apps",
+        "perApp": "Per-App Permissions",
+        "perAppDescription": "Override permissions for specific apps",
+        "appColumn": "App",
+        "searchApp": "Search app to add...",
+        "noApps": "No per-app permissions configured",
+        "perAppSaveSuccess": "Per-app permissions saved",
+        "perAppSaveError": "Failed to save per-app permissions"
       }
     },
     "toasts": {
@@ -485,7 +492,8 @@
     "statusValues": {
       "ACTIVE": "Active",
       "INACTIVE": "Inactive",
-      "SUSPENDED": "Suspended"
+      "SUSPENDED": "Suspended",
+      "PROVISIONING": "Provisioning"
     },
     "provisioning": {
       "title": "Setting up tenant",
@@ -514,6 +522,7 @@
     "slug": "Slug",
     "description_label": "Description",
     "status": "Status",
+    "version": "Version",
     "hasDraft": "Draft",
     "actions": "Actions",
     "statusValues": { "DRAFT": "Draft", "ACTIVE": "Active", "INACTIVE": "Inactive" },
@@ -526,7 +535,7 @@
       "submit": "Create", "cancel": "Cancel", "successToast": "App created successfully"
     },
     "detail": {
-      "slugLabel": "Slug", "descriptionLabel": "Description", "statusLabel": "Status",
+      "slugLabel": "Slug", "descriptionLabel": "Description", "statusLabel": "Status", "versionLabel": "Version", "noVersion": "Not published",
       "createdAtLabel": "Created", "updatedAtLabel": "Last updated",
       "overviewSection": "Overview", "actionsSection": "Actions", "noDescription": "No description",
       "activate": "Activate", "deactivate": "Deactivate", "delete": "Delete",
@@ -540,7 +549,11 @@
       "statusChangeSuccess": "App status updated successfully",
       "statusChangeError": "Failed to update app status",
       "deleteSuccess": "App deleted successfully",
-      "deleteError": "Failed to delete app"
+      "deleteError": "Failed to delete app",
+      "editSuccess": "App updated successfully",
+      "editError": "Failed to update app",
+      "cancelEdit": "Cancel",
+      "saveEdit": "Save"
     },
     "viewDetails": "View Details", "edit": "Edit",
     "versions": {
@@ -565,7 +578,13 @@
         "description": "This will load version {version} as a new draft. Any existing unpublished changes will be overwritten.",
         "confirm": "Rollback",
         "cancel": "Cancel",
-        "successToast": "Rolled back successfully"
+        "successToast": "Rolled back successfully",
+        "errorToast": "Rollback failed",
+        "noChanges": "No differences between current state and this version",
+        "fields": {
+          "name": "Name",
+          "description": "Description"
+        }
       },
       "publishedAt": "Published",
       "publishedBy": "By",
@@ -582,7 +601,8 @@
         "description": "This will undo this specific change. A new revision will be created for the revert.",
         "confirm": "Revert",
         "cancel": "Cancel",
-        "successToast": "Revision reverted successfully"
+        "successToast": "Revision reverted successfully",
+        "errorToast": "Failed to revert revision"
       },
       "diffLabels": {
         "added": "Added",
@@ -592,31 +612,32 @@
     },
     "dependencies": {
       "title": "Dependencies",
-      "addDependency": "Add Dependency",
-      "removeDependency": "Remove",
-      "noDependencies": "No dependencies",
+      "noDependencies": "No dependencies yet. Click the + node to add one.",
       "direct": "Direct",
       "transitive": "Transitive",
-      "addDialog": {
+      "addNode": {
+        "label": "Add Dependency"
+      },
+      "addPopover": {
         "title": "Add Dependency",
-        "description": "Select an app to depend on. Only active apps can be added as dependencies.",
-        "selectApp": "Select App",
-        "submit": "Add",
-        "cancel": "Cancel",
+        "searchPlaceholder": "Search apps...",
+        "noAppsAvailable": "No apps available",
         "successToast": "Dependency added",
         "cyclicError": "Adding this dependency would create a cycle",
-        "draftError": "Cannot depend on a draft app",
-        "noAppsAvailable": "No apps available to add as dependency"
+        "draftError": "Cannot depend on a draft app"
       },
       "removeDialog": {
         "title": "Remove Dependency",
         "description": "Are you sure you want to remove this dependency?",
         "confirm": "Remove",
         "cancel": "Cancel",
-        "successToast": "Dependency removed"
+        "successToast": "Dependency removed",
+        "errorToast": "Failed to remove dependency"
       },
       "graph": {
-        "currentApp": "Current App"
+        "currentApp": "Current",
+        "connectHint": "Drag from handle to connect",
+        "hoverHint": "Hover edge to remove"
       }
     },
     "problems": {

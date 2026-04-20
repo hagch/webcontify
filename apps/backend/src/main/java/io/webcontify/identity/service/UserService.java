@@ -10,13 +10,11 @@ import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import io.webcontify.shared.model.AuditInfo;
-import io.webcontify.shared.security.TenantAwareAuthentication;
 import io.webcontify.shared.security.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +62,7 @@ public class UserService {
         if (adminRole.isPresent() && roleIds.contains(adminRole.get().getId())) {
             var tenantInfoForCheck = TenantContext.getTenantInformation();
             boolean isAdmin = permissionService.check(new CheckPermissionRequest(
-                    resolveCurrentUserId(), "admin", "tenant", tenantInfoForCheck.tenantId()));
+                    TenantContext.getCurrentUserId(), "admin", "tenant", tenantInfoForCheck.tenantId()));
             if (!isAdmin) {
                 throw new AccessDeniedException("invite.cannot_assign_admin_role");
             }
@@ -99,7 +97,7 @@ public class UserService {
             entity.setFirstName(firstName);
             entity.setLastName(lastName);
             entity.setStatus(UserStatus.INVITED);
-            entity.setInvitedBy(resolveCurrentUserId());
+            entity.setInvitedBy(TenantContext.getCurrentUserId());
             entity = userRepository.save(entity);
         } catch (Exception e) {
             log.error("DB insert failed for user={}, cleaning up Keycloak user", keycloakUserId, e);
@@ -129,7 +127,7 @@ public class UserService {
                 entity.setAuditInfo(auditInfo);
             }
             auditInfo.setDeletedAt(java.time.OffsetDateTime.now());
-            auditInfo.setDeletedBy(resolveCurrentUserId());
+            auditInfo.setDeletedBy(TenantContext.getCurrentUserId());
             userRepository.save(entity);
             try {
                 keycloakAdminService.deleteUser(
@@ -167,7 +165,7 @@ public class UserService {
             throw new BadRequestException("user.invalid_status_transition");
         }
 
-        UUID currentUserId = resolveCurrentUserId();
+        UUID currentUserId = TenantContext.getCurrentUserId();
         if (newStatus == UserStatus.DEACTIVATED && userId.equals(currentUserId)) {
             throw new BadRequestException("user.cannot_deactivate_self");
         }
@@ -218,7 +216,7 @@ public class UserService {
 
     @Transactional
     public void delete(UUID userId) {
-        UUID currentUserId = resolveCurrentUserId();
+        UUID currentUserId = TenantContext.getCurrentUserId();
         if (userId.equals(currentUserId)) {
             throw new BadRequestException("user.cannot_delete_self");
         }
@@ -278,9 +276,4 @@ public class UserService {
         }
     }
 
-    private UUID resolveCurrentUserId() {
-        var authentication = (TenantAwareAuthentication)
-                SecurityContextHolder.getContext().getAuthentication();
-        return UUID.fromString((String) authentication.getPrincipal());
-    }
 }

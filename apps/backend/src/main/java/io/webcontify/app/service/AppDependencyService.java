@@ -4,8 +4,11 @@ import io.webcontify.app.model.App;
 import io.webcontify.app.model.AppDependency;
 import io.webcontify.app.model.AppStatus;
 import io.webcontify.app.repository.AppDependencyRepository;
+import io.webcontify.app.repository.AppRepository;
 import io.webcontify.app.repository.entity.AppDependencyEntity;
+import io.webcontify.app.repository.entity.AppEntity;
 import io.webcontify.generated.model.*;
+import io.webcontify.shared.changelog.service.ChangeRecordService;
 import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
@@ -19,11 +22,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class AppDependencyService {
 
     private final AppDependencyRepository dependencyRepository;
+    private final AppRepository appRepository;
     private final AppService appService;
+    private final ChangeRecordService changeRecordService;
 
-    public AppDependencyService(AppDependencyRepository dependencyRepository, AppService appService) {
+    public AppDependencyService(
+            AppDependencyRepository dependencyRepository,
+            AppRepository appRepository,
+            AppService appService,
+            ChangeRecordService changeRecordService) {
         this.dependencyRepository = dependencyRepository;
+        this.appRepository = appRepository;
         this.appService = appService;
+        this.changeRecordService = changeRecordService;
     }
 
     public AppDependency addDependency(UUID appId, UUID dependsOnAppId) {
@@ -54,6 +65,12 @@ public class AppDependencyService {
         entity.setTenantId(tenantInfo.tenantId());
         dependencyRepository.save(entity);
 
+        markAsDraft(appId);
+        String payload = "[{\"op\":\"add\",\"path\":\"/dependencies/" + dependsOnApp.getSlug()
+                + "\",\"value\":\"" + dependsOnApp.getName() + "\"}]";
+        changeRecordService.create("app", appId, "updated", payload,
+                "user:" + tenantInfo.tenantId(), "draft");
+
         AppDependency result = new AppDependency();
         result.setAppId(appId);
         result.setDependsOnId(dependsOnAppId);
@@ -68,7 +85,16 @@ public class AppDependencyService {
         if (!dependencyRepository.existsByAppIdAndDependsOnId(appId, dependsOnAppId)) {
             throw new NotFoundException("app.dependency.not_found");
         }
+
+        App dependsOnApp = appService.getById(dependsOnAppId);
         dependencyRepository.deleteByAppIdAndDependsOnId(appId, dependsOnAppId);
+
+        markAsDraft(appId);
+        var tenantInfo = TenantContext.getTenantInformation();
+        String payload = "[{\"op\":\"remove\",\"path\":\"/dependencies/" + dependsOnApp.getSlug()
+                + "\",\"value\":\"" + dependsOnApp.getName() + "\"}]";
+        changeRecordService.create("app", appId, "updated", payload,
+                "user:" + tenantInfo.tenantId(), "draft");
     }
 
     @Transactional(readOnly = true)
@@ -180,6 +206,15 @@ public class AppDependencyService {
         response.setAffectedReferences(Collections.emptyList());
         response.setCanRemove(true);
         return response;
+    }
+
+    private void markAsDraft(UUID appId) {
+        AppEntity appEntity = appRepository.findByIdAndAuditInfoDeletedAtIsNull(appId)
+                .orElseThrow(() -> new NotFoundException("app.not_found"));
+        if ("ACTIVE".equals(appEntity.getStatus())) {
+            appEntity.setHasDraft(true);
+            appRepository.save(appEntity);
+        }
     }
 
     private boolean wouldCreateCycle(UUID fromAppId, UUID toAppId) {

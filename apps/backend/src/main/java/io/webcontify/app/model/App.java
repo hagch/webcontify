@@ -12,6 +12,7 @@ public class App {
     private String description;
     private AppStatus status;
     private boolean hasDraft;
+    private String currentVersion;
     private OffsetDateTime createdAt;
     private UUID createdBy;
     private OffsetDateTime updatedAt;
@@ -71,6 +72,14 @@ public class App {
 
     public void setHasDraft(boolean hasDraft) {
         this.hasDraft = hasDraft;
+    }
+
+    public String getCurrentVersion() {
+        return currentVersion;
+    }
+
+    public void setCurrentVersion(String currentVersion) {
+        this.currentVersion = currentVersion;
     }
 
     public OffsetDateTime getCreatedAt() {

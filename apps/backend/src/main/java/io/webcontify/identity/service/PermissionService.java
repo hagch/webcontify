@@ -81,6 +81,28 @@ public class PermissionService {
             .toList();
     }
 
+    public List<String> getEffectiveActions(String resourceType, UUID resourceId, List<String> actions) {
+        var tenantInfo = TenantContext.getTenantInformation();
+
+        if (tenantInfo.platformAdmin()) {
+            return actions;
+        }
+
+        var storeId = resolveStoreId();
+        var userId = TenantContext.getCurrentUserId();
+
+        var checks = actions.stream()
+                .map(action -> new OpenFgaCheckRequest(storeId, userId, action, resourceType, resourceId))
+                .toList();
+
+        var batchResponse = openFgaService.batchCheck(new OpenFgaBatchCheckRequest(storeId, checks));
+
+        return actions.stream()
+                .filter(action -> Boolean.TRUE.equals(
+                        batchResponse.results().get(action + ":" + resourceType)))
+                .toList();
+    }
+
     private String resolveStoreId() {
         var tenantInfo = TenantContext.getTenantInformation();
         return lookupService.getInfrastructure(tenantInfo.tenantId()).openfgaStoreId();

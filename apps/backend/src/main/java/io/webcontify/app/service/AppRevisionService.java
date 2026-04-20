@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.flipkart.zjsonpatch.DiffFlags;
+import com.flipkart.zjsonpatch.JsonDiff;
 import com.flipkart.zjsonpatch.JsonPatch;
+import java.util.EnumSet;
 import io.webcontify.app.mapper.AppMapper;
 import io.webcontify.app.model.App;
 import io.webcontify.app.repository.AppRepository;
@@ -26,6 +29,7 @@ public class AppRevisionService {
 
     private final ChangeRecordService changeRecordService;
     private final AppService appService;
+    private final AppDependencyService dependencyService;
     private final AppRepository appRepository;
     private final AppMapper appMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -33,10 +37,12 @@ public class AppRevisionService {
     public AppRevisionService(
             ChangeRecordService changeRecordService,
             AppService appService,
+            AppDependencyService dependencyService,
             AppRepository appRepository,
             AppMapper appMapper) {
         this.changeRecordService = changeRecordService;
         this.appService = appService;
+        this.dependencyService = dependencyService;
         this.appRepository = appRepository;
         this.appMapper = appMapper;
     }
@@ -62,23 +68,64 @@ public class AppRevisionService {
 
         try {
             JsonNode patch = objectMapper.readTree(record.getPayload());
-            JsonNode reversePatch = computeReversePatch(patch);
 
-            JsonNode currentState = serializeAppState(entity);
-            JsonNode revertedState = JsonPatch.apply(reversePatch, currentState);
+            // Split patch into property changes and dependency changes
+            ArrayNode propertyOps = objectMapper.createArrayNode();
+            List<JsonNode> dependencyOps = new ArrayList<>();
 
-            if (revertedState.has("name")) {
-                entity.setName(revertedState.get("name").asText());
+            for (JsonNode operation : patch) {
+                String path = operation.get("path").asText();
+                if (path.startsWith("/dependencies/")) {
+                    dependencyOps.add(operation);
+                } else {
+                    propertyOps.add(operation);
+                }
             }
-            if (revertedState.has("description")) {
-                entity.setDescription(revertedState.get("description").asText());
+
+            // Revert dependency changes via service calls
+            for (JsonNode depOp : dependencyOps) {
+                String op = depOp.get("op").asText();
+                String path = depOp.get("path").asText();
+                String depSlug = path.replace("/dependencies/", "");
+
+                AppEntity depApp = appRepository.findBySlugAndAuditInfoDeletedAtIsNull(depSlug)
+                        .orElse(null);
+                if (depApp == null) continue;
+
+                switch (op) {
+                    case "add" -> dependencyService.removeDependency(appId, depApp.getId());
+                    case "remove" -> dependencyService.addDependency(appId, depApp.getId());
+                }
             }
 
-            entity = appRepository.save(entity);
+            // Revert property changes via JSON Patch
+            if (propertyOps.size() > 0) {
+                JsonNode reversePatch = computeReversePatch(propertyOps);
+                JsonNode beforeState = serializeAppState(entity);
+                JsonNode revertedState = JsonPatch.apply(reversePatch, beforeState);
 
-            changeRecordService.create(
-                    "app", appId, "reverted", reversePatch.toString(), "system:revert", "draft");
+                if (revertedState.has("name")) {
+                    entity.setName(revertedState.get("name").asText());
+                }
+                if (revertedState.has("description")) {
+                    entity.setDescription(revertedState.get("description").asText());
+                }
 
+                entity = appRepository.save(entity);
+
+                JsonNode afterState = serializeAppState(entity);
+                JsonNode revertDiff = JsonDiff.asJson(beforeState, afterState,
+                        EnumSet.of(DiffFlags.ADD_ORIGINAL_VALUE_ON_REPLACE));
+
+                if (revertDiff.size() > 0) {
+                    changeRecordService.create(
+                            "app", appId, "reverted", revertDiff.toString(), "system:revert", "draft");
+                }
+            }
+
+            // Reload entity after potential dependency changes
+            entity = appRepository.findByIdAndAuditInfoDeletedAtIsNull(appId)
+                    .orElseThrow(() -> new NotFoundException("app.not_found"));
             return appMapper.toDomain(entity);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Failed to parse revision payload", e);
@@ -125,6 +172,9 @@ public class AppRevisionService {
                     reverseOp.set("path", operation.get("path"));
                     if (operation.has("fromValue")) {
                         reverseOp.set("value", operation.get("fromValue"));
+                    } else {
+                        // Revert-revisions store the old value in "value", not "fromValue"
+                        reverseOp.set("value", operation.get("value"));
                     }
                 }
                 case "add" -> {
@@ -160,8 +210,7 @@ public class AppRevisionService {
         response.setCreatedBy(record.getCreatedBy());
 
         try {
-            JsonNode patchNode = objectMapper.readTree(record.getPayload());
-            response.setPatch(patchNode);
+            response.setPatch(objectMapper.readValue(record.getPayload(), List.class));
         } catch (JsonProcessingException e) {
             response.setPatch(record.getPayload());
         }

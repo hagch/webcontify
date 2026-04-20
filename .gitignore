@@ -39,6 +39,7 @@ infra/data/
 # Generated code
 apps/backend/src/generated/
 apps/platform/src/generated/
+apps/backend/src/main/resources/openfga/model.json
 
 # Storybook
 storybook-static/

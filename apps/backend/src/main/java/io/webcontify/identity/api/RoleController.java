@@ -2,11 +2,13 @@ package io.webcontify.identity.api;
 
 import io.webcontify.generated.api.TenantRolesApi;
 import io.webcontify.generated.model.CreateRoleRequest;
+import io.webcontify.generated.model.RoleAppPermissionsResponse;
 import io.webcontify.generated.model.RoleAssigneeResponse;
 import io.webcontify.generated.model.RoleDetailResponse;
 import io.webcontify.generated.model.RoleListResponse;
 import io.webcontify.generated.model.RolePermissionPreviewResponse;
 import io.webcontify.generated.model.RoleResponse;
+import io.webcontify.generated.model.SetRoleAppPermissionsRequest;
 import io.webcontify.generated.model.SetRolePermissionsRequest;
 import io.webcontify.generated.model.UpdateRoleRequest;
 import io.webcontify.identity.mapper.RoleMapper;
@@ -117,5 +119,21 @@ public class RoleController implements TenantRolesApi {
                 .toList();
         roleService.setPermissions(roleId, entries);
         return getRole(roleId);
+    }
+
+    @Override
+    @RequiresPermission(action = "reader", resource = "role_management")
+    public ResponseEntity<RoleAppPermissionsResponse> getRoleAppPermissions(UUID roleId) {
+        var items = roleService.getAppPermissions(roleId);
+        var response = new RoleAppPermissionsResponse();
+        response.setItems(items);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    @RequiresPermission(action = "editor", resource = "role_management")
+    public ResponseEntity<RoleAppPermissionsResponse> setRoleAppPermissions(UUID roleId, SetRoleAppPermissionsRequest setRoleAppPermissionsRequest) {
+        roleService.setAppPermissions(roleId, setRoleAppPermissionsRequest.getAppPermissions());
+        return getRoleAppPermissions(roleId);
     }
 }

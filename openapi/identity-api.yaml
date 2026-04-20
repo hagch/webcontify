@@ -471,6 +471,66 @@ paths:
               schema:
                 $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
 
+  /api/v1/tenant/roles/{roleId}/app-permissions:
+    get:
+      operationId: getRoleAppPermissions
+      tags:
+        - TenantRoles
+      summary: Get per-app permissions for a role
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Per-app permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleAppPermissionsResponse'
+    put:
+      operationId: setRoleAppPermissions
+      tags:
+        - TenantRoles
+      summary: Set per-app permissions for a role
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetRoleAppPermissionsRequest'
+      responses:
+        '200':
+          description: Per-app permissions updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleAppPermissionsResponse'
+        '400':
+          description: Invalid request or system role
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - privilege escalation
+        '404':
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
   /api/v1/tenant/users/{userId}/roles:
     get:
       operationId: getUserRoles
@@ -775,6 +835,64 @@ components:
           type: array
           items:
             type: string
+
+    AppPermissionEntry:
+      type: object
+      required:
+        - appId
+        - appName
+        - actions
+      properties:
+        appId:
+          type: string
+          format: uuid
+        appName:
+          type: string
+        appSlug:
+          type: string
+        actions:
+          type: array
+          items:
+            type: string
+            enum:
+              - viewer
+              - editor
+              - admin
+
+    RoleAppPermissionsResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppPermissionEntry'
+
+    SetRoleAppPermissionsRequest:
+      type: object
+      required:
+        - appPermissions
+      properties:
+        appPermissions:
+          type: array
+          items:
+            type: object
+            required:
+              - appId
+              - actions
+            properties:
+              appId:
+                type: string
+                format: uuid
+              actions:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - viewer
+                    - editor
+                    - admin
 
     RoleListResponse:
       type: object

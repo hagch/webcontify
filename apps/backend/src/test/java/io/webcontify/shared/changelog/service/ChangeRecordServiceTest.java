@@ -26,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class ChangeRecordServiceTest {
 
     private static final UUID TEST_TENANT_ID = UUID.randomUUID();
+    private static final UUID TEST_USER_ID = UUID.randomUUID();
 
     @Mock
     private ChangeRecordRepository changeRecordRepository;
@@ -36,7 +37,7 @@ class ChangeRecordServiceTest {
     void setUp() {
         TenantInformation info = new TenantInformation(TEST_TENANT_ID, false);
         var auth = new TenantAwareAuthentication(
-                info, "test-user", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                info, TEST_USER_ID, List.of(new SimpleGrantedAuthority("ROLE_USER")));
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         changeRecordService = new ChangeRecordService(changeRecordRepository);
@@ -67,7 +68,7 @@ class ChangeRecordServiceTest {
         assertThat(result.getSource()).isEqualTo("api");
         assertThat(result.getDraftVersion()).isEqualTo("v1-draft");
         assertThat(result.getCreatedAt()).isNotNull();
-        assertThat(result.getCreatedBy()).isEqualTo(TEST_TENANT_ID);
+        assertThat(result.getCreatedBy()).isEqualTo(TEST_USER_ID);
 
         ArgumentCaptor<ChangeRecordEntity> captor = ArgumentCaptor.forClass(ChangeRecordEntity.class);
         verify(changeRecordRepository).save(captor.capture());
@@ -93,7 +94,7 @@ class ChangeRecordServiceTest {
         ChangeRecordEntity entity2 = createEntity("APP", entityId, "UPDATE", "v1-draft");
 
         when(changeRecordRepository
-                        .findByEntityTypeAndEntityIdAndDraftVersionIsNotNullOrderByCreatedAtAsc(
+                        .findByEntityTypeAndEntityIdAndDraftVersionIsNotNullOrderByCreatedAtDesc(
                                 "APP", entityId))
                 .thenReturn(List.of(entity1, entity2));
 

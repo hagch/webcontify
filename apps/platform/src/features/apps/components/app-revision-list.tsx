@@ -56,11 +56,16 @@ function RevisionRow({
           {revision.summary && (
             <span className="text-sm text-foreground">{revision.summary}</span>
           )}
-          {revision.createdAt && (
-            <span className="text-sm text-muted-foreground">
-              {formatDate(revision.createdAt)}
-            </span>
-          )}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {revision.createdAt && (
+              <span>{formatDate(revision.createdAt)}</span>
+            )}
+            {revision.createdByUser && (
+              <span>
+                — {revision.createdByUser.firstName} {revision.createdByUser.lastName}
+              </span>
+            )}
+          </div>
         </div>
         <ChevronDown
           className={`size-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}

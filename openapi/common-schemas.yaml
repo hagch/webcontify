@@ -70,6 +70,20 @@ components:
         totalPages:
           type: integer
 
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+
     NameAvailabilityResponse:
       type: object
       required:

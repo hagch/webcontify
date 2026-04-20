@@ -62,7 +62,7 @@ class TenantResolutionFilterTest {
         // Platform Admin braucht keinen Subdomain-Check
         TenantInformation tenantInfo = new TenantInformation(null, true);
         TenantAwareAuthentication auth = new TenantAwareAuthentication(
-                tenantInfo, "admin-sub", List.of());
+                tenantInfo, UUID.randomUUID(), List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         filter.doFilterInternal(request, response, filterChain);
@@ -76,7 +76,7 @@ class TenantResolutionFilterTest {
         UUID tenantId = UUID.randomUUID();
         TenantInformation tenantInfo = new TenantInformation(tenantId, false);
         TenantAwareAuthentication auth = new TenantAwareAuthentication(
-                tenantInfo, "user-sub", List.of());
+                tenantInfo, UUID.randomUUID(), List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         when(request.getHeader("Host")).thenReturn("acme.api.localhost");
@@ -95,7 +95,7 @@ class TenantResolutionFilterTest {
         UUID dbTenantId = UUID.randomUUID();
         TenantInformation tenantInfo = new TenantInformation(jwtTenantId, false);
         TenantAwareAuthentication auth = new TenantAwareAuthentication(
-                tenantInfo, "user-sub", List.of());
+                tenantInfo, UUID.randomUUID(), List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         when(request.getHeader("Host")).thenReturn("acme.api.localhost");
@@ -118,7 +118,7 @@ class TenantResolutionFilterTest {
         UUID tenantId = UUID.randomUUID();
         TenantInformation tenantInfo = new TenantInformation(tenantId, false);
         TenantAwareAuthentication auth = new TenantAwareAuthentication(
-                tenantInfo, "user-sub", List.of());
+                tenantInfo, UUID.randomUUID(), List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         when(request.getHeader("Host")).thenReturn("unknown.api.localhost");
@@ -141,7 +141,7 @@ class TenantResolutionFilterTest {
         UUID tenantId = UUID.randomUUID();
         TenantInformation tenantInfo = new TenantInformation(tenantId, false);
         TenantAwareAuthentication auth = new TenantAwareAuthentication(
-                tenantInfo, "user-sub", List.of());
+                tenantInfo, UUID.randomUUID(), List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         when(request.getHeader("Host")).thenReturn("api.localhost");
@@ -162,7 +162,7 @@ class TenantResolutionFilterTest {
         UUID tenantId = UUID.randomUUID();
         TenantInformation tenantInfo = new TenantInformation(tenantId, false);
         TenantAwareAuthentication auth = new TenantAwareAuthentication(
-                tenantInfo, "user-sub", List.of());
+                tenantInfo, UUID.randomUUID(), List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         when(request.getHeader("Host")).thenReturn(null);

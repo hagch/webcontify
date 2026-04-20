@@ -158,6 +158,7 @@ public class TenantProvisioningListener {
             tuples.add(new RelationshipTuple("tenant:" + tid, "tenant", "user_management:" + tid));
             tuples.add(new RelationshipTuple("tenant:" + tid, "tenant", "role_management:" + tid));
             tuples.add(new RelationshipTuple("tenant:" + tid, "tenant", "tenant_config:" + tid));
+            tuples.add(new RelationshipTuple("tenant:" + tid, "tenant", "app_management:" + tid));
 
             // Role-tenant membership for all 3 roles
             tuples.add(new RelationshipTuple("tenant:" + tid, "tenant", "role:" + adminRoleId));
@@ -172,6 +173,9 @@ public class TenantProvisioningListener {
             tuples.add(new RelationshipTuple("role:" + adminRoleId + "#assignee", "editor",  "role_management:" + tid));
             tuples.add(new RelationshipTuple("role:" + adminRoleId + "#assignee", "deleter", "role_management:" + tid));
             tuples.add(new RelationshipTuple("role:" + adminRoleId + "#assignee", "editor",  "tenant_config:" + tid));
+            tuples.add(new RelationshipTuple("role:" + adminRoleId + "#assignee", "viewer", "app_management:" + tid));
+            tuples.add(new RelationshipTuple("role:" + adminRoleId + "#assignee", "editor", "app_management:" + tid));
+            tuples.add(new RelationshipTuple("role:" + adminRoleId + "#assignee", "admin",  "app_management:" + tid));
 
             // tenant#admin tuple for computed usersets (must remain)
             tuples.add(new RelationshipTuple("user:" + keycloakUserId, "admin", "tenant:" + tid));

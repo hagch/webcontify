@@ -53,7 +53,8 @@ public class JwtToTenantAuthenticationConverter implements Converter<Jwt, Abstra
         }
 
         Collection<GrantedAuthority> authorities = buildAuthorities(isPlatformAdmin);
-        return new TenantAwareAuthentication(tenantInformation, subject, authorities);
+        UUID userId = UUID.fromString(subject);
+        return new TenantAwareAuthentication(tenantInformation, userId, authorities);
     }
 
     /**
