@@ -1,0 +1,27 @@
+{
+  "name": "ui",
+  "root": "packages/ui",
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm eslint",
+        "cwd": "packages/ui"
+      }
+    },
+    "storybook": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm storybook",
+        "cwd": "packages/ui"
+      }
+    },
+    "build-storybook": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm build-storybook",
+        "cwd": "packages/ui"
+      }
+    }
+  }
+}

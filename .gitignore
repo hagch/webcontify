@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Nx
+.nx/
+
+# Java / Gradle
+apps/backend/.gradle/
+apps/backend/build/
+*.class
+*.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Docker volumes
+infra/data/
+
+# Generated code
+apps/backend/src/generated/
+apps/platform/src/generated/
+
+# Storybook
+storybook-static/
+
+# Test
+coverage/
+.nyc_output/
+test-results/
+playwright-report/

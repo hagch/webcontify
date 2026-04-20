@@ -1,0 +1,53 @@
+openapi: 3.1.0
+info:
+  title: Webcontify Common Schemas
+  version: 1.0.0
+  description: Shared schemas used across all Webcontify API specs
+
+paths: {}
+
+components:
+  schemas:
+    ProblemDetail:
+      type: object
+      required:
+        - type
+        - title
+        - status
+        - code
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+        detail:
+          type: string
+        instance:
+          type: string
+
+    ValidationProblemDetail:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetail'
+        - type: object
+          properties:
+            errors:
+              type: array
+              items:
+                $ref: '#/components/schemas/FieldError'
+
+    FieldError:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+          description: i18n key, frontend translates

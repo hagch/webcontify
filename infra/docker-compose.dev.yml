@@ -1,0 +1,100 @@
+services:
+  traefik:
+    image: traefik:v3
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.dev.yml:/etc/traefik/traefik.yml:ro
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: webcontify
+      POSTGRES_USER: webcontify
+      POSTGRES_PASSWORD: webcontify
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init-schemas.sql:/docker-entrypoint-initdb.d/01-init-schemas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webcontify"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "traefik.enable=false"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/webcontify
+      KC_DB_SCHEMA: keycloak
+      KC_DB_USERNAME: webcontify
+      KC_DB_PASSWORD: webcontify
+      KC_HOSTNAME: auth.localhost
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`auth.localhost`)"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+
+  openfga-migrate:
+    image: openfga/openfga:latest
+    command: migrate
+    environment:
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://webcontify:webcontify@postgres:5432/webcontify?sslmode=disable&search_path=openfga
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  openfga:
+    image: openfga/openfga:latest
+    command: run
+    environment:
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://webcontify:webcontify@postgres:5432/webcontify?sslmode=disable&search_path=openfga
+      OPENFGA_PLAYGROUND_ENABLED: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      openfga-migrate:
+        condition: service_completed_successfully
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.openfga.rule=Host(`fga.localhost`)"
+      - "traefik.http.services.openfga.loadbalancer.server.port=8080"
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.rule=Host(`s3.localhost`)"
+      - "traefik.http.services.minio.loadbalancer.server.port=9001"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailpit.rule=Host(`mail.localhost`)"
+      - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
+
+volumes:
+  postgres-data:
+  minio-data:

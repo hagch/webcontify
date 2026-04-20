@@ -1,0 +1,4 @@
+CREATE SCHEMA IF NOT EXISTS keycloak;
+CREATE SCHEMA IF NOT EXISTS openfga;
+GRANT ALL ON SCHEMA keycloak TO webcontify;
+GRANT ALL ON SCHEMA openfga TO webcontify;

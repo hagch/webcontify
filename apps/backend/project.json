@@ -1,0 +1,27 @@
+{
+  "name": "backend",
+  "root": "apps/backend",
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "JAVA_HOME=$(/usr/libexec/java_home -v 21) ./gradlew bootRun --args='--spring.profiles.active=dev'",
+        "cwd": "apps/backend"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "JAVA_HOME=$(/usr/libexec/java_home -v 21) ./gradlew build -x test",
+        "cwd": "apps/backend"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "JAVA_HOME=$(/usr/libexec/java_home -v 21) ./gradlew test",
+        "cwd": "apps/backend"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@webcontify/root",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.30.3",
+  "scripts": {
+    "dev": "nx dev",
+    "infra:up": "nx infra:up",
+    "infra:down": "nx infra:down"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "nx",
+      "sharp",
+      "unrs-resolver",
+      "esbuild"
+    ]
+  },
+  "devDependencies": {
+    "@nx/js": "^22.5.3",
+    "nx": "^22.5.3"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "webcontify",
+  "root": ".",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "docker compose -f infra/docker-compose.dev.yml up -d",
+          "nx serve backend",
+          "nx serve platform"
+        ],
+        "parallel": true
+      }
+    }
+  }
+}

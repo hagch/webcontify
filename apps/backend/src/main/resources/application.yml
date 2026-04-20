@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: webcontify-backend
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+server:
+  port: 8080
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/webcontify
+    username: webcontify
+    password: webcontify
+
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    io.webcontify: DEBUG
+    org.springframework.modulith: DEBUG
