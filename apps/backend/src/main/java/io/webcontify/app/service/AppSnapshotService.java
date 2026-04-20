@@ -2,6 +2,7 @@ package io.webcontify.app.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.webcontify.app.model.App;
+import io.webcontify.app.model.AppDependency;
 import io.webcontify.app.model.AppSnapshot;
 import io.webcontify.shared.filestorage.FileStorageService;
 import java.io.ByteArrayInputStream;
@@ -14,19 +15,28 @@ import org.springframework.stereotype.Service;
 public class AppSnapshotService {
 
     private final FileStorageService fileStorageService;
+    private final AppDependencyService dependencyService;
     private final ObjectMapper objectMapper;
 
-    public AppSnapshotService(FileStorageService fileStorageService) {
+    public AppSnapshotService(
+            FileStorageService fileStorageService, AppDependencyService dependencyService) {
         this.fileStorageService = fileStorageService;
+        this.dependencyService = dependencyService;
         this.objectMapper = new ObjectMapper();
     }
 
     public AppSnapshot buildSnapshot(App app, String version) {
+        var deps = dependencyService.listDependencies(app.getId());
+        var snapshotDeps = deps.stream()
+                .filter(AppDependency::isDirect)
+                .map(d -> new AppSnapshot.AppSnapshotDependency(d.getDependsOnAppSlug(), ""))
+                .toList();
+
         return new AppSnapshot(
                 app.getId().toString(),
                 version,
                 new AppSnapshot.AppSnapshotMetadata(app.getName(), app.getSlug(), app.getDescription()),
-                List.of(),
+                snapshotDeps,
                 List.of());
     }
 

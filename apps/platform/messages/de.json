@@ -159,17 +159,29 @@
       "saveError": "Berechtigungen konnten nicht aktualisiert werden",
       "emptyTitle": "Keine Berechtigungen",
       "emptyDescription": "Dieser Rolle sind keine Berechtigungen zugewiesen.",
+      "tabs": {
+        "general": "Allgemein",
+        "appsAndContent": "Apps & Inhalte"
+      },
       "resourceTypes": {
         "user_management": "Benutzerverwaltung",
         "role_management": "Rollenverwaltung",
-        "tenant_config": "Tenant-Konfiguration"
+        "tenant_config": "Tenant-Konfiguration",
+        "app_management": "App-Verwaltung"
       },
       "actions": {
         "reader": "Lesen",
         "editor": "Bearbeiten",
         "creator": "Erstellen",
         "deleter": "Löschen",
-        "inviter": "Einladen"
+        "inviter": "Einladen",
+        "viewer": "Betrachter",
+        "admin": "Administrator"
+      },
+      "appManagement": {
+        "title": "App-Verwaltung",
+        "global": "Global — Alle Apps",
+        "globalDescription": "Gilt fuer alle bestehenden und zukuenftigen Apps"
       }
     },
     "toasts": {
@@ -576,6 +588,65 @@
         "added": "Hinzugefuegt",
         "removed": "Entfernt",
         "replaced": "Geaendert"
+      }
+    },
+    "dependencies": {
+      "title": "Abhaengigkeiten",
+      "addDependency": "Abhaengigkeit hinzufuegen",
+      "removeDependency": "Entfernen",
+      "noDependencies": "Keine Abhaengigkeiten",
+      "direct": "Direkt",
+      "transitive": "Transitiv",
+      "addDialog": {
+        "title": "Abhaengigkeit hinzufuegen",
+        "description": "Waehle eine App als Abhaengigkeit. Nur aktive Apps koennen hinzugefuegt werden.",
+        "selectApp": "App waehlen",
+        "submit": "Hinzufuegen",
+        "cancel": "Abbrechen",
+        "successToast": "Abhaengigkeit hinzugefuegt",
+        "cyclicError": "Diese Abhaengigkeit wuerde einen Zyklus erzeugen",
+        "draftError": "Kann nicht von einer Entwurfs-App abhaengen",
+        "noAppsAvailable": "Keine Apps zum Hinzufuegen verfuegbar"
+      },
+      "removeDialog": {
+        "title": "Abhaengigkeit entfernen",
+        "description": "Bist du sicher, dass du diese Abhaengigkeit entfernen moechtest?",
+        "confirm": "Entfernen",
+        "cancel": "Abbrechen",
+        "successToast": "Abhaengigkeit entfernt"
+      },
+      "graph": {
+        "currentApp": "Aktuelle App"
+      }
+    },
+    "problems": {
+      "title": "Probleme",
+      "noProblems": "Keine Probleme gefunden",
+      "publishBlocked": "Fehler beheben vor dem Veroeffentlichen"
+    },
+    "importExport": {
+      "export": "Exportieren",
+      "exportSuccess": "Blueprint exportiert",
+      "import": "Blueprint importieren",
+      "importDialog": {
+        "title": "Blueprint importieren",
+        "description": "Blueprint-JSON einfuegen oder hochladen um Apps in den Workspace zu importieren.",
+        "textareaPlaceholder": "Blueprint-JSON hier einfuegen...",
+        "analyze": "Analysieren",
+        "analyzing": "Wird analysiert...",
+        "execute": "Importieren",
+        "importing": "Wird importiert...",
+        "cancel": "Abbrechen",
+        "successToast": "Apps erfolgreich importiert",
+        "invalidJson": "Ungueltiges JSON-Format"
+      },
+      "preview": {
+        "title": "Import-Vorschau",
+        "appsToImport": "Zu importierende Apps",
+        "slugCollision": "Namenskonflikt — wird importiert als",
+        "noCollision": "Keine Konflikte",
+        "canImport": "Bereit zum Import",
+        "cannotImport": "Import nicht moeglich — Probleme zuerst beheben"
       }
     }
   },

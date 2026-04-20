@@ -1,10 +1,13 @@
 package io.webcontify.identity.service;
 
+import io.webcontify.identity.model.OpenFgaBatchCheckRequest;
+import io.webcontify.identity.model.OpenFgaBatchCheckResponse;
 import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.NotFoundException;
 import io.webcontify.shared.filestorage.FileStorageService;
 import io.webcontify.shared.model.TenantInformation;
 import io.webcontify.shared.security.TenantAwareAuthentication;
+import io.webcontify.tenant.model.TenantInfrastructureInfo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -44,6 +47,9 @@ class AuthServiceTest {
 
     @Mock
     private TenantInfrastructureLookupService tenantInfrastructureLookupService;
+
+    @Mock
+    private OpenFgaService openFgaService;
 
     @InjectMocks
     private AuthService authService;
@@ -396,6 +402,65 @@ class AuthServiceTest {
             assertThat(attrs).doesNotContainKey("preferences_locale");
 
             assertThat(result.theme()).isEqualTo("light");
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // getEffectivePermissions
+    // -----------------------------------------------------------------------
+    @Nested
+    class GetEffectivePermissions {
+
+        @Test
+        void shouldReturnAllPermissionsForPlatformAdmin() {
+            withTenantAuth(USER_ID, true);
+
+            var result = authService.getEffectivePermissions("navigation");
+
+            assertThat(result.tenantAdmin()).isTrue();
+            assertThat(result.permissions()).containsKey("app_management");
+            assertThat(result.permissions().get("app_management"))
+                    .containsExactlyInAnyOrder("viewer", "editor", "admin");
+            assertThat(result.permissions()).containsKey("user_management");
+            assertThat(result.permissions()).containsKey("role_management");
+            assertThat(result.permissions()).containsKey("tenant_config");
+        }
+
+        @Test
+        void shouldIncludeAppManagementInBatchCheckForTenantUser() {
+            withTenantAuth(USER_ID, false);
+
+            when(tenantInfrastructureLookupService.getInfrastructure(TENANT_ID))
+                    .thenReturn(new TenantInfrastructureInfo("store-1", "tenant-acme"));
+
+            // Build response: grant app_management viewer + editor
+            var results = new java.util.HashMap<String, Boolean>();
+            results.put("viewer:app_management", true);
+            results.put("editor:app_management", true);
+            results.put("admin:app_management", false);
+            results.put("admin:tenant", false);
+            // All other permissions denied
+            results.put("inviter:user_management", false);
+            results.put("editor:user_management", false);
+            results.put("deleter:user_management", false);
+            results.put("reader:user_management", false);
+            results.put("creator:role_management", false);
+            results.put("editor:role_management", false);
+            results.put("deleter:role_management", false);
+            results.put("reader:role_management", false);
+            results.put("editor:tenant_config", false);
+            results.put("reader:tenant_config", false);
+
+            when(openFgaService.batchCheck(any(OpenFgaBatchCheckRequest.class)))
+                    .thenReturn(new OpenFgaBatchCheckResponse(results));
+
+            var result = authService.getEffectivePermissions("navigation");
+
+            assertThat(result.tenantAdmin()).isFalse();
+            assertThat(result.permissions()).containsKey("app_management");
+            assertThat(result.permissions().get("app_management"))
+                    .containsExactlyInAnyOrder("viewer", "editor");
+            assertThat(result.permissions()).doesNotContainKey("user_management");
         }
     }
 }

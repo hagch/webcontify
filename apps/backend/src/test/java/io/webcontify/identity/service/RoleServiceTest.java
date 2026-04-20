@@ -317,6 +317,40 @@ class RoleServiceTest {
         }
 
         @Test
+        void shouldWriteAppManagementPermissionTuples() {
+            var customRole = createRoleEntity(ROLE_ID, "AppManager", false);
+            when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(customRole));
+            when(openFgaService.readTuples(any())).thenReturn(List.of());
+            when(permissionService.check(any())).thenReturn(true);
+
+            roleService.setPermissions(ROLE_ID, List.of(entry("app_management", "viewer", "editor")));
+
+            verify(openFgaService).write(argThat(req ->
+                req.storeId().equals(STORE_ID) &&
+                req.tuples().size() == 2 &&
+                req.tuples().stream().allMatch(t ->
+                    t.user().equals("role:" + ROLE_ID + "#assignee") &&
+                    t.object().equals("app_management:" + TENANT_ID)) &&
+                req.tuples().stream().anyMatch(t -> t.relation().equals("viewer")) &&
+                req.tuples().stream().anyMatch(t -> t.relation().equals("editor"))
+            ));
+            verify(openFgaService, never()).delete(any());
+        }
+
+        @Test
+        void shouldRejectInvalidAppManagementAction() {
+            var customRole = createRoleEntity(ROLE_ID, "Editor", false);
+            when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(customRole));
+
+            assertThatThrownBy(() -> roleService.setPermissions(ROLE_ID,
+                    List.of(entry("app_management", "deleter"))))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("role.invalid_action");
+
+            verify(openFgaService, never()).write(any());
+        }
+
+        @Test
         void shouldRejectUnknownResourceType() {
             var customRole = createRoleEntity(ROLE_ID, "Editor", false);
             when(roleRepository.findActiveById(ROLE_ID)).thenReturn(Optional.of(customRole));

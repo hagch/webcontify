@@ -34,12 +34,29 @@ describe("nav-config", () => {
   });
 
   describe("getWorkspaceNavItems", () => {
-    it("shows only overview when no permissions", () => {
+    it("shows only overview with dashboard when no permissions", () => {
       const sections = getWorkspaceNavItems(
         {
           canAccessUserManagement: false,
           canAccessRoleManagement: false,
           canAccessTenantConfig: false,
+          canAccessApps: false,
+        },
+        mockT
+      );
+      expect(sections).toHaveLength(1);
+      const allItems = sections.flatMap((s) => s.items);
+      expect(allItems.find((i) => i.href === "/dashboard")).toBeDefined();
+      expect(allItems.find((i) => i.href === "/apps")).toBeUndefined();
+    });
+
+    it("shows apps in overview when user has app_management access", () => {
+      const sections = getWorkspaceNavItems(
+        {
+          canAccessUserManagement: false,
+          canAccessRoleManagement: false,
+          canAccessTenantConfig: false,
+          canAccessApps: true,
         },
         mockT
       );
@@ -55,6 +72,7 @@ describe("nav-config", () => {
           canAccessUserManagement: true,
           canAccessRoleManagement: false,
           canAccessTenantConfig: false,
+          canAccessApps: true,
         },
         mockT
       );
@@ -69,6 +87,7 @@ describe("nav-config", () => {
           canAccessUserManagement: true,
           canAccessRoleManagement: true,
           canAccessTenantConfig: false,
+          canAccessApps: true,
         },
         mockT
       );
@@ -82,6 +101,7 @@ describe("nav-config", () => {
           canAccessUserManagement: false,
           canAccessRoleManagement: false,
           canAccessTenantConfig: true,
+          canAccessApps: false,
         },
         mockT
       );
@@ -97,6 +117,7 @@ describe("nav-config", () => {
           canAccessUserManagement: true,
           canAccessRoleManagement: true,
           canAccessTenantConfig: true,
+          canAccessApps: true,
         },
         mockT
       );
@@ -109,6 +130,7 @@ describe("nav-config", () => {
           canAccessUserManagement: true,
           canAccessRoleManagement: true,
           canAccessTenantConfig: true,
+          canAccessApps: true,
         },
         mockT
       );
@@ -128,6 +150,7 @@ describe("nav-config", () => {
           canAccessUserManagement: true,
           canAccessRoleManagement: true,
           canAccessTenantConfig: true,
+          canAccessApps: true,
         },
         mockT
       );

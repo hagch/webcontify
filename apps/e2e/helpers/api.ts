@@ -8,9 +8,11 @@ export interface CreateTenantOptions {
 }
 
 interface CleanupEntry {
-  type: "tenant" | "keycloak-user";
+  type: "tenant" | "keycloak-user" | "app";
   id: string;
   realm?: string;
+  token?: string;
+  tenantSlug?: string;
 }
 
 export interface TenantData {
@@ -220,6 +222,236 @@ export class ApiClient {
     return response.json();
   }
 
+  // ---------------------------------------------------------------------------
+  // App Domain
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Creates an app within a tenant and registers it for cleanup.
+   */
+  async createApp(
+    token: string,
+    tenantSlug: string,
+    name: string,
+    description?: string
+  ): Promise<{ id: string; slug: string; name: string; status: string }> {
+    const response = await fetch(`${API_BASE}/tenant/apps`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-Tenant-Slug": tenantSlug,
+      },
+      body: JSON.stringify({ name, description }),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `Failed to create app: ${response.status} ${await response.text()}`
+      );
+    }
+    const data = await response.json();
+    this.cleanupStack.push({ type: "app", id: data.id, token, tenantSlug });
+    return data;
+  }
+
+  /**
+   * Deletes an app by ID. Ignores 404.
+   */
+  async deleteApp(token: string, tenantSlug: string, appId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/tenant/apps/${appId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Tenant-Slug": tenantSlug,
+      },
+    });
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`Failed to delete app: ${response.status}`);
+    }
+  }
+
+  /**
+   * Updates an app's name and/or description.
+   */
+  async updateApp(
+    token: string,
+    tenantSlug: string,
+    appId: string,
+    data: { name?: string; description?: string }
+  ): Promise<{ id: string; slug: string; name: string; description?: string }> {
+    const response = await fetch(`${API_BASE}/tenant/apps/${appId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-Tenant-Slug": tenantSlug,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `Failed to update app: ${response.status} ${await response.text()}`
+      );
+    }
+    return response.json();
+  }
+
+  /**
+   * Updates the status of an app (e.g. ACTIVE, INACTIVE).
+   */
+  async updateAppStatus(
+    token: string,
+    tenantSlug: string,
+    appId: string,
+    status: string
+  ): Promise<void> {
+    const response = await fetch(`${API_BASE}/tenant/apps/${appId}/status`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-Tenant-Slug": tenantSlug,
+      },
+      body: JSON.stringify({ status }),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `Failed to update app status: ${response.status} ${await response.text()}`
+      );
+    }
+  }
+
+  /**
+   * Publishes an app with the given version string.
+   */
+  async publishApp(
+    token: string,
+    tenantSlug: string,
+    appId: string,
+    version: string,
+    releaseNotes?: string
+  ): Promise<{ id: string; version: string }> {
+    const response = await fetch(`${API_BASE}/tenant/apps/${appId}/publish`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-Tenant-Slug": tenantSlug,
+      },
+      body: JSON.stringify({ version, releaseNotes }),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `Failed to publish app: ${response.status} ${await response.text()}`
+      );
+    }
+    return response.json();
+  }
+
+  /**
+   * Adds a dependency between two apps.
+   */
+  async addAppDependency(
+    token: string,
+    tenantSlug: string,
+    appId: string,
+    dependsOnAppId: string
+  ): Promise<void> {
+    const response = await fetch(`${API_BASE}/tenant/apps/${appId}/dependencies`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-Tenant-Slug": tenantSlug,
+      },
+      body: JSON.stringify({ dependsOnAppId }),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `Failed to add app dependency: ${response.status} ${await response.text()}`
+      );
+    }
+  }
+
+  /**
+   * Removes a dependency between two apps.
+   */
+  async removeAppDependency(
+    token: string,
+    tenantSlug: string,
+    appId: string,
+    dependsOnAppId: string
+  ): Promise<void> {
+    const response = await fetch(
+      `${API_BASE}/tenant/apps/${appId}/dependencies/${dependsOnAppId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-Tenant-Slug": tenantSlug,
+        },
+      }
+    );
+    if (!response.ok && response.status !== 404) {
+      throw new Error(
+        `Failed to remove app dependency: ${response.status} ${await response.text()}`
+      );
+    }
+  }
+
+  /**
+   * Exports an app blueprint for a given version.
+   */
+  async exportAppBlueprint(
+    token: string,
+    tenantSlug: string,
+    appId: string,
+    versionId: string
+  ): Promise<Record<string, unknown>> {
+    const response = await fetch(
+      `${API_BASE}/tenant/apps/${appId}/versions/${versionId}/export`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-Tenant-Slug": tenantSlug,
+        },
+      }
+    );
+    if (!response.ok) {
+      throw new Error(
+        `Failed to export app blueprint: ${response.status} ${await response.text()}`
+      );
+    }
+    return response.json();
+  }
+
+  /**
+   * Imports an app blueprint.
+   */
+  async importAppBlueprint(
+    token: string,
+    tenantSlug: string,
+    blueprint: Record<string, unknown>
+  ): Promise<{ id: string; name: string }> {
+    const response = await fetch(`${API_BASE}/tenant/apps/import`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-Tenant-Slug": tenantSlug,
+      },
+      body: JSON.stringify(blueprint),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `Failed to import app blueprint: ${response.status} ${await response.text()}`
+      );
+    }
+    const data = await response.json();
+    this.cleanupStack.push({ type: "app", id: data.id, token, tenantSlug });
+    return data;
+  }
+
   /**
    * Registers an arbitrary resource for cleanup without performing an API call now.
    * Useful when a resource was created outside of this client but should still be
@@ -246,6 +478,9 @@ export class ApiClient {
             await deleteKeycloakUser(adminToken, item.realm!, item.id);
             break;
           }
+          case "app":
+            await this.deleteApp(item.token!, item.tenantSlug!, item.id);
+            break;
           case "tenant":
             await this.deleteTenant(item.id);
             break;

@@ -21,6 +21,7 @@ export function WorkspaceLayoutClient({ children, initialConfig }: WorkspaceLayo
       canAccessUserManagement: canAccess("user_management"),
       canAccessRoleManagement: canAccess("role_management"),
       canAccessTenantConfig: canAccess("tenant_config"),
+      canAccessApps: canAccess("app_management"),
     },
     t
   );

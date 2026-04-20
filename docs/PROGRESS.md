@@ -345,9 +345,64 @@
 | 4c.6 | Done | Frontend: RevisionDiffView, AppRevisionList, RevertDialog, Revisions Tab |
 | 4c.7 | Done | Final Verification: 368 BE + 133 FE Tests gruen, Build OK |
 
+## Phase 4d — App Dependencies + Problems View
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 4d.1 | Done | Flyway Migration: app_dependency Tabelle mit Composite PK + RLS |
+| 4d.2 | Done | OpenAPI Spec: 6 Dependency-Endpoints + Problems Endpoint + 9 Schemas |
+| 4d.3 | Done | AppDependency Model, Entity (IdClass Composite Key), Repository |
+| 4d.4 | Done | AppDependencyService: Cycle Detection (BFS), transitive Aufloesung, Graph (TDD, 8 Tests) |
+| 4d.5 | Done | AppValidationService: Problems Detection fuer inaktive Dependencies (TDD, 3 Tests) |
+| 4d.6 | Done | Publish-Validation + Delete-Guard (BadRequest/Conflict bei Problemen/Dependants) |
+| 4d.7 | Done | AppDependencyController + Integration Tests (7 Tests) |
+| 4d.8 | Done | Frontend: React Flow Graph, Add/Remove Dialogs, Problems Panel, Dependencies Tab |
+| 4d.9 | Done | Final Verification: Backend + Frontend Tests gruen, Build OK |
+
+## Phase 4e — App Permissions (OpenFGA) + Permission Matrix UI
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 4e.1 | Done | OpenFGA Model: app_management + app Types mit Vererbung |
+| 4e.2 | Done | @RequiresPermission auf allen 4 App Controllern, OpenFGA Tuples bei Create/Delete |
+| 4e.3 | Done | RoleService: RESOURCE_ACTIONS um app_management (viewer/editor/admin) erweitert |
+| 4e.4 | Done | AuthService: getEffectivePermissions um app_management erweitert |
+| 4e.5 | Done | Frontend: Permission-aware Navigation (canAccessApps Gate) |
+| 4e.6 | Done | Frontend: Permission Matrix UI (General + Apps & Content Tabs, AppPermissionsEditor) |
+| 4e.7 | Done | Integration Test Fix: PermissionService Mock + X-Test-User-Id in allen App ITs |
+| 4e.8 | Done | Final Verification: 392 BE + 134 FE Tests gruen, Build OK |
+
+## Phase 4f — App Import/Export
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 4f.1 | Done | OpenAPI Spec: 3 Import/Export-Endpoints + 6 Schemas |
+| 4f.2 | Done | AppBlueprint Model, Snapshot Dependencies Population |
+| 4f.3 | Done | AppExportService: Bundled Export mit transitiven Dependencies (TDD, 3 Tests) |
+| 4f.4 | Done | AppImportService: Analyze/Preview + Execute mit topologischem Sort (TDD, 4 Tests) |
+| 4f.5 | Done | AppImportExportController + Integration Tests (5 Tests) |
+| 4f.6 | Done | Frontend: ImportBlueprintDialog (2-Step: Paste+Analyze → Preview+Execute), Export Download |
+| 4f.7 | Done | Final Verification: Backend + Frontend Tests gruen, Build OK |
+
+## Phase 4g — E2E Tests (Playwright)
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 4g.1 | Done | App API Helpers fuer E2E (createApp, publishApp, updateApp, etc.) |
+| 4g.2 | Done | BDU Test 1: App CRUD + Publish (Playwright) |
+| 4g.3 | Done | BDU Test 2: Edit + Draft Badge + Revisions (Playwright) |
+| 4g.4 | Done | BDU Test 3: Version History + Rollback (Playwright) |
+| 4g.5 | Done | BDU Test 4: Dependencies + Problems (Playwright) |
+| 4g.6 | Done | BDU Test 5: Import/Export Blueprint (Playwright) |
+| 4g.7 | Done | BDU Test 6: Permission-Gated Navigation (Playwright) |
+| 4g.8 | Offen | E2E Tests ausfuehren (erfordert pnpm dev / Docker Stack) |
+| 4g.9 | Offen | Manual BDU Browser Verification (verify-e2e) |
+
 ## Naechste Schritte
 
-- Sub-Plan 4d: App Dependencies + React Flow + Problems View
+- E2E Tests ausfuehren: `pnpm dev` starten, dann `cd apps/e2e && npx playwright test tests/apps/`
+- Manual BDU Walkthrough im Browser
+- Phase 4 abschliessen: alle Sub-Plaene 4a-4g fertig, Branch mergen
 - Sub-Plan 4e: App Permissions (OpenFGA) + Permission Matrix UI
 - Sub-Plan 4f: App Import/Export
 - Sub-Plan 4g: E2E Tests (Playwright)

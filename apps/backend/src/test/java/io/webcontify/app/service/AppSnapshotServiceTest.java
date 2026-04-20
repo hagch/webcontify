@@ -8,12 +8,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.webcontify.app.model.App;
+import io.webcontify.app.model.AppDependency;
 import io.webcontify.app.model.AppSnapshot;
 import io.webcontify.app.model.AppStatus;
 import io.webcontify.shared.filestorage.FileStorageService;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,11 +29,14 @@ class AppSnapshotServiceTest {
     @Mock
     private FileStorageService fileStorageService;
 
+    @Mock
+    private AppDependencyService dependencyService;
+
     private AppSnapshotService appSnapshotService;
 
     @BeforeEach
     void setUp() {
-        appSnapshotService = new AppSnapshotService(fileStorageService);
+        appSnapshotService = new AppSnapshotService(fileStorageService, dependencyService);
     }
 
     @Test
@@ -44,6 +49,8 @@ class AppSnapshotServiceTest {
         app.setDescription("A test application");
         app.setStatus(AppStatus.ACTIVE);
 
+        when(dependencyService.listDependencies(appId)).thenReturn(List.of());
+
         AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "1.0.0");
 
         assertThat(snapshot.appId()).isEqualTo(appId.toString());
@@ -54,16 +61,45 @@ class AppSnapshotServiceTest {
     }
 
     @Test
-    void shouldBuildSnapshotWithEmptyListsForDefinitionsAndDependencies() {
+    void shouldBuildSnapshotWithEmptyListsWhenNoDependencies() {
+        UUID appId = UUID.randomUUID();
         App app = new App();
-        app.setId(UUID.randomUUID());
+        app.setId(appId);
         app.setName("Test App");
         app.setSlug("test-app");
+
+        when(dependencyService.listDependencies(appId)).thenReturn(List.of());
 
         AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "0.1.0");
 
         assertThat(snapshot.dependencies()).isEmpty();
         assertThat(snapshot.contentDefinitions()).isEmpty();
+    }
+
+    @Test
+    void shouldBuildSnapshotWithDirectDependenciesOnly() {
+        UUID appId = UUID.randomUUID();
+        App app = new App();
+        app.setId(appId);
+        app.setName("Test App");
+        app.setSlug("test-app");
+
+        AppDependency directDep = new AppDependency();
+        directDep.setAppId(appId);
+        directDep.setDependsOnAppSlug("dep-app");
+        directDep.setDirect(true);
+
+        AppDependency transitiveDep = new AppDependency();
+        transitiveDep.setAppId(appId);
+        transitiveDep.setDependsOnAppSlug("transitive-app");
+        transitiveDep.setDirect(false);
+
+        when(dependencyService.listDependencies(appId)).thenReturn(List.of(directDep, transitiveDep));
+
+        AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "1.0.0");
+
+        assertThat(snapshot.dependencies()).hasSize(1);
+        assertThat(snapshot.dependencies().get(0).appSlug()).isEqualTo("dep-app");
     }
 
     @Test
@@ -73,8 +109,8 @@ class AppSnapshotServiceTest {
                 appId.toString(),
                 "1.0.0",
                 new AppSnapshot.AppSnapshotMetadata("Test App", "test-app", "desc"),
-                java.util.List.of(),
-                java.util.List.of());
+                List.of(),
+                List.of());
 
         String expectedKey = "files/snapshots/app-" + appId + "-v1.0.0.json";
         when(fileStorageService.uploadPrivateAsset(

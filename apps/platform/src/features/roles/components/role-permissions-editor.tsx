@@ -56,12 +56,14 @@ interface RolePermissionsEditorProps {
   roleId: string;
   permissions: RolePermissionPreviewResponse[];
   isSystemRole: boolean;
+  allPermissions?: RolePermissionPreviewResponse[];
 }
 
 export function RolePermissionsEditor({
   roleId,
   permissions,
   isSystemRole,
+  allPermissions,
 }: RolePermissionsEditorProps) {
   const t = useTranslations("roles");
   const queryClient = useQueryClient();
@@ -110,7 +112,7 @@ export function RolePermissionsEditor({
   }
 
   function handleSave() {
-    const permissionsPayload = Object.entries(state)
+    const managedPermissions = Object.entries(state)
       .map(([resourceType, actions]) => ({
         resourceType,
         actions: Object.entries(actions)
@@ -118,6 +120,16 @@ export function RolePermissionsEditor({
           .map(([action]) => action),
       }))
       .filter((p) => p.actions.length > 0);
+
+    // Preserve permissions not managed by this editor (e.g. app_management)
+    const unmanagedPermissions = (allPermissions ?? permissions)
+      .filter((p) => !RESOURCE_ACTIONS[p.resourceType])
+      .map((p) => ({
+        resourceType: p.resourceType,
+        actions: [...p.actions],
+      }));
+
+    const permissionsPayload = [...unmanagedPermissions, ...managedPermissions];
 
     mutate(
       { roleId, data: { permissions: permissionsPayload } },

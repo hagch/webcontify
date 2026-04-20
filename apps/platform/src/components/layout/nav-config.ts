@@ -28,6 +28,7 @@ export interface WorkspaceNavOptions {
   canAccessUserManagement: boolean;
   canAccessRoleManagement: boolean;
   canAccessTenantConfig: boolean;
+  canAccessApps: boolean;
 }
 
 type TranslationFn = (key: string) => string;
@@ -54,13 +55,19 @@ export function getWorkspaceNavItems(
   options: WorkspaceNavOptions,
   t: TranslationFn
 ): NavSection[] {
+  const overviewItems: NavItem[] = [
+    { label: t("sidebar.dashboard"), href: "/dashboard", icon: LayoutDashboard, testId: "nav-item-dashboard" },
+  ];
+  if (options.canAccessApps) {
+    overviewItems.push(
+      { label: t("sidebar.apps"), href: "/apps", icon: AppWindow, testId: "nav-item-apps" },
+    );
+  }
+
   const sections: NavSection[] = [
     {
       label: t("sidebar.overview"),
-      items: [
-        { label: t("sidebar.dashboard"), href: "/dashboard", icon: LayoutDashboard, testId: "nav-item-dashboard" },
-        { label: t("sidebar.apps"), href: "/apps", icon: AppWindow, testId: "nav-item-apps" },
-      ],
+      items: overviewItems,
     },
   ];
 

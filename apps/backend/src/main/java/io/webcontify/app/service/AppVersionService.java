@@ -11,6 +11,7 @@ import io.webcontify.app.repository.AppVersionRepository;
 import io.webcontify.app.repository.entity.AppEntity;
 import io.webcontify.app.repository.entity.AppVersionEntity;
 import io.webcontify.shared.changelog.service.ChangeRecordService;
+import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
 import io.webcontify.shared.security.TenantContext;
@@ -32,6 +33,7 @@ public class AppVersionService {
     private final AppVersionMapper appVersionMapper;
     private final AppSnapshotService appSnapshotService;
     private final AppService appService;
+    private final AppValidationService validationService;
     private final ChangeRecordService changeRecordService;
     private final TenantSlugResolver tenantSlugResolver;
     private final ApplicationEventPublisher eventPublisher;
@@ -42,6 +44,7 @@ public class AppVersionService {
             AppVersionMapper appVersionMapper,
             AppSnapshotService appSnapshotService,
             AppService appService,
+            AppValidationService validationService,
             ChangeRecordService changeRecordService,
             TenantSlugResolver tenantSlugResolver,
             ApplicationEventPublisher eventPublisher) {
@@ -50,6 +53,7 @@ public class AppVersionService {
         this.appVersionMapper = appVersionMapper;
         this.appSnapshotService = appSnapshotService;
         this.appService = appService;
+        this.validationService = validationService;
         this.changeRecordService = changeRecordService;
         this.tenantSlugResolver = tenantSlugResolver;
         this.eventPublisher = eventPublisher;
@@ -58,6 +62,11 @@ public class AppVersionService {
     public AppVersion publish(UUID appId, String version, String releaseNotes) {
         var tenantInfo = TenantContext.getTenantInformation();
         App app = appService.getById(appId);
+
+        var problems = validationService.validate(appId);
+        if (problems.getErrorCount() > 0) {
+            throw new BadRequestException("app.publish.has_problems");
+        }
 
         if (appVersionRepository.existsByAppIdAndVersion(appId, version)) {
             throw new ConflictException("app.version.already_exists");

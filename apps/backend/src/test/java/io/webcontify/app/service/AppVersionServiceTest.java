@@ -16,6 +16,8 @@ import io.webcontify.app.repository.AppVersionRepository;
 import io.webcontify.app.repository.entity.AppEntity;
 import io.webcontify.app.repository.entity.AppVersionEntity;
 import io.webcontify.shared.changelog.service.ChangeRecordService;
+import io.webcontify.generated.model.AppProblemsResponse;
+import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
 import io.webcontify.shared.model.TenantInformation;
@@ -64,6 +66,9 @@ class AppVersionServiceTest {
     private TenantSlugResolver tenantSlugResolver;
 
     @Mock
+    private AppValidationService validationService;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     private AppVersionService appVersionService;
@@ -81,6 +86,7 @@ class AppVersionServiceTest {
                 appVersionMapper,
                 appSnapshotService,
                 appService,
+                validationService,
                 changeRecordService,
                 tenantSlugResolver,
                 eventPublisher);
@@ -95,6 +101,7 @@ class AppVersionServiceTest {
     void shouldPublishFirstVersion() {
         App app = createApp(TEST_APP_ID, "Test App", "test-app", AppStatus.DRAFT);
         when(appService.getById(TEST_APP_ID)).thenReturn(app);
+        when(validationService.validate(TEST_APP_ID)).thenReturn(emptyProblems());
         when(appVersionRepository.existsByAppIdAndVersion(TEST_APP_ID, "0.1.0")).thenReturn(false);
         when(tenantSlugResolver.resolveSlugByTenantId(TEST_TENANT_ID)).thenReturn(Optional.of("test-tenant"));
 
@@ -139,6 +146,7 @@ class AppVersionServiceTest {
     void shouldRejectDuplicateVersion() {
         App app = createApp(TEST_APP_ID, "Test App", "test-app", AppStatus.ACTIVE);
         when(appService.getById(TEST_APP_ID)).thenReturn(app);
+        when(validationService.validate(TEST_APP_ID)).thenReturn(emptyProblems());
         when(appVersionRepository.existsByAppIdAndVersion(TEST_APP_ID, "1.0.0")).thenReturn(true);
 
         assertThatThrownBy(() -> appVersionService.publish(TEST_APP_ID, "1.0.0", "Duplicate"))
@@ -241,6 +249,32 @@ class AppVersionServiceTest {
         String suggested = appVersionService.suggestNextVersion(TEST_APP_ID);
 
         assertThat(suggested).isEqualTo("1.0.1");
+    }
+
+    @Test
+    void shouldBlockPublishWhenValidationFails() {
+        App app = createApp(TEST_APP_ID, "Test App", "test-app", AppStatus.DRAFT);
+        when(appService.getById(TEST_APP_ID)).thenReturn(app);
+
+        AppProblemsResponse problems = new AppProblemsResponse();
+        problems.setItems(List.of(new io.webcontify.generated.model.AppProblem(
+                io.webcontify.generated.model.AppProblem.SeverityEnum.ERROR,
+                "Dependency 'X' is inactive", "app:123", "Activate or remove")));
+        problems.setErrorCount(1);
+        problems.setWarningCount(0);
+        when(validationService.validate(TEST_APP_ID)).thenReturn(problems);
+
+        assertThatThrownBy(() -> appVersionService.publish(TEST_APP_ID, "0.1.0", "Release"))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("app.publish.has_problems");
+    }
+
+    private AppProblemsResponse emptyProblems() {
+        AppProblemsResponse response = new AppProblemsResponse();
+        response.setItems(List.of());
+        response.setErrorCount(0);
+        response.setWarningCount(0);
+        return response;
     }
 
     private App createApp(UUID id, String name, String slug, AppStatus status) {

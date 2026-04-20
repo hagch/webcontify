@@ -48,7 +48,8 @@ public class AuthService {
     private static final Map<String, List<String>> NAVIGATION_RESOURCE_ACTIONS = Map.of(
             "user_management", List.of("inviter", "editor", "deleter", "reader"),
             "role_management", List.of("creator", "editor", "deleter", "reader"),
-            "tenant_config", List.of("editor", "reader")
+            "tenant_config", List.of("editor", "reader"),
+            "app_management", List.of("viewer", "editor", "admin")
     );
 
     private final KeycloakAdminService keycloakAdminService;

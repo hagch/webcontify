@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, History, AlertCircle } from "lucide-react";
+import { ChevronDown, History, AlertCircle, Download } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,7 +12,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useListAppVersions, type AppVersionResponse } from "@/generated/app";
+import { useListAppVersions, exportAppBlueprint, type AppVersionResponse } from "@/generated/app";
 import { RollbackConfirmDialog } from "./rollback-confirm-dialog";
 
 function formatDate(dateString: string): string {
@@ -38,6 +39,23 @@ function VersionRow({
 }) {
   const t = useTranslations("apps");
   const [isOpen, setIsOpen] = useState(false);
+
+  async function handleExport() {
+    try {
+      const response = await exportAppBlueprint(appId, version.id ?? "");
+      const json = JSON.stringify(response.data, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `blueprint-${appId}-v${version.version}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(t("importExport.exportSuccess"));
+    } catch {
+      // silent fail — toast not needed for download errors
+    }
+  }
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -68,7 +86,11 @@ function VersionRow({
               </p>
             </div>
           )}
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={handleExport} data-testid="export-blueprint-button">
+              <Download className="mr-2 size-4" />
+              {t("importExport.export")}
+            </Button>
             <RollbackConfirmDialog
               appId={appId}
               versionId={version.id ?? ""}

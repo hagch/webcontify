@@ -7,8 +7,11 @@ import com.flipkart.zjsonpatch.JsonDiff;
 import io.webcontify.app.mapper.AppMapper;
 import io.webcontify.app.model.App;
 import io.webcontify.app.model.AppStatus;
+import io.webcontify.app.repository.AppDependencyRepository;
 import io.webcontify.app.repository.AppRepository;
 import io.webcontify.app.repository.entity.AppEntity;
+import io.webcontify.identity.model.RelationshipTuple;
+import io.webcontify.identity.service.PermissionService;
 import io.webcontify.shared.changelog.service.ChangeRecordService;
 import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
@@ -28,20 +31,26 @@ import org.springframework.transaction.annotation.Transactional;
 public class AppService {
 
     private final AppRepository appRepository;
+    private final AppDependencyRepository dependencyRepository;
     private final AppMapper appMapper;
     private final SlugGenerator slugGenerator;
     private final ChangeRecordService changeRecordService;
+    private final PermissionService permissionService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AppService(
             AppRepository appRepository,
+            AppDependencyRepository dependencyRepository,
             AppMapper appMapper,
             SlugGenerator slugGenerator,
-            ChangeRecordService changeRecordService) {
+            ChangeRecordService changeRecordService,
+            PermissionService permissionService) {
         this.appRepository = appRepository;
+        this.dependencyRepository = dependencyRepository;
         this.appMapper = appMapper;
         this.slugGenerator = slugGenerator;
         this.changeRecordService = changeRecordService;
+        this.permissionService = permissionService;
     }
 
     public App create(App app) {
@@ -58,7 +67,15 @@ public class AppService {
         AppEntity entity = appMapper.toEntity(app);
         entity.setTenantId(tenantId);
         entity = appRepository.save(entity);
-        return appMapper.toDomain(entity);
+        App created = appMapper.toDomain(entity);
+
+        permissionService.grantRelation(new RelationshipTuple(
+                "app_management:" + tenantId + "#management",
+                "management",
+                "app:" + created.getId()
+        ));
+
+        return created;
     }
 
     @Transactional(readOnly = true)
@@ -109,6 +126,19 @@ public class AppService {
     public void delete(UUID id) {
         AppEntity entity = appRepository.findByIdAndAuditInfoDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException("app.not_found"));
+
+        var dependants = dependencyRepository.findByDependsOnId(id);
+        if (!dependants.isEmpty()) {
+            throw new ConflictException("app.delete.has_dependants");
+        }
+
+        var tenantInfo = TenantContext.getTenantInformation();
+        permissionService.revokeRelation(new RelationshipTuple(
+                "app_management:" + tenantInfo.tenantId() + "#management",
+                "management",
+                "app:" + entity.getId()
+        ));
+
         entity.getAuditInfo().setDeletedAt(OffsetDateTime.now());
         appRepository.save(entity);
     }

@@ -32,6 +32,9 @@ import {
 import { PublishAppDialog } from "@/features/apps/components/publish-app-dialog";
 import { AppVersionList } from "@/features/apps/components/app-version-list";
 import { AppRevisionList } from "@/features/apps/components/app-revision-list";
+import { AppDependencyGraph } from "@/features/apps/components/app-dependency-graph";
+import { AppProblemsPanel } from "@/features/apps/components/app-problems-panel";
+import { useListAppProblems } from "@/generated/app";
 
 function isAppResponse(data: unknown): data is AppResponse {
   return (
@@ -79,6 +82,11 @@ export default function AppDetailPage({
   const { data, isLoading, error } = useGetApp(appId);
   const updateStatus = useUpdateAppStatus();
   const deleteApp = useDeleteApp();
+  const { data: problemsData } = useListAppProblems(appId);
+  const problemsResponse = problemsData?.data;
+  const hasErrors = problemsResponse && "errorCount" in problemsResponse
+    ? problemsResponse.errorCount > 0
+    : false;
 
   const rawData = data?.data;
   const app = isAppResponse(rawData) ? rawData : undefined;
@@ -157,9 +165,15 @@ export default function AppDetailPage({
         actions={
           app && !isLoading ? (
             (app.status === "DRAFT" || app.hasDraft) ? (
-              <PublishAppDialog appId={app.id}>
-                <Button size="sm">{t("versions.publish")}</Button>
-              </PublishAppDialog>
+              hasErrors ? (
+                <Button size="sm" disabled title={t("problems.publishBlocked")}>
+                  {t("versions.publish")}
+                </Button>
+              ) : (
+                <PublishAppDialog appId={app.id}>
+                  <Button size="sm">{t("versions.publish")}</Button>
+                </PublishAppDialog>
+              )
             ) : undefined
           ) : undefined
         }
@@ -181,9 +195,13 @@ export default function AppDetailPage({
             </CardContent>
           </Card>
         ) : app ? (
+          <>
+          <AppProblemsPanel appId={app.id} />
+
           <Tabs defaultValue="overview">
             <TabsList>
               <TabsTrigger value="overview">{t("detail.overview")}</TabsTrigger>
+              <TabsTrigger value="dependencies">{t("dependencies.title")}</TabsTrigger>
               <TabsTrigger value="versions">{t("versions.title")}</TabsTrigger>
               <TabsTrigger value="revisions">{t("revisions.title")}</TabsTrigger>
             </TabsList>
@@ -278,6 +296,10 @@ export default function AppDetailPage({
               </div>
             </TabsContent>
 
+            <TabsContent value="dependencies">
+              <AppDependencyGraph appId={app.id} />
+            </TabsContent>
+
             <TabsContent value="versions">
               <AppVersionList appId={app.id} hasDraft={app.hasDraft ?? false} />
             </TabsContent>
@@ -286,6 +308,7 @@ export default function AppDetailPage({
               <AppRevisionList appId={app.id} />
             </TabsContent>
           </Tabs>
+          </>
         ) : null}
       </div>
 

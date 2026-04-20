@@ -2,11 +2,13 @@ package io.webcontify.app.api;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.webcontify.identity.service.PermissionService;
 import io.webcontify.shared.filestorage.FileStorageService;
 import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.model.SystemUser;
@@ -41,6 +43,7 @@ class AppRevisionControllerIntegrationTest {
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
 
     @MockitoBean FileStorageService fileStorageService;
+    @MockitoBean PermissionService permissionService;
 
     @Autowired private MockMvc mockMvc;
     @Autowired private TenantRepository tenantRepository;
@@ -49,9 +52,13 @@ class AppRevisionControllerIntegrationTest {
 
     private static final UUID TEST_TENANT_ID =
             UUID.fromString("00000000-0000-0000-0000-000000000299");
+    private static final UUID TEST_USER_ID =
+            UUID.fromString("00000000-0000-0000-0000-000000000002");
 
     @BeforeEach
     void setUp() {
+        lenient().when(permissionService.check(any())).thenReturn(true);
+
         when(fileStorageService.uploadPrivateAsset(anyString(), anyString(), any(), anyString()))
                 .thenReturn("files/snapshots/test-snapshot.json");
 
@@ -80,7 +87,8 @@ class AppRevisionControllerIntegrationTest {
         updateApp(appId, "List Rev App Updated", "Updated description");
 
         mockMvc.perform(get("/api/v1/apps/" + appId + "/revisions")
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.items.length()").value(1))
@@ -95,7 +103,8 @@ class AppRevisionControllerIntegrationTest {
         updateApp(appId, "Detail Rev App Updated", "Updated");
 
         MvcResult listResult = mockMvc.perform(get("/api/v1/apps/" + appId + "/revisions")
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -107,7 +116,8 @@ class AppRevisionControllerIntegrationTest {
                 .asText();
 
         mockMvc.perform(get("/api/v1/apps/" + appId + "/revisions/" + revisionId)
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(revisionId))
                 .andExpect(jsonPath("$.changeType").value("updated"))
@@ -123,7 +133,8 @@ class AppRevisionControllerIntegrationTest {
         updateApp(appId, "New Name", "New description");
 
         MvcResult listResult = mockMvc.perform(get("/api/v1/apps/" + appId + "/revisions")
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -135,12 +146,14 @@ class AppRevisionControllerIntegrationTest {
                 .asText();
 
         mockMvc.perform(post("/api/v1/apps/" + appId + "/revisions/" + revisionId + "/revert")
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Revert Rev App"));
 
         mockMvc.perform(get("/api/v1/apps/" + appId)
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Revert Rev App"));
     }
@@ -150,7 +163,8 @@ class AppRevisionControllerIntegrationTest {
         String appId = createApp("No Rev App");
 
         mockMvc.perform(get("/api/v1/apps/" + appId + "/revisions")
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.items.length()").value(0));
@@ -164,7 +178,8 @@ class AppRevisionControllerIntegrationTest {
 
         // Verify there is at least one revision
         mockMvc.perform(get("/api/v1/apps/" + appId + "/revisions")
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items.length()").value(1));
 
@@ -174,13 +189,15 @@ class AppRevisionControllerIntegrationTest {
                 """;
         mockMvc.perform(post("/api/v1/apps/" + appId + "/publish")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(publishRequest))
                 .andExpect(status().isCreated());
 
         // After publish, draft revisions should be empty
         mockMvc.perform(get("/api/v1/apps/" + appId + "/revisions")
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.items.length()").value(0));
@@ -193,6 +210,7 @@ class AppRevisionControllerIntegrationTest {
 
         MvcResult result = mockMvc.perform(post("/api/v1/apps")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isCreated())
@@ -211,6 +229,7 @@ class AppRevisionControllerIntegrationTest {
 
         mockMvc.perform(put("/api/v1/apps/" + appId)
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateRequest))
                 .andExpect(status().isOk());

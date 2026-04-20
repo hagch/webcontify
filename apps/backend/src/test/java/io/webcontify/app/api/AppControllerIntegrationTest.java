@@ -1,9 +1,12 @@
 package io.webcontify.app.api;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.webcontify.identity.service.PermissionService;
 import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.model.SystemUser;
 import io.webcontify.shared.security.TestSecurityConfiguration;
@@ -19,6 +22,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -35,6 +39,8 @@ class AppControllerIntegrationTest {
     @ServiceConnection
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
 
+    @MockitoBean PermissionService permissionService;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -45,9 +51,13 @@ class AppControllerIntegrationTest {
 
     private static final UUID TEST_TENANT_ID =
             UUID.fromString("00000000-0000-0000-0000-000000000099");
+    private static final UUID TEST_USER_ID =
+            UUID.fromString("00000000-0000-0000-0000-000000000002");
 
     @BeforeEach
     void setUp() {
+        lenient().when(permissionService.check(any())).thenReturn(true);
+
         if (tenantRepository.findByIdAndAuditInfoDeletedAtIsNull(TEST_TENANT_ID).isEmpty()) {
             TenantEntity tenant = new TenantEntity();
             tenant.setId(TEST_TENANT_ID);
@@ -74,6 +84,7 @@ class AppControllerIntegrationTest {
 
         MvcResult createResult = mockMvc.perform(post("/api/v1/apps")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isCreated())
@@ -90,7 +101,8 @@ class AppControllerIntegrationTest {
                 .asText();
 
         mockMvc.perform(get("/api/v1/apps/" + id)
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("My First App"))
                 .andExpect(jsonPath("$.slug").value("my-first-app"))
@@ -105,11 +117,13 @@ class AppControllerIntegrationTest {
 
         mockMvc.perform(post("/api/v1/apps")
                 .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request));
 
         mockMvc.perform(get("/api/v1/apps")
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.pageInfo.page").value(0));
@@ -123,6 +137,7 @@ class AppControllerIntegrationTest {
 
         MvcResult createResult = mockMvc.perform(post("/api/v1/apps")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createRequest))
                 .andReturn();
@@ -138,6 +153,7 @@ class AppControllerIntegrationTest {
 
         mockMvc.perform(put("/api/v1/apps/" + id)
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateRequest))
                 .andExpect(status().isOk())
@@ -153,6 +169,7 @@ class AppControllerIntegrationTest {
 
         MvcResult createResult = mockMvc.perform(post("/api/v1/apps")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createRequest))
                 .andReturn();
@@ -168,6 +185,7 @@ class AppControllerIntegrationTest {
 
         mockMvc.perform(put("/api/v1/apps/" + id + "/status")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(statusRequest))
                 .andExpect(status().isOk())
@@ -182,6 +200,7 @@ class AppControllerIntegrationTest {
 
         MvcResult createResult = mockMvc.perform(post("/api/v1/apps")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createRequest))
                 .andReturn();
@@ -192,11 +211,13 @@ class AppControllerIntegrationTest {
                 .asText();
 
         mockMvc.perform(delete("/api/v1/apps/" + id)
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/api/v1/apps/" + id)
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isNotFound());
     }
 
@@ -208,11 +229,13 @@ class AppControllerIntegrationTest {
 
         mockMvc.perform(post("/api/v1/apps")
                 .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request));
 
         mockMvc.perform(post("/api/v1/apps")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isConflict())
@@ -227,17 +250,20 @@ class AppControllerIntegrationTest {
 
         mockMvc.perform(post("/api/v1/apps")
                 .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request));
 
         mockMvc.perform(get("/api/v1/apps/name-available")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .param("name", "Availability Check App"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.available").value(false));
 
         mockMvc.perform(get("/api/v1/apps/name-available")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .param("name", "Completely New Name"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.available").value(true));

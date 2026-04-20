@@ -22,6 +22,7 @@ import { EditRoleForm } from "@/features/roles/components/edit-role-form";
 import { RoleAssigneesTable } from "@/features/roles/components/role-assignees-table";
 import { AddAssigneesDialog } from "@/features/roles/components/add-assignees-dialog";
 import { RolePermissionsEditor } from "@/features/roles/components/role-permissions-editor";
+import { AppPermissionsEditor } from "@/features/roles/components/app-permissions-editor";
 
 interface RoleDetailPageProps {
   params: Promise<{ roleId: string }>;
@@ -171,11 +172,36 @@ export default function RoleDetailPage({ params }: RoleDetailPageProps) {
           </TabsContent>
 
           <TabsContent value="permissions" className="mt-4">
-            <RolePermissionsEditor
-              roleId={role.id}
-              permissions={role.permissions}
-              isSystemRole={role.systemRole}
-            />
+            <Tabs defaultValue="general">
+              <TabsList>
+                <TabsTrigger value="general" data-testid="permissions-tab-general">
+                  {t("permissions.tabs.general")}
+                </TabsTrigger>
+                <TabsTrigger value="appsAndContent" data-testid="permissions-tab-apps">
+                  {t("permissions.tabs.appsAndContent")}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="general" className="mt-4">
+                <RolePermissionsEditor
+                  roleId={role.id}
+                  permissions={role.permissions}
+                  allPermissions={role.permissions}
+                  isSystemRole={role.systemRole}
+                />
+              </TabsContent>
+
+              <TabsContent value="appsAndContent" className="mt-4">
+                <AppPermissionsEditor
+                  roleId={role.id}
+                  permissions={role.permissions.filter(
+                    (p) => p.resourceType === "app_management"
+                  )}
+                  allPermissions={role.permissions}
+                  isSystemRole={role.systemRole}
+                />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>

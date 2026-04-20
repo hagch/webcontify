@@ -45,6 +45,12 @@ public class PermissionService {
         openFgaService.write(new OpenFgaWriteRequest(storeId, List.of(tuple)));
     }
 
+    public void grantRelation(RelationshipTuple tuple) {
+        var storeId = resolveStoreId();
+        log.info("Granting relation user={} relation={} object={}", tuple.user(), tuple.relation(), tuple.object());
+        openFgaService.write(new OpenFgaWriteRequest(storeId, List.of(tuple)));
+    }
+
     public void revoke(RevokePermissionRequest request) {
         var storeId = resolveStoreId();
         log.info("Revoking permission userId={} relation={} resourceType={} resourceId={}",
@@ -54,6 +60,12 @@ public class PermissionService {
             request.relation(),
             request.resourceType() + ":" + request.resourceId()
         );
+        openFgaService.delete(new OpenFgaDeleteRequest(storeId, List.of(tuple)));
+    }
+
+    public void revokeRelation(RelationshipTuple tuple) {
+        var storeId = resolveStoreId();
+        log.info("Revoking relation user={} relation={} object={}", tuple.user(), tuple.relation(), tuple.object());
         openFgaService.delete(new OpenFgaDeleteRequest(storeId, List.of(tuple)));
     }
 

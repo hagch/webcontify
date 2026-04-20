@@ -9,8 +9,12 @@ import static org.mockito.Mockito.*;
 import io.webcontify.app.mapper.AppMapper;
 import io.webcontify.app.model.App;
 import io.webcontify.app.model.AppStatus;
+import io.webcontify.app.repository.AppDependencyRepository;
 import io.webcontify.app.repository.AppRepository;
+import io.webcontify.app.repository.entity.AppDependencyEntity;
 import io.webcontify.app.repository.entity.AppEntity;
+import io.webcontify.identity.model.RelationshipTuple;
+import io.webcontify.identity.service.PermissionService;
 import io.webcontify.shared.changelog.service.ChangeRecordService;
 import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
@@ -19,6 +23,7 @@ import io.webcontify.shared.model.TenantInformation;
 import io.webcontify.shared.security.TenantAwareAuthentication;
 import io.webcontify.shared.util.SlugGenerator;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,6 +50,9 @@ class AppServiceTest {
     private AppRepository appRepository;
 
     @Mock
+    private AppDependencyRepository dependencyRepository;
+
+    @Mock
     private AppMapper appMapper;
 
     @Mock
@@ -52,6 +60,9 @@ class AppServiceTest {
 
     @Mock
     private ChangeRecordService changeRecordService;
+
+    @Mock
+    private PermissionService permissionService;
 
     private AppService appService;
 
@@ -61,7 +72,7 @@ class AppServiceTest {
         var auth = new TenantAwareAuthentication(info, "test-user", List.of(new SimpleGrantedAuthority("ROLE_USER")));
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        appService = new AppService(appRepository, appMapper, slugGenerator, changeRecordService);
+        appService = new AppService(appRepository, dependencyRepository, appMapper, slugGenerator, changeRecordService, permissionService);
     }
 
     @AfterEach
@@ -102,6 +113,7 @@ class AppServiceTest {
         assertThat(created.getTenantId()).isEqualTo(TEST_TENANT_ID);
 
         verify(appRepository).save(any(AppEntity.class));
+        verify(permissionService).grantRelation(any(RelationshipTuple.class));
     }
 
     @Test
@@ -236,11 +248,33 @@ class AppServiceTest {
         entity.setAuditInfo(auditInfo);
 
         when(appRepository.findByIdAndAuditInfoDeletedAtIsNull(appId)).thenReturn(Optional.of(entity));
+        when(dependencyRepository.findByDependsOnId(appId)).thenReturn(Collections.emptyList());
 
         appService.delete(appId);
 
         assertThat(entity.getAuditInfo().getDeletedAt()).isNotNull();
         verify(appRepository).save(entity);
+        verify(permissionService).revokeRelation(any(RelationshipTuple.class));
+    }
+
+    @Test
+    void shouldBlockDeleteWhenDependantsExist() {
+        UUID appId = UUID.randomUUID();
+        AppEntity entity = createAppEntity("My App", "my-app", "ACTIVE");
+        entity.setId(appId);
+        AuditInfo auditInfo = new AuditInfo();
+        entity.setAuditInfo(auditInfo);
+
+        when(appRepository.findByIdAndAuditInfoDeletedAtIsNull(appId)).thenReturn(Optional.of(entity));
+
+        AppDependencyEntity dependant = new AppDependencyEntity();
+        dependant.setAppId(UUID.randomUUID());
+        dependant.setDependsOnId(appId);
+        when(dependencyRepository.findByDependsOnId(appId)).thenReturn(List.of(dependant));
+
+        assertThatThrownBy(() -> appService.delete(appId))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("app.delete.has_dependants");
     }
 
     @Test

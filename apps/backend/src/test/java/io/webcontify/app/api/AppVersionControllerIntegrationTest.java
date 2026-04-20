@@ -2,11 +2,13 @@ package io.webcontify.app.api;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.webcontify.identity.service.PermissionService;
 import io.webcontify.shared.filestorage.FileStorageService;
 import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.model.SystemUser;
@@ -41,6 +43,7 @@ class AppVersionControllerIntegrationTest {
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
 
     @MockitoBean FileStorageService fileStorageService;
+    @MockitoBean PermissionService permissionService;
 
     @Autowired private MockMvc mockMvc;
     @Autowired private TenantRepository tenantRepository;
@@ -49,9 +52,13 @@ class AppVersionControllerIntegrationTest {
 
     private static final UUID TEST_TENANT_ID =
             UUID.fromString("00000000-0000-0000-0000-000000000199");
+    private static final UUID TEST_USER_ID =
+            UUID.fromString("00000000-0000-0000-0000-000000000002");
 
     @BeforeEach
     void setUp() {
+        lenient().when(permissionService.check(any())).thenReturn(true);
+
         when(fileStorageService.uploadPrivateAsset(anyString(), anyString(), any(), anyString()))
                 .thenReturn("files/snapshots/test-snapshot.json");
 
@@ -83,6 +90,7 @@ class AppVersionControllerIntegrationTest {
 
         mockMvc.perform(post("/api/v1/apps/" + appId + "/publish")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(publishRequest))
                 .andExpect(status().isCreated())
@@ -101,7 +109,8 @@ class AppVersionControllerIntegrationTest {
         publishApp(appId, "0.2.0");
 
         mockMvc.perform(get("/api/v1/apps/" + appId + "/versions")
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.items.length()").value(2))
@@ -116,7 +125,8 @@ class AppVersionControllerIntegrationTest {
         String versionId = publishApp(appId, "0.1.0");
 
         mockMvc.perform(get("/api/v1/apps/" + appId + "/versions/" + versionId)
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(versionId))
                 .andExpect(jsonPath("$.appId").value(appId))
@@ -136,6 +146,7 @@ class AppVersionControllerIntegrationTest {
 
         mockMvc.perform(post("/api/v1/apps/" + appId + "/publish")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(publishRequest))
                 .andExpect(status().isConflict())
@@ -149,7 +160,8 @@ class AppVersionControllerIntegrationTest {
         String versionId = publishApp(appId, "0.1.0");
 
         mockMvc.perform(post("/api/v1/apps/" + appId + "/versions/" + versionId + "/rollback")
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(appId))
                 .andExpect(jsonPath("$.hasDraft").value(true));
@@ -162,7 +174,8 @@ class AppVersionControllerIntegrationTest {
         publishApp(appId, "0.1.0");
 
         mockMvc.perform(get("/api/v1/apps/" + appId + "/versions/suggest")
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.suggestedVersion").value("0.1.1"));
     }
@@ -177,6 +190,7 @@ class AppVersionControllerIntegrationTest {
                 """;
         mockMvc.perform(put("/api/v1/apps/" + appId + "/status")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(statusRequest))
                 .andExpect(status().isOk())
@@ -188,13 +202,15 @@ class AppVersionControllerIntegrationTest {
                 """;
         mockMvc.perform(put("/api/v1/apps/" + appId)
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateRequest))
                 .andExpect(status().isOk());
 
         // Verify hasDraft is true
         mockMvc.perform(get("/api/v1/apps/" + appId)
-                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID))
+                        .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.hasDraft").value(true));
     }
@@ -206,6 +222,7 @@ class AppVersionControllerIntegrationTest {
 
         MvcResult result = mockMvc.perform(post("/api/v1/apps")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isCreated())
@@ -224,6 +241,7 @@ class AppVersionControllerIntegrationTest {
 
         MvcResult result = mockMvc.perform(post("/api/v1/apps/" + appId + "/publish")
                         .header(TestSecurityConfiguration.TEST_TENANT_ID_HEADER, TEST_TENANT_ID)
+                        .header(TestSecurityConfiguration.TEST_USER_ID_HEADER, TEST_USER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(publishRequest))
                 .andExpect(status().isCreated())

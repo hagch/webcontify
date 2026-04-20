@@ -159,17 +159,29 @@
       "saveError": "Failed to update permissions",
       "emptyTitle": "No Permissions",
       "emptyDescription": "No permissions are assigned to this role.",
+      "tabs": {
+        "general": "General",
+        "appsAndContent": "Apps & Content"
+      },
       "resourceTypes": {
         "user_management": "User Management",
         "role_management": "Role Management",
-        "tenant_config": "Tenant Configuration"
+        "tenant_config": "Tenant Configuration",
+        "app_management": "App Management"
       },
       "actions": {
         "reader": "Read",
         "editor": "Edit",
         "creator": "Create",
         "deleter": "Delete",
-        "inviter": "Invite"
+        "inviter": "Invite",
+        "viewer": "Viewer",
+        "admin": "Admin"
+      },
+      "appManagement": {
+        "title": "App Management",
+        "global": "Global — All Apps",
+        "globalDescription": "Applies to all existing and future apps"
       }
     },
     "toasts": {
@@ -576,6 +588,65 @@
         "added": "Added",
         "removed": "Removed",
         "replaced": "Changed"
+      }
+    },
+    "dependencies": {
+      "title": "Dependencies",
+      "addDependency": "Add Dependency",
+      "removeDependency": "Remove",
+      "noDependencies": "No dependencies",
+      "direct": "Direct",
+      "transitive": "Transitive",
+      "addDialog": {
+        "title": "Add Dependency",
+        "description": "Select an app to depend on. Only active apps can be added as dependencies.",
+        "selectApp": "Select App",
+        "submit": "Add",
+        "cancel": "Cancel",
+        "successToast": "Dependency added",
+        "cyclicError": "Adding this dependency would create a cycle",
+        "draftError": "Cannot depend on a draft app",
+        "noAppsAvailable": "No apps available to add as dependency"
+      },
+      "removeDialog": {
+        "title": "Remove Dependency",
+        "description": "Are you sure you want to remove this dependency?",
+        "confirm": "Remove",
+        "cancel": "Cancel",
+        "successToast": "Dependency removed"
+      },
+      "graph": {
+        "currentApp": "Current App"
+      }
+    },
+    "problems": {
+      "title": "Problems",
+      "noProblems": "No problems found",
+      "publishBlocked": "Fix errors before publishing"
+    },
+    "importExport": {
+      "export": "Export",
+      "exportSuccess": "Blueprint exported",
+      "import": "Import Blueprint",
+      "importDialog": {
+        "title": "Import Blueprint",
+        "description": "Paste or upload a Blueprint JSON to import apps into your workspace.",
+        "textareaPlaceholder": "Paste Blueprint JSON here...",
+        "analyze": "Analyze",
+        "analyzing": "Analyzing...",
+        "execute": "Import",
+        "importing": "Importing...",
+        "cancel": "Cancel",
+        "successToast": "Apps imported successfully",
+        "invalidJson": "Invalid JSON format"
+      },
+      "preview": {
+        "title": "Import Preview",
+        "appsToImport": "Apps to import",
+        "slugCollision": "Name conflict — will be imported as",
+        "noCollision": "No conflicts",
+        "canImport": "Ready to import",
+        "cannotImport": "Cannot import — resolve issues first"
       }
     }
   },

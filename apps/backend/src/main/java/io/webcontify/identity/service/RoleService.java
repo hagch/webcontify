@@ -33,7 +33,8 @@ public class RoleService {
 
     private static final Map<String, List<String>> RESOURCE_ACTIONS = Map.of(
             "user_management", List.of("inviter", "editor", "deleter", "reader"),
-            "role_management", List.of("creator", "editor", "deleter", "reader")
+            "role_management", List.of("creator", "editor", "deleter", "reader"),
+            "app_management", List.of("viewer", "editor", "admin")
     );
 
     private final TenantRoleRepository roleRepository;
