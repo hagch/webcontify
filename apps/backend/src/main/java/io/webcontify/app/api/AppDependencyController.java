@@ -1,11 +1,16 @@
 package io.webcontify.app.api;
 
+import io.webcontify.app.model.App;
 import io.webcontify.app.model.AppDependency;
 import io.webcontify.app.service.AppDependencyService;
+import io.webcontify.app.service.AppService;
 import io.webcontify.app.service.AppValidationService;
 import io.webcontify.generated.api.AppDependencyApi;
 import io.webcontify.generated.model.*;
-import io.webcontify.identity.security.RequiresPermission;
+import io.webcontify.identity.model.CheckPermissionRequest;
+import io.webcontify.identity.service.PermissionService;
+import io.webcontify.shared.security.TenantContext;
+import org.springframework.security.access.AccessDeniedException;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -17,61 +22,86 @@ public class AppDependencyController implements AppDependencyApi {
 
     private final AppDependencyService dependencyService;
     private final AppValidationService validationService;
+    private final AppService appService;
+    private final PermissionService permissionService;
 
     public AppDependencyController(
-            AppDependencyService dependencyService, AppValidationService validationService) {
+            AppDependencyService dependencyService,
+            AppValidationService validationService,
+            AppService appService,
+            PermissionService permissionService) {
         this.dependencyService = dependencyService;
         this.validationService = validationService;
+        this.appService = appService;
+        this.permissionService = permissionService;
     }
 
     @Override
-    @RequiresPermission(action = "editor", resource = "app", resourceId = "#appId")
     public ResponseEntity<AppDependencyResponse> addAppDependency(
-            UUID appId, AddDependencyRequest addDependencyRequest) {
+            String appId, AddDependencyRequest addDependencyRequest) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("editor", app.getId());
         AppDependency dependency =
-                dependencyService.addDependency(appId, addDependencyRequest.getDependsOnAppId());
+                dependencyService.addDependency(app.getId(), addDependencyRequest.getDependsOnAppId());
         AppDependencyResponse response = toResponse(dependency);
         return ResponseEntity.created(
-                        URI.create("/api/v1/apps/" + appId + "/dependencies/" + dependency.getDependsOnId()))
+                        URI.create("/api/v1/apps/" + app.getId() + "/dependencies/" + dependency.getDependsOnId()))
                 .body(response);
     }
 
     @Override
-    @RequiresPermission(action = "admin", resource = "app", resourceId = "#appId")
-    public ResponseEntity<Void> removeAppDependency(UUID appId, UUID depAppId) {
-        dependencyService.removeDependency(appId, depAppId);
+    public ResponseEntity<Void> removeAppDependency(String appId, UUID depAppId) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("admin", app.getId());
+        dependencyService.removeDependency(app.getId(), depAppId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
-    @RequiresPermission(action = "viewer", resource = "app", resourceId = "#appId")
-    public ResponseEntity<AppDependencyListResponse> listAppDependencies(UUID appId) {
-        List<AppDependency> dependencies = dependencyService.listDependencies(appId);
+    public ResponseEntity<AppDependencyListResponse> listAppDependencies(String appId) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("viewer", app.getId());
+        List<AppDependency> dependencies = dependencyService.listDependencies(app.getId());
         AppDependencyListResponse response = new AppDependencyListResponse();
         response.setItems(dependencies.stream().map(this::toResponse).toList());
         return ResponseEntity.ok(response);
     }
 
     @Override
-    @RequiresPermission(action = "viewer", resource = "app", resourceId = "#appId")
-    public ResponseEntity<DependencyGraphResponse> getAppDependencyGraph(UUID appId) {
-        DependencyGraphResponse response = dependencyService.getDependencyGraph(appId);
+    public ResponseEntity<DependencyGraphResponse> getAppDependencyGraph(String appId) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("viewer", app.getId());
+        DependencyGraphResponse response = dependencyService.getDependencyGraph(app.getId());
         return ResponseEntity.ok(response);
     }
 
     @Override
-    @RequiresPermission(action = "viewer", resource = "app", resourceId = "#appId")
     public ResponseEntity<DependencyImpactResponse> getAppDependencyImpact(
-            UUID appId, UUID depAppId) {
-        DependencyImpactResponse response = dependencyService.getImpact(appId, depAppId);
+            String appId, UUID depAppId) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("viewer", app.getId());
+        DependencyImpactResponse response = dependencyService.getImpact(app.getId(), depAppId);
         return ResponseEntity.ok(response);
     }
 
     @Override
-    @RequiresPermission(action = "viewer", resource = "app", resourceId = "#appId")
-    public ResponseEntity<AppProblemsResponse> listAppProblems(UUID appId) {
-        AppProblemsResponse response = validationService.validate(appId);
+    public ResponseEntity<AppProblemsResponse> listAppProblems(String appId) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("viewer", app.getId());
+        AppProblemsResponse response = validationService.validate(app.getId());
         return ResponseEntity.ok(response);
+    }
+
+    private void checkAppPermission(String action, UUID resourceId) {
+        var tenantInfo = TenantContext.getTenantInformation();
+        if (tenantInfo.platformAdmin()) {
+            return;
+        }
+        UUID userId = TenantContext.getCurrentUserId();
+        var request = new CheckPermissionRequest(userId, action, "app", resourceId);
+        if (!permissionService.check(request)) {
+            throw new AccessDeniedException("Insufficient permissions");
+        }
     }
 
     private AppDependencyResponse toResponse(AppDependency dependency) {

@@ -96,16 +96,16 @@ public class TestSecurityConfiguration {
                             new TenantInformation(UUID.fromString(tenantIdHeader), false);
                     String userIdHeader = request.getHeader(TEST_USER_ID_HEADER);
                     Object principal = (userIdHeader != null && !userIdHeader.isBlank())
-                            ? userIdHeader
-                            : "test-tenant-user";
+                            ? UUID.fromString(userIdHeader)
+                            : UUID.fromString("00000000-0000-0000-0000-000000000099");
                     auth = new TenantAwareAuthentication(
                             tenantUser, principal, List.of());
                 } else {
                     TenantInformation platformAdmin = new TenantInformation(null, true);
                     String userIdHeader = request.getHeader(TEST_USER_ID_HEADER);
                     Object principal = (userIdHeader != null && !userIdHeader.isBlank())
-                            ? userIdHeader
-                            : "test-platform-admin";
+                            ? UUID.fromString(userIdHeader)
+                            : UUID.fromString("00000000-0000-0000-0000-000000000098");
                     auth = new TenantAwareAuthentication(
                             platformAdmin, principal, List.of());
                 }

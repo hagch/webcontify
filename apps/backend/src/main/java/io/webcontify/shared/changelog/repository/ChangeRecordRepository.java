@@ -25,4 +25,6 @@ public interface ChangeRecordRepository extends JpaRepository<ChangeRecordEntity
 
     List<ChangeRecordEntity> findByEntityTypeAndEntityIdInAndDraftVersionIsNotNullOrderByCreatedAtDesc(
             String entityType, List<UUID> entityIds);
+
+    long countByEntityTypeAndEntityIdAndDraftVersionIsNotNull(String entityType, UUID entityId);
 }

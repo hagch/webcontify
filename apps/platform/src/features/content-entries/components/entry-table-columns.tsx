@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { format as formatDateFns } from "date-fns";
 import type {
   FieldDefinitionResponse,
-  ContentEntryResponse,
+  ContentDefinitionResponse,
+  DateFieldConfig,
+  ReferenceFieldConfig,
 } from "@/generated/content";
 
 interface FieldCellRendererProps {
@@ -12,6 +15,7 @@ interface FieldCellRendererProps {
   value: unknown;
   appSlug: string;
   defSlug: string;
+  allDefinitions?: ContentDefinitionResponse[];
 }
 
 /**
@@ -23,6 +27,7 @@ export function FieldCellRenderer({
   value,
   appSlug,
   defSlug,
+  allDefinitions,
 }: FieldCellRendererProps) {
   if (value == null) {
     return <span className="text-muted-foreground">-</span>;
@@ -39,12 +44,14 @@ export function FieldCellRenderer({
         </Badge>
       );
 
-    case "DATE":
+    case "DATE": {
+      const dateConfig = field.config as DateFieldConfig | undefined;
       return (
         <span data-testid={`cell-${field.fieldKey}`}>
-          {formatDate(String(value))}
+          {formatDate(String(value), dateConfig?.dateFormat)}
         </span>
       );
+    }
 
     case "ENUM":
       return (
@@ -60,9 +67,14 @@ export function FieldCellRenderer({
       // Value can be a UUID string or an object { id, display }
       if (typeof value === "object" && value !== null && "display" in value) {
         const ref = value as { id: string; display: string };
+        const refConfig = field.config as ReferenceFieldConfig | undefined;
+        const targetDef = allDefinitions?.find(
+          (d) => d.id === refConfig?.targetDefinitionId
+        );
+        const targetSlug = targetDef?.slug ?? defSlug;
         return (
           <Link
-            href={`/apps/${appSlug}/content/${defSlug}/entries/${ref.id}`}
+            href={`/apps/${appSlug}/data/${targetSlug}/${ref.id}`}
             className="text-primary hover:underline"
             data-testid={`cell-${field.fieldKey}-link`}
           >
@@ -135,8 +147,11 @@ export function buildTableColumns(fields: FieldDefinitionResponse[]) {
     }));
 }
 
-function formatDate(dateString: string): string {
+function formatDate(dateString: string, dateFormat?: string): string {
   try {
+    if (dateFormat) {
+      return formatDateFns(new Date(dateString), dateFormat);
+    }
     return new Intl.DateTimeFormat("en-US", {
       year: "numeric",
       month: "short",

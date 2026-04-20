@@ -11,6 +11,9 @@ import io.webcontify.app.model.App;
 import io.webcontify.app.model.AppDependency;
 import io.webcontify.app.model.AppSnapshot;
 import io.webcontify.app.model.AppStatus;
+import io.webcontify.generated.model.DependencyGraphEdge;
+import io.webcontify.generated.model.DependencyGraphNode;
+import io.webcontify.generated.model.DependencyGraphResponse;
 import io.webcontify.shared.filestorage.FileStorageService;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -54,6 +57,7 @@ class AppSnapshotServiceTest {
 
         when(dependencyService.listDependencies(appId)).thenReturn(List.of());
         when(contentSnapshotProvider.getSnapshotDefinitions(appId)).thenReturn(List.of());
+        when(dependencyService.getDependencyGraph(appId)).thenReturn(emptyGraphResponse());
 
         AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "1.0.0");
 
@@ -74,11 +78,14 @@ class AppSnapshotServiceTest {
 
         when(dependencyService.listDependencies(appId)).thenReturn(List.of());
         when(contentSnapshotProvider.getSnapshotDefinitions(appId)).thenReturn(List.of());
+        when(dependencyService.getDependencyGraph(appId)).thenReturn(emptyGraphResponse());
 
         AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "0.1.0");
 
         assertThat(snapshot.dependencies()).isEmpty();
         assertThat(snapshot.contentDefinitions()).isEmpty();
+        assertThat(snapshot.graphNodes()).isEmpty();
+        assertThat(snapshot.graphEdges()).isEmpty();
     }
 
     @Test
@@ -101,6 +108,7 @@ class AppSnapshotServiceTest {
 
         when(dependencyService.listDependencies(appId)).thenReturn(List.of(directDep, transitiveDep));
         when(contentSnapshotProvider.getSnapshotDefinitions(appId)).thenReturn(List.of());
+        when(dependencyService.getDependencyGraph(appId)).thenReturn(emptyGraphResponse());
 
         AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "1.0.0");
 
@@ -127,6 +135,7 @@ class AppSnapshotServiceTest {
 
         when(dependencyService.listDependencies(appId)).thenReturn(List.of());
         when(contentSnapshotProvider.getSnapshotDefinitions(appId)).thenReturn(List.of(snapshotDef));
+        when(dependencyService.getDependencyGraph(appId)).thenReturn(emptyGraphResponse());
 
         AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "1.0.0");
 
@@ -158,6 +167,8 @@ class AppSnapshotServiceTest {
                 appId.toString(),
                 "1.0.0",
                 new AppSnapshot.AppSnapshotMetadata("Test App", "test-app", "desc"),
+                List.of(),
+                List.of(),
                 List.of(),
                 List.of());
 
@@ -248,5 +259,87 @@ class AppSnapshotServiceTest {
         assertThat(def.fields().get(0).fieldKey()).isEqualTo("title");
         assertThat(def.fields().get(0).fieldType()).isEqualTo("TEXT");
         assertThat(def.fields().get(0).required()).isTrue();
+    }
+
+    @Test
+    void shouldBuildSnapshotWithGraphTopology() {
+        UUID appId = UUID.randomUUID();
+        UUID depAppId = UUID.randomUUID();
+        App app = new App();
+        app.setId(appId);
+        app.setName("Test App");
+        app.setSlug("test-app");
+
+        when(dependencyService.listDependencies(appId)).thenReturn(List.of());
+        when(contentSnapshotProvider.getSnapshotDefinitions(appId)).thenReturn(List.of());
+
+        DependencyGraphNode rootNode = new DependencyGraphNode();
+        rootNode.setId(appId);
+        rootNode.setAccessible(true);
+        rootNode.setName("Test App");
+        rootNode.setSlug("test-app");
+        rootNode.setStatus(io.webcontify.generated.model.AppStatus.ACTIVE);
+        rootNode.setIsCurrent(true);
+
+        DependencyGraphNode depNode = new DependencyGraphNode();
+        depNode.setId(depAppId);
+        depNode.setAccessible(true);
+        depNode.setName("Dep App");
+        depNode.setSlug("dep-app");
+        depNode.setStatus(io.webcontify.generated.model.AppStatus.ACTIVE);
+        depNode.setIsCurrent(false);
+
+        DependencyGraphEdge edge = new DependencyGraphEdge();
+        edge.setSource(appId);
+        edge.setTarget(depAppId);
+        edge.setDirect(true);
+
+        DependencyGraphResponse graphResponse = new DependencyGraphResponse();
+        graphResponse.setNodes(List.of(rootNode, depNode));
+        graphResponse.setEdges(List.of(edge));
+        when(dependencyService.getDependencyGraph(appId)).thenReturn(graphResponse);
+
+        AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "1.0.0");
+
+        assertThat(snapshot.graphNodes()).hasSize(2);
+        assertThat(snapshot.graphNodes().get(0).id()).isEqualTo(appId.toString());
+        assertThat(snapshot.graphNodes().get(0).accessible()).isTrue();
+        assertThat(snapshot.graphNodes().get(0).name()).isEqualTo("Test App");
+        assertThat(snapshot.graphNodes().get(0).isCurrent()).isTrue();
+        assertThat(snapshot.graphNodes().get(1).id()).isEqualTo(depAppId.toString());
+
+        assertThat(snapshot.graphEdges()).hasSize(1);
+        assertThat(snapshot.graphEdges().get(0).source()).isEqualTo(appId.toString());
+        assertThat(snapshot.graphEdges().get(0).target()).isEqualTo(depAppId.toString());
+        assertThat(snapshot.graphEdges().get(0).direct()).isTrue();
+    }
+
+    @Test
+    void shouldDeserializeOldSnapshotWithoutGraphFields() {
+        UUID appId = UUID.randomUUID();
+        String json = """
+                {
+                    "appId": "%s",
+                    "version": "1.0.0",
+                    "metadata": {"name": "Test App", "slug": "test-app", "description": "desc"},
+                    "dependencies": [],
+                    "contentDefinitions": []
+                }
+                """.formatted(appId);
+
+        when(fileStorageService.getObject("tenant-test", "files/snapshots/old.json"))
+                .thenReturn(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+
+        AppSnapshot result = appSnapshotService.downloadSnapshot("tenant-test", "files/snapshots/old.json");
+
+        assertThat(result.graphNodes()).isNull();
+        assertThat(result.graphEdges()).isNull();
+    }
+
+    private DependencyGraphResponse emptyGraphResponse() {
+        DependencyGraphResponse response = new DependencyGraphResponse();
+        response.setNodes(List.of());
+        response.setEdges(List.of());
+        return response;
     }
 }

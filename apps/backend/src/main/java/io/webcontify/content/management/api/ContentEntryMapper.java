@@ -5,9 +5,7 @@ import io.webcontify.content.management.model.EntryHistoryRecord;
 import io.webcontify.content.management.model.EntryReference;
 import io.webcontify.content.management.query.CursorPage;
 import io.webcontify.generated.model.*;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,6 +16,10 @@ import org.springframework.stereotype.Component;
 public class ContentEntryMapper {
 
     public ContentEntryResponse toResponse(ContentEntry entry) {
+        return toResponse(entry, Map.of());
+    }
+
+    public ContentEntryResponse toResponse(ContentEntry entry, Map<UUID, String> displayNames) {
         ContentEntryResponse response = new ContentEntryResponse();
         response.setId(entry.getId());
         response.setVersion(entry.getVersion());
@@ -26,12 +28,14 @@ public class ContentEntryMapper {
         response.setUpdatedAt(entry.getUpdatedAt());
         response.setCreatedBy(entry.getCreatedBy());
         response.setUpdatedBy(entry.getUpdatedBy());
+        response.setCreatedByName(entry.getCreatedBy() != null ? displayNames.get(entry.getCreatedBy()) : null);
+        response.setUpdatedByName(entry.getUpdatedBy() != null ? displayNames.get(entry.getUpdatedBy()) : null);
         return response;
     }
 
-    public ContentEntryListResponse toListResponse(CursorPage<ContentEntry> page) {
+    public ContentEntryListResponse toListResponse(CursorPage<ContentEntry> page, Map<UUID, String> displayNames) {
         ContentEntryListResponse response = new ContentEntryListResponse();
-        response.setItems(page.items().stream().map(this::toResponse).toList());
+        response.setItems(page.items().stream().map(e -> toResponse(e, displayNames)).toList());
         response.setNextCursor(page.nextCursor());
         response.setHasNext(page.hasNext());
         return response;
@@ -52,7 +56,7 @@ public class ContentEntryMapper {
         return response;
     }
 
-    public EntryHistoryResponse toHistoryResponse(EntryHistoryRecord record) {
+    public EntryHistoryResponse toHistoryResponse(EntryHistoryRecord record, Map<UUID, String> displayNames) {
         EntryHistoryResponse response = new EntryHistoryResponse();
         response.setId(record.id());
         response.setEntryId(record.entryId());
@@ -69,12 +73,13 @@ public class ContentEntryMapper {
         }
         response.setChangedAt(record.changedAt());
         response.setChangedBy(record.changedBy());
+        response.setChangedByName(record.changedBy() != null ? displayNames.get(record.changedBy()) : null);
         return response;
     }
 
-    public EntryHistoryListResponse toHistoryListResponse(CursorPage<EntryHistoryRecord> page) {
+    public EntryHistoryListResponse toHistoryListResponse(CursorPage<EntryHistoryRecord> page, Map<UUID, String> displayNames) {
         EntryHistoryListResponse response = new EntryHistoryListResponse();
-        response.setItems(page.items().stream().map(this::toHistoryResponse).toList());
+        response.setItems(page.items().stream().map(r -> toHistoryResponse(r, displayNames)).toList());
         response.setNextCursor(page.nextCursor());
         response.setHasNext(page.hasNext());
         return response;

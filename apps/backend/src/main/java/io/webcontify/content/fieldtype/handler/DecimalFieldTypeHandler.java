@@ -50,10 +50,10 @@ public class DecimalFieldTypeHandler implements FieldTypeHandler {
             try {
                 return new BigDecimal(s);
             } catch (NumberFormatException e) {
-                throw validationError("value", "entry.field.invalid_decimal");
+                throw validationError("value", "backendError.invalid_decimal");
             }
         }
-        throw validationError("value", "entry.field.invalid_decimal");
+        throw validationError("value", "backendError.invalid_decimal");
     }
 
     @Override
@@ -63,10 +63,10 @@ public class DecimalFieldTypeHandler implements FieldTypeHandler {
         var v = (BigDecimal) value;
 
         if (c.min() != null && v.compareTo(c.min()) < 0) {
-            throw validationError("value", "entry.field.below_min");
+            throw validationError("value", "backendError.below_min");
         }
         if (c.max() != null && v.compareTo(c.max()) > 0) {
-            throw validationError("value", "entry.field.exceeds_max");
+            throw validationError("value", "backendError.exceeds_max");
         }
     }
 

@@ -9,6 +9,12 @@ import io.webcontify.app.repository.entity.AppEntity;
 import io.webcontify.app.repository.entity.AppVersionEntity;
 import io.webcontify.generated.model.VersionDiffEntry;
 import io.webcontify.generated.model.VersionDiffResponse;
+import io.webcontify.generated.model.VersionSchemaDefinition;
+import io.webcontify.generated.model.VersionSchemaDependency;
+import io.webcontify.generated.model.VersionSchemaField;
+import io.webcontify.generated.model.VersionSchemaGraphEdge;
+import io.webcontify.generated.model.VersionSchemaGraphNode;
+import io.webcontify.generated.model.VersionSchemaResponse;
 import io.webcontify.shared.changelog.service.ChangeRecordService;
 import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
@@ -220,6 +226,85 @@ public class AppVersionService {
         response.setVersion(versionEntity.getVersion());
         response.setChanges(changes);
         response.setHasChanges(!changes.isEmpty());
+        return response;
+    }
+
+    @Transactional(readOnly = true)
+    public VersionSchemaResponse getVersionSchema(UUID appId, UUID versionId) {
+        var tenantInfo = TenantContext.getTenantInformation();
+        AppVersionEntity versionEntity = appVersionRepository.findByIdAndAppId(versionId, appId)
+                .orElseThrow(() -> new NotFoundException("app.version.not_found"));
+
+        String tenantSlug = tenantSlugResolver.resolveSlugByTenantId(tenantInfo.tenantId())
+                .orElseThrow(() -> new NotFoundException("tenant.not_found"));
+        String bucketName = "tenant-" + tenantSlug;
+
+        AppSnapshot snapshot = appSnapshotService.downloadSnapshot(bucketName, versionEntity.getS3Key());
+
+        List<VersionSchemaDefinition> definitions = snapshot.contentDefinitions().stream()
+                .map(def -> {
+                    var definition = new VersionSchemaDefinition();
+                    definition.setId(def.id());
+                    definition.setName(def.name());
+                    definition.setSlug(def.slug());
+                    definition.setDescription(def.description());
+                    definition.setDisplayFormat(def.displayFormat());
+                    definition.setFields(def.fields().stream()
+                            .map(f -> {
+                                var field = new VersionSchemaField();
+                                field.setId(f.id());
+                                field.setFieldKey(f.fieldKey());
+                                field.setFieldType(f.fieldType());
+                                field.setRequired(f.required());
+                                field.setUniqueValue(f.uniqueValue());
+                                field.setSortable(f.sortable());
+                                field.setFilterable(f.filterable());
+                                field.setConfig(f.config());
+                                field.setPosition(f.position());
+                                return field;
+                            })
+                            .toList());
+                    return definition;
+                })
+                .toList();
+
+        List<VersionSchemaDependency> dependencies = snapshot.dependencies().stream()
+                .map(dep -> {
+                    var dependency = new VersionSchemaDependency();
+                    dependency.setAppSlug(dep.appSlug());
+                    dependency.setVersion(dep.version());
+                    return dependency;
+                })
+                .toList();
+
+        List<VersionSchemaGraphNode> graphNodes = (snapshot.graphNodes() != null
+                ? snapshot.graphNodes()
+                : List.<AppSnapshot.AppSnapshotGraphNode>of()).stream()
+                .map(n -> new VersionSchemaGraphNode()
+                        .id(UUID.fromString(n.id()))
+                        .accessible(n.accessible())
+                        .name(n.name())
+                        .slug(n.slug())
+                        .status(n.status())
+                        .isCurrent(n.isCurrent()))
+                .toList();
+
+        List<VersionSchemaGraphEdge> graphEdges = (snapshot.graphEdges() != null
+                ? snapshot.graphEdges()
+                : List.<AppSnapshot.AppSnapshotGraphEdge>of()).stream()
+                .map(e -> new VersionSchemaGraphEdge()
+                        .source(UUID.fromString(e.source()))
+                        .target(UUID.fromString(e.target()))
+                        .direct(e.direct()))
+                .toList();
+
+        var response = new VersionSchemaResponse();
+        response.setVersionId(versionId);
+        response.setVersion(versionEntity.getVersion());
+        response.setContentDefinitions(definitions);
+        response.setDependencies(dependencies);
+        response.setGraphNodes(graphNodes);
+        response.setGraphEdges(graphEdges);
         return response;
     }
 

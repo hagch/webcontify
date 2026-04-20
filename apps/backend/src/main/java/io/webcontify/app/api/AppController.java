@@ -6,8 +6,11 @@ import io.webcontify.app.model.AppStatus;
 import io.webcontify.app.service.AppService;
 import io.webcontify.generated.api.AppApi;
 import io.webcontify.generated.model.*;
+import io.webcontify.identity.model.CheckPermissionRequest;
 import io.webcontify.identity.security.RequiresPermission;
 import io.webcontify.identity.service.PermissionService;
+import io.webcontify.shared.security.TenantContext;
+import org.springframework.security.access.AccessDeniedException;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -63,33 +66,36 @@ public class AppController implements AppApi {
     }
 
     @Override
-    @RequiresPermission(action = "viewer", resource = "app", resourceId = "#appId")
-    public ResponseEntity<AppResponse> getApp(UUID appId) {
-        App app = appService.getById(appId);
+    public ResponseEntity<AppResponse> getApp(String appId) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("viewer", app.getId());
         return ResponseEntity.ok(toResponseWithPermissions(app));
     }
 
     @Override
-    @RequiresPermission(action = "editor", resource = "app", resourceId = "#appId")
-    public ResponseEntity<AppResponse> updateApp(UUID appId, UpdateAppRequest updateAppRequest) {
+    public ResponseEntity<AppResponse> updateApp(String appId, UpdateAppRequest updateAppRequest) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("editor", app.getId());
         App update = appMapper.toDomain(updateAppRequest);
-        App updated = appService.update(appId, update);
+        App updated = appService.update(app.getId(), update);
         return ResponseEntity.ok(toResponseWithPermissions(updated));
     }
 
     @Override
-    @RequiresPermission(action = "admin", resource = "app", resourceId = "#appId")
     public ResponseEntity<AppResponse> updateAppStatus(
-            UUID appId, UpdateAppStatusRequest updateAppStatusRequest) {
+            String appId, UpdateAppStatusRequest updateAppStatusRequest) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("admin", app.getId());
         AppStatus status = AppStatus.valueOf(updateAppStatusRequest.getStatus().getValue());
-        App updated = appService.updateStatus(appId, status);
+        App updated = appService.updateStatus(app.getId(), status);
         return ResponseEntity.ok(toResponseWithPermissions(updated));
     }
 
     @Override
-    @RequiresPermission(action = "admin", resource = "app", resourceId = "#appId")
-    public ResponseEntity<Void> deleteApp(UUID appId) {
-        appService.delete(appId);
+    public ResponseEntity<Void> deleteApp(String appId) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("admin", app.getId());
+        appService.delete(app.getId());
         return ResponseEntity.noContent().build();
     }
 
@@ -103,12 +109,25 @@ public class AppController implements AppApi {
     }
 
     @Override
-    @RequiresPermission(action = "viewer", resource = "app", resourceId = "#appId")
     public ResponseEntity<CheckNewAppNameAvailability200Response> checkAppNameAvailability(
-            UUID appId, String name) {
+            String appId, String name) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("viewer", app.getId());
         CheckNewAppNameAvailability200Response response =
                 new CheckNewAppNameAvailability200Response(appService.isNameAvailable(name));
         return ResponseEntity.ok(response);
+    }
+
+    private void checkAppPermission(String action, UUID resourceId) {
+        var tenantInfo = TenantContext.getTenantInformation();
+        if (tenantInfo.platformAdmin()) {
+            return;
+        }
+        UUID userId = TenantContext.getCurrentUserId();
+        var request = new CheckPermissionRequest(userId, action, "app", resourceId);
+        if (!permissionService.check(request)) {
+            throw new AccessDeniedException("Insufficient permissions");
+        }
     }
 
     private AppResponse toResponseWithPermissions(App app) {

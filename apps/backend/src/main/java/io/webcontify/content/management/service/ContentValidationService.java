@@ -59,14 +59,14 @@ public class ContentValidationService {
                 try {
                     castedValue = handler.cast(rawValue, field.getConfig());
                 } catch (Exception e) {
-                    errors.add(new FieldError(columnName, "entry.field.invalid_value"));
+                    errors.add(new FieldError(columnName, "backendError.invalid_value"));
                     continue;
                 }
             }
 
             // Required check
             if (field.isRequired() && castedValue == null) {
-                errors.add(new FieldError(columnName, "entry.field.required"));
+                errors.add(new FieldError(columnName, "backendError.required"));
                 continue;
             }
 
@@ -75,7 +75,7 @@ public class ContentValidationService {
                 try {
                     handler.validateValue(castedValue, field.getConfig());
                 } catch (Exception e) {
-                    errors.add(new FieldError(columnName, "entry.field.invalid_value"));
+                    errors.add(new FieldError(columnName, "backendError.invalid_value"));
                     continue;
                 }
             }

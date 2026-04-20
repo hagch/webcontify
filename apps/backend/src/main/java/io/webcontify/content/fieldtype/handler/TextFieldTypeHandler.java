@@ -68,13 +68,13 @@ public class TextFieldTypeHandler implements FieldTypeHandler {
         var str = (String) value;
 
         if (c.minLength() != null && str.length() < c.minLength()) {
-            throw validationError("value", "entry.field.below_min_length");
+            throw validationError("value", "backendError.below_min_length");
         }
         if (c.maxLength() != null && str.length() > c.maxLength()) {
-            throw validationError("value", "entry.field.exceeds_max_length");
+            throw validationError("value", "backendError.exceeds_max_length");
         }
         if (c.pattern() != null && !Pattern.matches(c.pattern(), str)) {
-            throw validationError("value", "entry.field.pattern_mismatch");
+            throw validationError("value", "backendError.pattern_mismatch");
         }
     }
 

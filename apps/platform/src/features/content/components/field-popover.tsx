@@ -40,6 +40,7 @@ import {
   type ProblemDetail,
   type ValidationProblemDetail,
 } from "@/generated/content";
+import { getGetAppQueryKey } from "@/generated/app";
 import { fieldKeySchema } from "../schemas/content-schemas";
 import { FieldConfigForm } from "./field-config-form";
 
@@ -96,9 +97,10 @@ export function FieldPopover({
   const { data: defData } = useGetContentDefinition(appSlug, definitionId, {
     query: { enabled: open && !!definitionId },
   });
+  const defResponse = defData?.data && "fields" in defData.data ? defData.data : undefined;
   const field = useMemo(
-    () => defData?.data?.fields?.find((f) => f.id === fieldId),
-    [defData, fieldId]
+    () => defResponse?.fields?.find((f) => f.id === fieldId),
+    [defResponse, fieldId]
   );
 
   const updateField = useUpdateField();
@@ -116,21 +118,21 @@ export function FieldPopover({
     },
   });
 
-  // Populate form when field changes — track previous field to detect transitions
-  const [prevField, setPrevField] = useState(field);
-  if (field && field !== prevField) {
+  // Populate form when the selected field changes — track which fieldId the
+  // form was last reset for. This avoids resetting on React Query background
+  // refetches (which create new object references for the same data).
+  const [resetForFieldId, setResetForFieldId] = useState<string | null>(null);
+  if (field && resetForFieldId !== fieldId) {
     form.reset({
       fieldKey: field.fieldKey,
       required: field.required,
       unique: field.unique,
       sortable: field.sortable,
       filterable: field.filterable,
-      config: (field.config as Record<string, unknown>) ?? {},
+      config: (field.config as unknown as Record<string, unknown>) ?? {},
     });
     setConfirmDelete(false);
-  }
-  if (field !== prevField) {
-    setPrevField(field);
+    setResetForFieldId(fieldId);
   }
 
   async function onSubmit(values: EditFieldForm) {
@@ -153,6 +155,9 @@ export function FieldPopover({
         toast.success(t("field.editSuccess"));
         queryClient.invalidateQueries({
           queryKey: getListContentDefinitionsQueryKey(appSlug),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getGetAppQueryKey(appSlug),
         });
         onOpenChange(false);
       }
@@ -187,6 +192,9 @@ export function FieldPopover({
       toast.success(t("field.deleteSuccess"));
       queryClient.invalidateQueries({
         queryKey: getListContentDefinitionsQueryKey(appSlug),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getGetAppQueryKey(appSlug),
       });
       onOpenChange(false);
     } catch (error: unknown) {
@@ -489,6 +497,9 @@ export function AddFieldPopover({
         queryClient.invalidateQueries({
           queryKey: getListContentDefinitionsQueryKey(appSlug),
         });
+        queryClient.invalidateQueries({
+          queryKey: getGetAppQueryKey(appSlug),
+        });
         form.reset();
         onOpenChange(false);
         onSuccess?.();
@@ -553,7 +564,7 @@ export function AddFieldPopover({
                     value={field.value}
                     onValueChange={(val) => {
                       field.onChange(val);
-                      if (isRelationType(val)) {
+                      if (val && isRelationType(val)) {
                         form.setValue("config", {});
                       } else {
                         form.setValue("targetDefinitionId", "");

@@ -1,17 +1,18 @@
 "use client";
 
 import { use, useState } from "react";
-import { notFound } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Loader2 } from "lucide-react";
+import { Loader2, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { AppHeader } from "@/components/layout/app-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   useGetApp,
   useUpdateApp,
@@ -30,17 +30,10 @@ import {
   getGetAppQueryKey,
   type AppResponse,
 } from "@/generated/app";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Pencil, X } from "lucide-react";
-import { PublishAppDialog } from "@/features/apps/components/publish-app-dialog";
-import { AppVersionList } from "@/features/apps/components/app-version-list";
-import { AppRevisionList } from "@/features/apps/components/app-revision-list";
-import { AppDependencyGraph } from "@/features/apps/components/app-dependency-graph";
-import { ContentDefinitionGraph } from "@/features/content/components/content-definition-graph";
-import { AppProblemsPanel } from "@/features/apps/components/app-problems-panel";
-import { useListAppProblems } from "@/generated/app";
 import type { AppResponseEffectiveActionsItem } from "@/generated/app";
+import { AppProblemsPanel } from "@/features/apps/components/app-problems-panel";
+import { AppPublishAction } from "@/features/apps/components/app-publish-action";
+import { VersionInfoBar } from "@/components/layout/version-info-bar";
 
 function isAppResponse(data: unknown): data is AppResponse {
   return (
@@ -58,7 +51,9 @@ function formatDate(dateString: string): string {
   }).format(new Date(dateString));
 }
 
-function statusBadgeVariant(status: string): "default" | "outline" | "secondary" {
+function statusBadgeVariant(
+  status: string,
+): "default" | "outline" | "secondary" {
   switch (status) {
     case "DRAFT":
       return "outline";
@@ -71,31 +66,28 @@ function statusBadgeVariant(status: string): "default" | "outline" | "secondary"
   }
 }
 
-export default function AppDetailPage({
+export default function OverviewPage({
   params,
 }: {
-  params: Promise<{ appId: string }>;
+  params: Promise<{ appSlug: string }>;
 }) {
-  const { appId } = use(params);
+  const { appSlug } = use(params);
   const router = useRouter();
   const t = useTranslations("apps");
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [pendingStatus, setPendingStatus] = useState<"ACTIVE" | "INACTIVE" | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<
+    "ACTIVE" | "INACTIVE" | null
+  >(null);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
 
-  const { data, isLoading, error } = useGetApp(appId);
+  const { data, isLoading, error } = useGetApp(appSlug);
   const updateApp = useUpdateApp();
   const updateStatus = useUpdateAppStatus();
   const deleteApp = useDeleteApp();
-  const { data: problemsData } = useListAppProblems(appId);
-  const problemsResponse = problemsData?.data;
-  const hasErrors = problemsResponse && "errorCount" in problemsResponse
-    ? problemsResponse.errorCount > 0
-    : false;
 
   const rawData = data?.data;
   const app = isAppResponse(rawData) ? rawData : undefined;
@@ -110,7 +102,7 @@ export default function AppDetailPage({
 
   function invalidateQueries() {
     queryClient.invalidateQueries({ queryKey: getListAppsQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getGetAppQueryKey(appId) });
+    queryClient.invalidateQueries({ queryKey: getGetAppQueryKey(appSlug) });
   }
 
   function startEditing() {
@@ -127,7 +119,13 @@ export default function AppDetailPage({
   function saveEdit() {
     if (!editName.trim()) return;
     updateApp.mutate(
-      { appId, data: { name: editName.trim(), description: editDescription.trim() || undefined } },
+      {
+        appId: app!.id,
+        data: {
+          name: editName.trim(),
+          description: editDescription.trim() || undefined,
+        },
+      },
       {
         onSuccess: () => {
           invalidateQueries();
@@ -142,7 +140,7 @@ export default function AppDetailPage({
             toast.error(t("detail.editError"));
           }
         },
-      }
+      },
     );
   }
 
@@ -154,7 +152,7 @@ export default function AppDetailPage({
   function confirmStatusChange() {
     if (!pendingStatus) return;
     updateStatus.mutate(
-      { appId, data: { status: pendingStatus } },
+      { appId: app!.id, data: { status: pendingStatus } },
       {
         onSuccess: () => {
           invalidateQueries();
@@ -165,16 +163,18 @@ export default function AppDetailPage({
         onError: () => {
           toast.error(t("detail.statusChangeError"));
         },
-      }
+      },
     );
   }
 
   function handleDelete() {
     deleteApp.mutate(
-      { appId },
+      { appId: app!.id },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListAppsQueryKey() });
+          queryClient.invalidateQueries({
+            queryKey: getListAppsQueryKey(),
+          });
           setDeleteDialogOpen(false);
           toast.success(t("detail.deleteSuccess"));
           router.push("/apps");
@@ -182,7 +182,7 @@ export default function AppDetailPage({
         onError: () => {
           toast.error(t("detail.deleteError"));
         },
-      }
+      },
     );
   }
 
@@ -191,40 +191,33 @@ export default function AppDetailPage({
       <AppHeader
         mode="detail"
         breadcrumbs={[
-          { label: t("title"), href: "/apps" },
           {
             label: isLoading ? "..." : (app?.name ?? "App"),
-            suffix: app && !isLoading ? (
-              <div className="flex items-center gap-1.5">
-                <Badge variant={statusBadgeVariant(app.status)}>
-                  {t(`statusValues.${app.status}`)}
-                </Badge>
-                {app.hasDraft && (
-                  <Badge variant="outline" className="border-amber-500 text-amber-600">
-                    {t("hasDraft")}
+            suffix:
+              app && !isLoading ? (
+                <div className="flex items-center gap-1.5">
+                  <Badge variant={statusBadgeVariant(app.status)}>
+                    {t(`statusValues.${app.status}`)}
                   </Badge>
-                )}
-              </div>
-            ) : undefined,
+                  {app.hasDraft && (
+                    <Badge
+                      variant="outline"
+                      className="border-amber-500 text-amber-600"
+                    >
+                      {t("hasDraft")}
+                    </Badge>
+                  )}
+                </div>
+              ) : undefined,
           },
         ]}
-        actions={
-          app && !isLoading && canAdmin ? (
-            (app.status === "DRAFT" || app.hasDraft) ? (
-              hasErrors ? (
-                <Button size="sm" disabled title={t("problems.publishBlocked")}>
-                  {t("versions.publish")}
-                </Button>
-              ) : (
-                <PublishAppDialog appId={app.id}>
-                  <Button size="sm">{t("versions.publish")}</Button>
-                </PublishAppDialog>
-              )
-            ) : undefined
-          ) : undefined
-        }
+        actions={<AppPublishAction />}
       />
-      <div data-testid="app-detail-page" className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+      <VersionInfoBar />
+      <div
+        data-testid="app-detail-page"
+        className="flex flex-1 flex-col gap-6 p-4 md:p-6"
+      >
         {isLoading ? (
           <Card>
             <CardContent className="pt-6">
@@ -242,120 +235,133 @@ export default function AppDetailPage({
           </Card>
         ) : app ? (
           <>
-          <AppProblemsPanel appId={app.id} />
+            <AppProblemsPanel appId={app.id} />
 
-          <Tabs defaultValue="overview">
-            <TabsList>
-              <TabsTrigger value="overview">{t("detail.overview")}</TabsTrigger>
-              <TabsTrigger value="content">{t("detail.content")}</TabsTrigger>
-              <TabsTrigger value="dependencies">{t("dependencies.title")}</TabsTrigger>
-              <TabsTrigger value="versions">{t("versions.title")}</TabsTrigger>
-              <TabsTrigger value="revisions">{t("revisions.title")}</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview">
-              <div className="flex flex-col gap-6">
-                {/* Overview */}
-                <section className="rounded-lg border p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                      {t("detail.overviewSection")}
-                    </h2>
-                    {!editing ? (
-                      canEdit && (
-                        <Button variant="ghost" size="sm" onClick={startEditing}>
-                          <Pencil className="mr-1.5 size-3.5" />
-                          {t("edit")}
-                        </Button>
-                      )
-                    ) : (
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" onClick={cancelEditing} disabled={updateApp.isPending}>
-                          <X className="mr-1.5 size-3.5" />
-                          {t("detail.cancelEdit")}
-                        </Button>
-                        <Button size="sm" onClick={saveEdit} disabled={updateApp.isPending || !editName.trim()}>
-                          {updateApp.isPending && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
-                          {t("detail.saveEdit")}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {editing && (
-                      <div className="sm:col-span-2">
-                        <dt className="text-sm text-muted-foreground mb-1">
-                          {t("name")}
-                        </dt>
-                        <dd>
-                          <Input
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                            maxLength={255}
-                          />
-                        </dd>
-                      </div>
-                    )}
-                    <div className={editing ? "sm:col-span-2" : ""}>
-                      <dt className="text-sm text-muted-foreground">
-                        {t("detail.descriptionLabel")}
-                      </dt>
-                      <dd className="mt-1">
-                        {editing ? (
-                          <Textarea
-                            value={editDescription}
-                            onChange={(e) => setEditDescription(e.target.value)}
-                            maxLength={2000}
-                            rows={3}
-                          />
-                        ) : (
-                          <span className="font-medium">
-                            {app.description || t("detail.noDescription")}
-                          </span>
+            <div className="flex flex-col gap-6">
+              {/* Overview */}
+              <section className="rounded-lg border p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                    {t("detail.overviewSection")}
+                  </h2>
+                  {!editing ? (
+                    canEdit && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={startEditing}
+                      >
+                        <Pencil className="mr-1.5 size-3.5" />
+                        {t("edit")}
+                      </Button>
+                    )
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={cancelEditing}
+                        disabled={updateApp.isPending}
+                      >
+                        <X className="mr-1.5 size-3.5" />
+                        {t("detail.cancelEdit")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={saveEdit}
+                        disabled={
+                          updateApp.isPending || !editName.trim()
+                        }
+                      >
+                        {updateApp.isPending && (
+                          <Loader2 className="mr-1.5 size-3.5 animate-spin" />
                         )}
+                        {t("detail.saveEdit")}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {editing && (
+                    <div className="sm:col-span-2">
+                      <dt className="text-sm text-muted-foreground mb-1">
+                        {t("name")}
+                      </dt>
+                      <dd>
+                        <Input
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          maxLength={255}
+                        />
                       </dd>
                     </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">
-                        {t("detail.slugLabel")}
-                      </dt>
-                      <dd className="mt-1 font-mono text-sm">{app.slug}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">
-                        {t("detail.statusLabel")}
-                      </dt>
-                      <dd className="mt-1">
-                        <Badge variant={statusBadgeVariant(app.status)}>
-                          {t(`statusValues.${app.status}`)}
-                        </Badge>
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">
-                        {t("detail.versionLabel")}
-                      </dt>
-                      <dd className="mt-1 font-mono text-sm">
-                        {app.currentVersion ?? t("detail.noVersion")}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">
-                        {t("detail.createdAtLabel")}
-                      </dt>
-                      <dd className="mt-1 text-sm">{formatDate(app.createdAt)}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">
-                        {t("detail.updatedAtLabel")}
-                      </dt>
-                      <dd className="mt-1 text-sm">{formatDate(app.updatedAt)}</dd>
-                    </div>
-                  </dl>
-                </section>
+                  )}
+                  <div className={editing ? "sm:col-span-2" : ""}>
+                    <dt className="text-sm text-muted-foreground">
+                      {t("detail.descriptionLabel")}
+                    </dt>
+                    <dd className="mt-1">
+                      {editing ? (
+                        <Textarea
+                          value={editDescription}
+                          onChange={(e) =>
+                            setEditDescription(e.target.value)
+                          }
+                          maxLength={2000}
+                          rows={3}
+                        />
+                      ) : (
+                        <span className="font-medium">
+                          {app.description || t("detail.noDescription")}
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm text-muted-foreground">
+                      {t("detail.slugLabel")}
+                    </dt>
+                    <dd className="mt-1 font-mono text-sm">{app.slug}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm text-muted-foreground">
+                      {t("detail.statusLabel")}
+                    </dt>
+                    <dd className="mt-1">
+                      <Badge variant={statusBadgeVariant(app.status)}>
+                        {t(`statusValues.${app.status}`)}
+                      </Badge>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm text-muted-foreground">
+                      {t("detail.versionLabel")}
+                    </dt>
+                    <dd className="mt-1 font-mono text-sm">
+                      {app.currentVersion ?? t("detail.noVersion")}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm text-muted-foreground">
+                      {t("detail.createdAtLabel")}
+                    </dt>
+                    <dd className="mt-1 text-sm">
+                      {formatDate(app.createdAt)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm text-muted-foreground">
+                      {t("detail.updatedAtLabel")}
+                    </dt>
+                    <dd className="mt-1 text-sm">
+                      {formatDate(app.updatedAt)}
+                    </dd>
+                  </div>
+                </dl>
+              </section>
 
-                {/* Actions — only for admins */}
-                {canAdmin && (
+              {/* Actions -- only for admins */}
+              {canAdmin && (
                 <section className="rounded-lg border p-6">
                   <h2 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
                     {t("detail.actionsSection")}
@@ -395,30 +401,8 @@ export default function AppDetailPage({
                     </Button>
                   </div>
                 </section>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="content" className="flex-1">
-              <div className="h-[calc(100vh-9rem)]">
-                <ContentDefinitionGraph appSlug={app.slug} appId={app.id} canEdit={canEdit} />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="dependencies" className="flex-1">
-              <div className="h-[calc(100vh-9rem)]">
-                <AppDependencyGraph appId={app.id} />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="versions">
-              <AppVersionList appId={app.id} hasDraft={app.hasDraft ?? false} />
-            </TabsContent>
-
-            <TabsContent value="revisions">
-              <AppRevisionList appId={app.id} />
-            </TabsContent>
-          </Tabs>
+              )}
+            </div>
           </>
         ) : null}
       </div>

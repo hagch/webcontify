@@ -25,12 +25,7 @@ export function DecimalFieldInput<T extends FieldValues>({
   name,
   label,
   required,
-  min,
-  max,
-  scale,
 }: DecimalFieldInputProps<T>) {
-  const step = scale != null ? Math.pow(10, -scale) : 0.01;
-
   return (
     <FormField
       control={control}
@@ -44,15 +39,18 @@ export function DecimalFieldInput<T extends FieldValues>({
           <FormControl>
             <Input
               data-testid={`field-${name}`}
-              type="number"
-              step={step}
-              min={min}
-              max={max}
+              inputMode="decimal"
               {...field}
               value={field.value ?? ""}
               onChange={(e) => {
                 const val = e.target.value;
-                field.onChange(val === "" ? null : Number(val));
+                if (val === "") {
+                  field.onChange(null);
+                  return;
+                }
+                const normalized = val.replace(",", ".");
+                const num = Number(normalized);
+                field.onChange(Number.isNaN(num) ? field.value : num);
               }}
             />
           </FormControl>

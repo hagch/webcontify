@@ -59,7 +59,7 @@ class ContentValidationServiceTest {
                     var ve = (ValidationException) ex;
                     assertThat(ve.getFieldErrors()).hasSize(1);
                     assertThat(ve.getFieldErrors().get(0).field()).isEqualTo("cf_count");
-                    assertThat(ve.getFieldErrors().get(0).message()).isEqualTo("entry.field.invalid_value");
+                    assertThat(ve.getFieldErrors().get(0).message()).isEqualTo("backendError.invalid_value");
                 });
     }
 
@@ -75,7 +75,7 @@ class ContentValidationServiceTest {
                     var ve = (ValidationException) ex;
                     assertThat(ve.getFieldErrors()).hasSize(1);
                     assertThat(ve.getFieldErrors().get(0).field()).isEqualTo("cf_title");
-                    assertThat(ve.getFieldErrors().get(0).message()).isEqualTo("entry.field.required");
+                    assertThat(ve.getFieldErrors().get(0).message()).isEqualTo("backendError.required");
                 });
     }
 
@@ -92,7 +92,7 @@ class ContentValidationServiceTest {
                 .satisfies(ex -> {
                     var ve = (ValidationException) ex;
                     assertThat(ve.getFieldErrors()).hasSize(1);
-                    assertThat(ve.getFieldErrors().get(0).message()).isEqualTo("entry.field.invalid_value");
+                    assertThat(ve.getFieldErrors().get(0).message()).isEqualTo("backendError.invalid_value");
                 });
     }
 

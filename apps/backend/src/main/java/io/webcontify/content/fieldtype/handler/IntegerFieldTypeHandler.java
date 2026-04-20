@@ -51,10 +51,10 @@ public class IntegerFieldTypeHandler implements FieldTypeHandler {
             try {
                 return Long.parseLong(s);
             } catch (NumberFormatException e) {
-                throw validationError("value", "entry.field.invalid_integer");
+                throw validationError("value", "backendError.invalid_integer");
             }
         }
-        throw validationError("value", "entry.field.invalid_integer");
+        throw validationError("value", "backendError.invalid_integer");
     }
 
     @Override
@@ -64,10 +64,10 @@ public class IntegerFieldTypeHandler implements FieldTypeHandler {
         var v = (Long) value;
 
         if (c.min() != null && v < c.min()) {
-            throw validationError("value", "entry.field.below_min");
+            throw validationError("value", "backendError.below_min");
         }
         if (c.max() != null && v > c.max()) {
-            throw validationError("value", "entry.field.exceeds_max");
+            throw validationError("value", "backendError.exceeds_max");
         }
     }
 

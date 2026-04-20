@@ -120,7 +120,7 @@ describe("FieldCellRenderer", () => {
     expect(link).toHaveTextContent("John Doe");
     expect(link).toHaveAttribute(
       "href",
-      "/apps/my-app/content/posts/entries/550e8400-e29b-41d4-a716-446655440000"
+      "/apps/my-app/data/posts/550e8400-e29b-41d4-a716-446655440000"
     );
   });
 

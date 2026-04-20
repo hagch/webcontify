@@ -4,7 +4,6 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal, ArrowUp, ArrowDown, Eye, Pencil, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +33,6 @@ import {
   getListContentEntriesQueryKey,
 } from "@/generated/content";
 import { buildTableColumns, FieldCellRenderer } from "./entry-table-columns";
-import { EntryFormDialog } from "./entry-form-dialog";
 import { EntryDeleteDialog } from "./entry-delete-dialog";
 
 interface EntryTableProps {
@@ -61,7 +59,7 @@ export function EntryTable({
   const [sorts, setSorts] = useState<SortCriterion[]>([]);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [debouncedFilters, setDebouncedFilters] = useState<Record<string, string>>({});
-  const [allEntries, setAllEntries] = useState<ContentEntryResponse[]>([]);
+  const [loadedPages, setLoadedPages] = useState<ContentEntryResponse[][]>([]);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [deleteEntry, setDeleteEntry] = useState<ContentEntryResponse | null>(null);
   const filterTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -95,22 +93,16 @@ export function EntryTable({
   const hasNext = responseData?.hasNext ?? false;
   const nextCursor = responseData?.nextCursor;
 
-  // Accumulate entries for cursor pagination
+  // Accumulate pages for cursor pagination
   useEffect(() => {
     if (items.length > 0) {
       if (cursor) {
-        setAllEntries((prev) => {
-          const existingIds = new Set(prev.map((e) => e.id));
-          const newItems = items.filter(
-            (item: ContentEntryResponse) => !existingIds.has(item.id)
-          );
-          return [...prev, ...newItems];
-        });
+        setLoadedPages((prev) => [...prev, items]);
       } else {
-        setAllEntries(items);
+        setLoadedPages([items]);
       }
     } else if (!cursor) {
-      setAllEntries([]);
+      setLoadedPages([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
@@ -118,8 +110,13 @@ export function EntryTable({
   // Reset on sort/filter change
   useEffect(() => {
     setCursor(undefined);
-    setAllEntries([]);
+    setLoadedPages([]);
   }, [sortParam, debouncedFilters]);
+
+  // First page comes directly from query data, subsequent pages from accumulated state
+  const allEntries = cursor
+    ? loadedPages.flat()
+    : items;
 
   const columns = buildTableColumns(definition.fields);
 
@@ -224,7 +221,10 @@ export function EntryTable({
           </TableHeader>
           <TableBody>
             {allEntries.map((entry) => (
-              <TableRow key={entry.id} data-testid="entry-table-row">
+              <TableRow
+                key={entry.id}
+                data-testid="entry-table-row"
+              >
                 {columns.map((col) => (
                   <TableCell key={col.key}>
                     <FieldCellRenderer
@@ -232,6 +232,7 @@ export function EntryTable({
                       value={entry.values[col.key]}
                       appSlug={appSlug}
                       defSlug={definition.slug}
+                      allDefinitions={allDefinitions}
                     />
                   </TableCell>
                 ))}
@@ -251,29 +252,33 @@ export function EntryTable({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onSelect={() =>
+                        onClick={(e) => {
+                          e.stopPropagation();
                           router.push(
-                            `/apps/${appSlug}/content/${definition.slug}/entries/${entry.id}`
-                          )
-                        }
+                            `/apps/${appSlug}/data/${definition.slug}/${entry.id}`
+                          );
+                        }}
                       >
                         <Eye className="mr-2 size-4" />
                         {t("table.view")}
                       </DropdownMenuItem>
-                      <EntryFormDialog
-                        definition={definition}
-                        appSlug={appSlug}
-                        entry={entry}
-                        allDefinitions={allDefinitions}
-                      >
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <Pencil className="mr-2 size-4" />
-                          {t("table.edit")}
-                        </DropdownMenuItem>
-                      </EntryFormDialog>
                       <DropdownMenuItem
-                        onSelect={() => setDeleteEntry(entry)}
-                        className="text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(
+                            `/apps/${appSlug}/data/${definition.slug}/${entry.id}`
+                          );
+                        }}
+                      >
+                        <Pencil className="mr-2 size-4" />
+                        {t("table.edit")}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteEntry(entry);
+                        }}
                       >
                         <Trash2 className="mr-2 size-4" />
                         {t("table.delete")}

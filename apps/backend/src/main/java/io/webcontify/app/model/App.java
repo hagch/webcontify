@@ -13,6 +13,7 @@ public class App {
     private AppStatus status;
     private boolean hasDraft;
     private String currentVersion;
+    private long unpublishedChangeCount;
     private OffsetDateTime createdAt;
     private UUID createdBy;
     private OffsetDateTime updatedAt;
@@ -80,6 +81,14 @@ public class App {
 
     public void setCurrentVersion(String currentVersion) {
         this.currentVersion = currentVersion;
+    }
+
+    public long getUnpublishedChangeCount() {
+        return unpublishedChangeCount;
+    }
+
+    public void setUnpublishedChangeCount(long unpublishedChangeCount) {
+        this.unpublishedChangeCount = unpublishedChangeCount;
     }
 
     public OffsetDateTime getCreatedAt() {

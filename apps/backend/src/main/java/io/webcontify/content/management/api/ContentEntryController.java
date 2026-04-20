@@ -12,13 +12,14 @@ import io.webcontify.content.management.query.SortCriterion;
 import io.webcontify.content.management.service.ContentEntryService;
 import io.webcontify.generated.api.ContentEntryApi;
 import io.webcontify.generated.model.*;
+import io.webcontify.shared.UserDisplayNameProvider;
 import io.webcontify.shared.exception.NotFoundException;
 import io.webcontify.shared.model.TenantInformation;
 import io.webcontify.shared.security.TenantContext;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,13 +30,16 @@ public class ContentEntryController implements ContentEntryApi {
     private final ContentEntryService entryService;
     private final ContentEntryMapper entryMapper;
     private final AppRepository appRepository;
+    private final UserDisplayNameProvider userDisplayNameProvider;
 
     public ContentEntryController(ContentEntryService entryService,
                                   ContentEntryMapper entryMapper,
-                                  AppRepository appRepository) {
+                                  AppRepository appRepository,
+                                  UserDisplayNameProvider userDisplayNameProvider) {
         this.entryService = entryService;
         this.entryMapper = entryMapper;
         this.appRepository = appRepository;
+        this.userDisplayNameProvider = userDisplayNameProvider;
     }
 
     @Override
@@ -50,7 +54,8 @@ public class ContentEntryController implements ContentEntryApi {
                 tenant.tenantId(), tenant.slug(), appId, defSlug,
                 createContentEntryRequest.getValues(), userId);
 
-        ContentEntryResponse response = entryMapper.toResponse(created);
+        Map<UUID, String> displayNames = resolveDisplayNames(created);
+        ContentEntryResponse response = entryMapper.toResponse(created, displayNames);
         return ResponseEntity
                 .created(URI.create("/api/v1/content/" + appSlug + "/definitions/" + defSlug + "/entries/" + created.getId()))
                 .body(response);
@@ -64,7 +69,8 @@ public class ContentEntryController implements ContentEntryApi {
 
         ContentEntry entry = entryService.findById(
                 tenant.tenantId(), tenant.slug(), appId, defSlug, entryId);
-        return ResponseEntity.ok(entryMapper.toResponse(entry));
+        Map<UUID, String> displayNames = resolveDisplayNames(entry);
+        return ResponseEntity.ok(entryMapper.toResponse(entry, displayNames));
     }
 
     @Override
@@ -80,7 +86,8 @@ public class ContentEntryController implements ContentEntryApi {
                 updateContentEntryRequest.getVersion(),
                 updateContentEntryRequest.getValues(), userId);
 
-        return ResponseEntity.ok(entryMapper.toResponse(updated));
+        Map<UUID, String> displayNames = resolveDisplayNames(updated);
+        return ResponseEntity.ok(entryMapper.toResponse(updated, displayNames));
     }
 
     @Override
@@ -108,7 +115,8 @@ public class ContentEntryController implements ContentEntryApi {
         CursorPage<ContentEntry> page = entryService.query(
                 tenant.tenantId(), tenant.slug(), appId, defSlug, query);
 
-        return ResponseEntity.ok(entryMapper.toListResponse(page));
+        Map<UUID, String> displayNames = resolveDisplayNamesForEntries(page.items());
+        return ResponseEntity.ok(entryMapper.toListResponse(page, displayNames));
     }
 
     @Override
@@ -136,7 +144,27 @@ public class ContentEntryController implements ContentEntryApi {
         CursorPage<EntryHistoryRecord> page = entryService.getHistory(
                 tenant.tenantId(), tenant.slug(), appId, defSlug, entryId, pageRequest);
 
-        return ResponseEntity.ok(entryMapper.toHistoryListResponse(page));
+        Set<UUID> userIds = page.items().stream()
+                .map(EntryHistoryRecord::changedBy)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<UUID, String> displayNames = userDisplayNameProvider.resolveDisplayNames(userIds);
+        return ResponseEntity.ok(entryMapper.toHistoryListResponse(page, displayNames));
+    }
+
+    private Map<UUID, String> resolveDisplayNames(ContentEntry entry) {
+        Set<UUID> userIds = Stream.of(entry.getCreatedBy(), entry.getUpdatedBy())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        return userDisplayNameProvider.resolveDisplayNames(userIds);
+    }
+
+    private Map<UUID, String> resolveDisplayNamesForEntries(List<ContentEntry> entries) {
+        Set<UUID> userIds = entries.stream()
+                .flatMap(e -> Stream.of(e.getCreatedBy(), e.getUpdatedBy()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        return userDisplayNameProvider.resolveDisplayNames(userIds);
     }
 
     private UUID resolveAppId(String appSlug) {

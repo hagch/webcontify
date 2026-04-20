@@ -19,6 +19,8 @@ import { Network, Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useGetAppDependencyGraph,
+  type VersionSchemaGraphNode,
+  type VersionSchemaGraphEdge,
 } from "@/generated/app";
 import { AppNode, type AppNodeData } from "./app-node";
 import { RestrictedAppNode } from "./restricted-app-node";
@@ -39,21 +41,34 @@ const edgeTypes = {
 
 interface AppDependencyGraphProps {
   appId: string;
+  snapshotNodes?: VersionSchemaGraphNode[];
+  snapshotEdges?: VersionSchemaGraphEdge[];
 }
 
-export function AppDependencyGraph({ appId }: AppDependencyGraphProps) {
+export function AppDependencyGraph({ appId, snapshotNodes, snapshotEdges }: AppDependencyGraphProps) {
   const t = useTranslations("apps");
   const { resolvedTheme } = useTheme();
-  const { data, isLoading } = useGetAppDependencyGraph(appId);
+  const useSnapshot = snapshotNodes !== undefined && snapshotEdges !== undefined;
+  const { data, isLoading } = useGetAppDependencyGraph(appId, {
+    query: { enabled: !useSnapshot },
+  });
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   const graphData = data?.data;
-  const graphNodes =
-    graphData && "nodes" in graphData ? graphData.nodes : [];
-  const graphEdges =
-    graphData && "edges" in graphData ? graphData.edges : [];
+  const graphNodes = useMemo(() =>
+    useSnapshot
+      ? (snapshotNodes ?? [])
+      : graphData && "nodes" in graphData ? graphData.nodes : [],
+    [useSnapshot, snapshotNodes, graphData],
+  );
+  const graphEdges = useMemo(() =>
+    useSnapshot
+      ? (snapshotEdges ?? [])
+      : graphData && "edges" in graphData ? graphData.edges : [],
+    [useSnapshot, snapshotEdges, graphData],
+  );
 
   // Determine which nodes are transitive (not directly connected)
   const directNodeIds = useMemo(() => {

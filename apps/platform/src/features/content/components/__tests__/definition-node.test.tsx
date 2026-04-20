@@ -113,19 +113,17 @@ describe("DefinitionNode", () => {
     expect(screen.getByText("published")).toBeInTheDocument();
   });
 
-  it("shows '+N more' for more than 5 fields", () => {
+  it("shows all fields regardless of count", () => {
     const fields = Array.from({ length: 7 }, (_, i) =>
       createField({ id: `f${i}`, fieldKey: `field_${i}`, position: i })
     );
     renderNode({ definition: createDefinition({ fields }) });
 
-    // Should show first 5 fields
+    // All 7 fields should be visible (no truncation)
     expect(screen.getByText("field_0")).toBeInTheDocument();
     expect(screen.getByText("field_4")).toBeInTheDocument();
-    // Should NOT show field 5 and 6
-    expect(screen.queryByText("field_5")).not.toBeInTheDocument();
-    // Should show "+2 more"
-    expect(screen.getByText("content.graph.moreFields")).toBeInTheDocument();
+    expect(screen.getByText("field_5")).toBeInTheDocument();
+    expect(screen.getByText("field_6")).toBeInTheDocument();
   });
 
   it("calls onEditDefinition on header double-click", () => {

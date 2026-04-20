@@ -45,7 +45,7 @@ const FIELD_TYPE_ICONS: Record<FieldType, typeof Type> = {
   MIRROR: ArrowLeftRight,
 };
 
-const MAX_VISIBLE_FIELDS = 5;
+// Show all fields — truncating hides REFERENCE/MIRROR handles needed for edge rendering
 
 function FieldRow({
   field,
@@ -131,8 +131,8 @@ function DefinitionNodeComponent({
   const t = useTranslations("content");
   const { definition, onEditDefinition, onEditField, onAddField, onDeleteDefinition, activeHandleSides } = data;
   const fields = definition.fields ?? [];
-  const visibleFields = fields.slice(0, MAX_VISIBLE_FIELDS);
-  const hiddenCount = fields.length - visibleFields.length;
+  const visibleFields = fields;
+  const hiddenCount = 0;
 
   return (
     <div

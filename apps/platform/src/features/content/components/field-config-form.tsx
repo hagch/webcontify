@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { type Control, type FieldValues, type Path } from "react-hook-form";
 import {
@@ -480,37 +481,11 @@ export function FieldConfigForm<T extends FieldValues>({
     case "ENUM":
       return (
         <div className="space-y-3">
-          <FormField
+          <EnumAllowedValuesField
             control={control}
             name={configPath("allowedValues")}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs">
-                  {t("config.allowedValues")}
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    className="h-8 text-sm"
-                    placeholder="value1, value2, value3"
-                    disabled={readOnly}
-                    {...field}
-                    value={
-                      Array.isArray(field.value)
-                        ? field.value.join(", ")
-                        : (field.value ?? "")
-                    }
-                    onChange={(e) => {
-                      const values = e.target.value
-                        .split(",")
-                        .map((v) => v.trim())
-                        .filter(Boolean);
-                      field.onChange(values);
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label={t("config.allowedValues")}
+            readOnly={readOnly}
           />
           <FormField
             control={control}
@@ -630,4 +605,64 @@ export function FieldConfigForm<T extends FieldValues>({
     default:
       return null;
   }
+}
+
+/**
+ * Separate component for enum allowedValues that keeps a raw text state
+ * and only converts to array on blur. This prevents the comma from being
+ * eaten on every keystroke by filter(Boolean).
+ */
+function EnumAllowedValuesField<T extends FieldValues>({
+  control,
+  name,
+  label,
+  readOnly,
+}: {
+  control: Control<T>;
+  name: Path<T>;
+  label: string;
+  readOnly: boolean;
+}) {
+  const [rawText, setRawText] = useState<string | null>(null);
+
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => {
+        const displayValue =
+          rawText !== null
+            ? rawText
+            : Array.isArray(field.value)
+              ? field.value.join(", ")
+              : (field.value ?? "");
+
+        return (
+          <FormItem>
+            <FormLabel className="text-xs">{label}</FormLabel>
+            <FormControl>
+              <Input
+                className="h-8 text-sm"
+                placeholder="value1, value2, value3"
+                disabled={readOnly}
+                value={displayValue}
+                onChange={(e) => setRawText(e.target.value)}
+                onBlur={() => {
+                  if (rawText !== null) {
+                    const values = rawText
+                      .split(",")
+                      .map((v) => v.trim())
+                      .filter(Boolean);
+                    field.onChange(values);
+                    setRawText(null);
+                  }
+                }}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
+    />
+  );
 }

@@ -76,7 +76,7 @@ class AppExportServiceTest {
         AppSnapshot snapshot = new AppSnapshot(
                 TEST_APP_ID.toString(), "1.0.0",
                 new AppSnapshot.AppSnapshotMetadata("My App", "my-app", "desc"),
-                List.of(), List.of());
+                List.of(), List.of(), List.of(), List.of());
         when(appSnapshotService.downloadSnapshot("tenant-test-tenant", version.getS3Key()))
                 .thenReturn(snapshot);
 
@@ -114,7 +114,7 @@ class AppExportServiceTest {
                 TEST_APP_ID.toString(), "1.0.0",
                 new AppSnapshot.AppSnapshotMetadata("App A", "app-a", null),
                 List.of(new AppSnapshot.AppSnapshotDependency("app-b", "")),
-                List.of());
+                List.of(), List.of(), List.of());
         when(appSnapshotService.downloadSnapshot("tenant-test-tenant", "snapshots/main.json"))
                 .thenReturn(mainSnapshot);
 
@@ -145,7 +145,7 @@ class AppExportServiceTest {
                 depAppId.toString(), "0.5.0",
                 new AppSnapshot.AppSnapshotMetadata("App B", "app-b", null),
                 List.of(new AppSnapshot.AppSnapshotDependency("app-c", "")),
-                List.of());
+                List.of(), List.of(), List.of());
         when(appSnapshotService.downloadSnapshot("tenant-test-tenant", "snapshots/dep-b.json"))
                 .thenReturn(depBSnapshot);
         when(appService.getById(depAppId)).thenReturn(createApp(depAppId, "App B", "app-b"));
@@ -160,7 +160,7 @@ class AppExportServiceTest {
         AppSnapshot depCSnapshot = new AppSnapshot(
                 transDepAppId.toString(), "0.2.0",
                 new AppSnapshot.AppSnapshotMetadata("App C", "app-c", null),
-                List.of(), List.of());
+                List.of(), List.of(), List.of(), List.of());
         when(appSnapshotService.downloadSnapshot("tenant-test-tenant", "snapshots/dep-c.json"))
                 .thenReturn(depCSnapshot);
         when(appService.getById(transDepAppId)).thenReturn(createApp(transDepAppId, "App C", "app-c"));

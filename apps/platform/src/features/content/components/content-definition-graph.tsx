@@ -35,6 +35,7 @@ import {
   type ContentDefinitionResponse,
   type ReferenceFieldConfig,
 } from "@/generated/content";
+import { getGetAppQueryKey } from "@/generated/app";
 import { DefinitionNode, type DefinitionNodeData } from "./definition-node";
 import {
   GhostDefinitionNode,
@@ -68,11 +69,18 @@ interface ContentDefinitionGraphProps {
    * delete) are derived from each definition's effectiveActions instead.
    */
   canEdit?: boolean;
+  /**
+   * When provided (snapshot mode), skips the internal live data fetch and
+   * renders these definitions as read-only. Used for non-draft version views.
+   */
+  snapshotDefinitions?: ContentDefinitionResponse[];
 }
 
 function ContentDefinitionGraphInner({
   appSlug,
+  appId,
   canEdit = false,
+  snapshotDefinitions,
 }: ContentDefinitionGraphProps) {
   const t = useTranslations("content");
   const { resolvedTheme } = useTheme();
@@ -80,7 +88,10 @@ function ContentDefinitionGraphInner({
   const { fitView, flowToScreenPosition, getNode, getNodes } = useReactFlow();
   const updateNodeInternals = useUpdateNodeInternals();
 
-  const { data, isLoading } = useListContentDefinitions(appSlug);
+  const { data, isLoading: isLiveLoading } = useListContentDefinitions(appSlug, {
+    query: { enabled: snapshotDefinitions === undefined },
+  });
+  const isLoading = snapshotDefinitions === undefined ? isLiveLoading : false;
   const batchUpdatePositions = useBatchUpdatePositions();
   const undoMutation = useUndoContentChange();
   const redoMutation = useRedoContentChange();
@@ -118,13 +129,13 @@ function ContentDefinitionGraphInner({
   );
 
   const definitions: ContentDefinitionResponse[] = useMemo(
-    () => data?.data?.items ?? [],
-    [data]
+    () => snapshotDefinitions ?? data?.data?.items ?? [],
+    [snapshotDefinitions, data]
   );
 
   const referencedDefinitions = useMemo(
-    () => data?.data?.referencedDefinitions ?? [],
-    [data]
+    () => (snapshotDefinitions !== undefined ? [] : (data?.data?.referencedDefinitions ?? [])),
+    [snapshotDefinitions, data]
   );
 
   // Build nodes from definitions
@@ -376,7 +387,11 @@ function ContentDefinitionGraphInner({
     queryClient.invalidateQueries({
       queryKey: getListContentDefinitionsQueryKey(appSlug),
     });
-  }, [queryClient, appSlug]);
+    // Content changes mark the app as draft (via backend event) — refresh app header
+    queryClient.invalidateQueries({
+      queryKey: getGetAppQueryKey(appId),
+    });
+  }, [queryClient, appSlug, appId]);
 
   // Focus node, shift left, then open popover after animation
   const openPopoverWithFocus = useCallback(

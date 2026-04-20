@@ -30,6 +30,22 @@
       "branding": "Branding",
       "email": "E-Mail",
       "domain": "Domain"
+    },
+    "appSidebar": {
+      "backToApps": "Apps",
+      "schema": "Schema",
+      "definitions": "Definitionen",
+      "dependencies": "Abhaengigkeiten",
+      "data": "Daten",
+      "dataLive": "Daten (Live)",
+      "publishFirst": "App veroeffentlichen um Eintraege zu verwalten",
+      "pages": "Seiten",
+      "workflows": "Workflows",
+      "config": "Konfiguration",
+      "overview": "Uebersicht",
+      "versions": "Versionen",
+      "revisions": "Revisionen",
+      "dataHint": "Zum Entwurf wechseln fuer Datenverwaltung"
     }
   },
   "header": {
@@ -579,7 +595,8 @@
         "submit": "Veroeffentlichen",
         "cancel": "Abbrechen",
         "successToast": "Version erfolgreich veroeffentlicht",
-        "versionExists": "Diese Version existiert bereits"
+        "versionExists": "Diese Version existiert bereits",
+        "changeCount": "{count, plural, one {# unveroeffentlichte Aenderung wird in diese Version aufgenommen.} other {# unveroeffentlichte Aenderungen werden in diese Version aufgenommen.}}"
       },
       "rollbackDialog": {
         "title": "Auf Version zuruecksetzen",
@@ -832,6 +849,23 @@
       "fieldRequired": "Dieses Feld ist erforderlich",
       "fieldInvalid": "Ungueltiger Wert"
     },
+    "backendError": {
+      "invalid_value": "Ungueltiger Wert fuer dieses Feld",
+      "required": "Dieses Feld ist erforderlich",
+      "invalid_date": "Ungueltiges Datumsformat",
+      "invalid_integer": "Muss eine ganze Zahl sein",
+      "invalid_decimal": "Muss eine gueltige Zahl sein",
+      "invalid_uuid": "Ungueltige Referenz",
+      "below_min": "Wert ist zu klein",
+      "exceeds_max": "Wert ist zu gross",
+      "below_min_length": "Text ist zu kurz",
+      "exceeds_max_length": "Text ist zu lang",
+      "pattern_mismatch": "Wert entspricht nicht dem erwarteten Format",
+      "not_in_allowed_values": "Wert ist nicht in der Liste erlaubter Werte",
+      "duplicate_value": "Dieser Wert existiert bereits",
+      "invalid_reference_target": "Referenzierter Eintrag existiert nicht",
+      "mirror_not_writable": "Spiegel-Felder sind schreibgeschuetzt"
+    },
     "table": {
       "noResults": "Keine Eintraege entsprechen deinen Filtern",
       "actions": "Aktionen",
@@ -879,7 +913,23 @@
       "noResults": "Keine Ergebnisse gefunden",
       "loading": "Laden...",
       "clear": "Auswahl aufheben"
+    },
+    "page": {
+      "new": "Neuer Eintrag",
+      "save": "Speichern",
+      "saving": "Speichert...",
+      "saved": "Eintrag gespeichert",
+      "history": "Verlauf",
+      "delete": "Loeschen",
+      "systemFields": "Systeminformationen",
+      "unsavedChanges": "Ungespeicherte Aenderungen"
     }
+  },
+  "appVersion": {
+    "viewingVersion": "Version {version} wird angezeigt",
+    "switchToDraft": "Zum Entwurf wechseln",
+    "draft": "Entwurf",
+    "active": "Aktiv"
   },
   "settings": {
     "title": "Einstellungen",

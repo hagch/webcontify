@@ -5,50 +5,28 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.webcontify.IntegrationTestBase;
 import io.webcontify.identity.model.UserPreferences;
 import io.webcontify.identity.service.AuthService;
-import io.webcontify.identity.service.KeycloakAdminService;
-import io.webcontify.identity.service.OpenFgaService;
-import io.webcontify.identity.service.PermissionService;
-import io.webcontify.identity.service.TenantInfrastructureLookupService;
 import io.webcontify.shared.exception.NotFoundException;
-import io.webcontify.shared.filestorage.FileStorageService;
 import io.webcontify.shared.security.TestSecurityConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Map;
 import java.util.UUID;
 
-@SpringBootTest
 @AutoConfigureMockMvc
-@Testcontainers
-@Import(TestSecurityConfiguration.class)
-class AuthControllerIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
+class AuthControllerIntegrationTest extends IntegrationTestBase {
 
     @MockitoBean AuthService authService;
-    @MockitoBean KeycloakAdminService keycloakAdminService;
-    @MockitoBean OpenFgaService openFgaService;
-    @MockitoBean PermissionService permissionService;
-    @MockitoBean FileStorageService fileStorageService;
-    @MockitoBean TenantInfrastructureLookupService lookupService;
 
     @Autowired MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();

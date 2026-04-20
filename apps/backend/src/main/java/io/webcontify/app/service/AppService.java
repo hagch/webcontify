@@ -91,6 +91,24 @@ public class AppService {
                 .orElseThrow(() -> new NotFoundException("app.not_found"));
         App app = appMapper.toDomain(entity);
         enrichCurrentVersion(app);
+        enrichUnpublishedChangeCount(app);
+        return app;
+    }
+
+    @Transactional(readOnly = true)
+    public App getBySlugOrId(String slugOrId) {
+        AppEntity entity;
+        try {
+            UUID id = UUID.fromString(slugOrId);
+            entity = appRepository.findByIdAndAuditInfoDeletedAtIsNull(id)
+                    .orElseThrow(() -> new NotFoundException("app.not_found"));
+        } catch (IllegalArgumentException e) {
+            entity = appRepository.findBySlugAndAuditInfoDeletedAtIsNull(slugOrId)
+                    .orElseThrow(() -> new NotFoundException("app.not_found"));
+        }
+        App app = appMapper.toDomain(entity);
+        enrichCurrentVersion(app);
+        enrichUnpublishedChangeCount(app);
         return app;
     }
 
@@ -128,6 +146,7 @@ public class AppService {
         return entities.map(e -> {
             App app = appMapper.toDomain(e);
             enrichCurrentVersion(app);
+            enrichUnpublishedChangeCount(app);
             return app;
         });
     }
@@ -197,6 +216,10 @@ public class AppService {
     private void enrichCurrentVersion(App app) {
         versionRepository.findTopByAppIdOrderByPublishedAtDesc(app.getId())
                 .ifPresent(v -> app.setCurrentVersion(v.getVersion()));
+    }
+
+    private void enrichUnpublishedChangeCount(App app) {
+        app.setUnpublishedChangeCount(changeRecordService.countDraftChanges("app", app.getId()));
     }
 
     private void checkNameUniqueness(String name, UUID tenantId) {

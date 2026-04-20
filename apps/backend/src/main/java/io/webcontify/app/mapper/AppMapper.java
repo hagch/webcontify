@@ -20,6 +20,7 @@ public interface AppMapper {
     @Mapping(source = "auditInfo.updatedBy", target = "updatedBy")
     @Mapping(source = "status", target = "status", qualifiedByName = "stringToAppStatus")
     @Mapping(target = "currentVersion", ignore = true)
+    @Mapping(target = "unpublishedChangeCount", ignore = true)
     App toDomain(AppEntity entity);
 
     @Mapping(target = "auditInfo", ignore = true)
@@ -34,6 +35,7 @@ public interface AppMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "hasDraft", ignore = true)
     @Mapping(target = "currentVersion", ignore = true)
+    @Mapping(target = "unpublishedChangeCount", ignore = true)
     @Mapping(target = "tenantId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
@@ -46,6 +48,7 @@ public interface AppMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "hasDraft", ignore = true)
     @Mapping(target = "currentVersion", ignore = true)
+    @Mapping(target = "unpublishedChangeCount", ignore = true)
     @Mapping(target = "tenantId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)

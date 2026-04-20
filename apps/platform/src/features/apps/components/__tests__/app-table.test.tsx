@@ -76,6 +76,6 @@ describe("AppTable", () => {
   it("links app name to detail page", () => {
     render(<AppTable apps={[mockApp]} isLoading={false} isRefetching={false} />);
     const link = screen.getByText("Test App").closest("a");
-    expect(link).toHaveAttribute("href", "/apps/test-id");
+    expect(link).toHaveAttribute("href", "/apps/test-app");
   });
 });

@@ -49,10 +49,10 @@ public class ReferenceFieldTypeHandler implements FieldTypeHandler {
             try {
                 return UUID.fromString(s);
             } catch (IllegalArgumentException e) {
-                throw validationError("value", "entry.field.invalid_uuid");
+                throw validationError("value", "backendError.invalid_uuid");
             }
         }
-        throw validationError("value", "entry.field.invalid_uuid");
+        throw validationError("value", "backendError.invalid_uuid");
     }
 
     @Override

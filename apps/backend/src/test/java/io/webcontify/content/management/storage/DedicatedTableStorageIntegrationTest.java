@@ -3,6 +3,7 @@ package io.webcontify.content.management.storage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.webcontify.IntegrationTestBase;
 import io.webcontify.content.definition.mapper.FieldConfigConverter;
 import io.webcontify.content.definition.model.ContentDefinition;
 import io.webcontify.content.definition.model.FieldDefinition;
@@ -14,9 +15,7 @@ import io.webcontify.content.fieldtype.Operator;
 import io.webcontify.content.management.ddl.DynamicTableManager;
 import io.webcontify.content.management.model.EntryHistoryRecord;
 import io.webcontify.content.management.query.*;
-import io.webcontify.identity.service.PermissionService;
 import io.webcontify.shared.exception.OptimisticLockException;
-import io.webcontify.shared.security.TestSecurityConfiguration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,24 +24,8 @@ import org.jooq.DSLContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
-@Testcontainers
-@Import(TestSecurityConfiguration.class)
-class DedicatedTableStorageIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
-
-    @MockitoBean PermissionService permissionService;
+class DedicatedTableStorageIntegrationTest extends IntegrationTestBase {
 
     @Autowired private DedicatedTableStorage storage;
     @Autowired private DynamicTableManager dynamicTableManager;

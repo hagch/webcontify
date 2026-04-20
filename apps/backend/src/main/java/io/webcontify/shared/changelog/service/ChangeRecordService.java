@@ -86,6 +86,11 @@ public class ChangeRecordService {
         return toModel(changeRecordRepository.save(entity));
     }
 
+    @Transactional(readOnly = true)
+    public long countDraftChanges(String entityType, UUID entityId) {
+        return changeRecordRepository.countByEntityTypeAndEntityIdAndDraftVersionIsNotNull(entityType, entityId);
+    }
+
     public void closeDraftRecords(String entityType, UUID entityId) {
         changeRecordRepository.closeDraftRecords(entityType, entityId);
     }

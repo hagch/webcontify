@@ -113,7 +113,7 @@ class AppVersionServiceTest {
         AppSnapshot snapshot = new AppSnapshot(
                 TEST_APP_ID.toString(), "0.1.0",
                 new AppSnapshot.AppSnapshotMetadata("Test App", "test-app", null),
-                List.of(), List.of());
+                List.of(), List.of(), List.of(), List.of());
         when(appSnapshotService.buildSnapshot(app, "0.1.0")).thenReturn(snapshot);
         when(appSnapshotService.uploadSnapshot("tenant-test-tenant", snapshot))
                 .thenReturn("files/snapshots/app-" + TEST_APP_ID + "-v0.1.0.json");

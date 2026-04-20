@@ -13,7 +13,9 @@ import org.jooq.Field;
 import org.jooq.impl.SQLDataType;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -45,10 +47,15 @@ public class DateFieldTypeHandler implements FieldTypeHandler {
             try {
                 return OffsetDateTime.parse(s);
             } catch (DateTimeParseException e) {
-                throw validationError("value", "entry.field.invalid_date");
+                // Fallback: parse date-only strings like "2026-04-20"
+                try {
+                    return LocalDate.parse(s).atStartOfDay().atOffset(ZoneOffset.UTC);
+                } catch (DateTimeParseException e2) {
+                    throw validationError("value", "backendError.invalid_date");
+                }
             }
         }
-        throw validationError("value", "entry.field.invalid_date");
+        throw validationError("value", "backendError.invalid_date");
     }
 
     @Override

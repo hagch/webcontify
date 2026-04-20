@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DisplayFormatResolver {
 
-    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{(cf_[a-z0-9_]+)}");
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{([a-z0-9_]+)}");
 
     private final FieldTypeRegistry fieldTypeRegistry;
 
@@ -27,7 +27,8 @@ public class DisplayFormatResolver {
 
     /**
      * Resolves the display format template for a content definition by substituting
-     * placeholders with formatted values. Returns the entry ID as fallback when no
+     * placeholders with formatted values. Accepts both {@code {fieldKey}} and
+     * {@code {cf_fieldKey}} syntax. Returns the entry ID as fallback when no
      * template is defined.
      */
     public String resolve(ContentDefinition def, Map<String, Object> values) {
@@ -43,14 +44,16 @@ public class DisplayFormatResolver {
 
         while (matcher.find()) {
             String placeholder = matcher.group(1);
-            String fieldKey = placeholder.substring(3); // strip "cf_" prefix
+            // Support both {fieldKey} and {cf_fieldKey} syntax
+            String fieldKey = placeholder.startsWith("cf_") ? placeholder.substring(3) : placeholder;
+            String columnName = "cf_" + fieldKey;
             FieldDefinition field = fieldsByKey.get(fieldKey);
             String replacement;
 
             if (field == null) {
                 replacement = "";
             } else {
-                Object value = values.get(placeholder);
+                Object value = values.get(columnName);
                 if (value == null) {
                     replacement = "";
                 } else {
@@ -77,7 +80,10 @@ public class DisplayFormatResolver {
         List<String> fields = new ArrayList<>();
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(template);
         while (matcher.find()) {
-            fields.add(matcher.group(1));
+            String placeholder = matcher.group(1);
+            // Normalize to cf_ prefixed column name
+            String columnName = placeholder.startsWith("cf_") ? placeholder : "cf_" + placeholder;
+            fields.add(columnName);
         }
         return fields;
     }

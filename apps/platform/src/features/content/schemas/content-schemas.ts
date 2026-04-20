@@ -27,7 +27,7 @@ export const createFieldSchema = z.object({
   unique: z.boolean().default(false),
   sortable: z.boolean().default(false),
   filterable: z.boolean().default(false),
-  config: z.record(z.unknown()).optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const connectReferenceSchema = z.object({

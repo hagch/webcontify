@@ -86,7 +86,7 @@ export function AppTable({
             <TableRow key={app.id} data-testid="app-table-row">
               <TableCell className="font-medium">
                 <Link
-                  href={`/apps/${app.id}`}
+                  href={`/apps/${app.slug}`}
                   className="hover:underline"
                 >
                   {app.name}
@@ -125,13 +125,13 @@ export function AppTable({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      render={<Link href={`/apps/${app.id}`} />}
+                      render={<Link href={`/apps/${app.slug}`} />}
                     >
                       <ExternalLink className="mr-2 size-4" />
                       {t("viewDetails")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      render={<Link href={`/apps/${app.id}`} />}
+                      render={<Link href={`/apps/${app.slug}`} />}
                     >
                       <Pencil className="mr-2 size-4" />
                       {t("edit")}

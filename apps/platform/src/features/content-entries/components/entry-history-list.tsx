@@ -129,8 +129,8 @@ function HistoryRecord({ record }: { record: EntryHistoryResponse }) {
           </span>
         </div>
         {record.changedBy && (
-          <span className="font-mono text-xs text-muted-foreground">
-            {record.changedBy}
+          <span className="text-sm text-muted-foreground">
+            {record.changedByName ?? record.changedBy?.substring(0, 8)}
           </span>
         )}
       </div>

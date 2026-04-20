@@ -186,6 +186,6 @@ class AppImportServiceTest {
         return new AppSnapshot(
                 UUID.randomUUID().toString(), "1.0.0",
                 new AppSnapshot.AppSnapshotMetadata("App", slug, null),
-                List.of(), List.of());
+                List.of(), List.of(), List.of(), List.of());
     }
 }

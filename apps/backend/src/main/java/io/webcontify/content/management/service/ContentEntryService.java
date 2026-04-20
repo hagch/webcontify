@@ -121,7 +121,11 @@ public class ContentEntryService {
                                           String defSlug, ContentQuery query) {
         ContentDefinition def = resolveDefinition(defSlug, appId);
         String schema = schemaName(tenantSlug);
-        return storage.query(schema, def, query);
+        CursorPage<ContentEntry> page = storage.query(schema, def, query);
+        for (ContentEntry entry : page.items()) {
+            referenceResolver.resolveReferences(entry, def, schema);
+        }
+        return page;
     }
 
     @Transactional(readOnly = true)
@@ -165,12 +169,12 @@ public class ContentEntryService {
             if (value == null) continue;
 
             if (storage.existsByFieldValue(schema, def, field.getFieldKey(), value, excludeEntryId)) {
-                errors.add(new FieldError(columnName, "entry.field.duplicate_value"));
+                errors.add(new FieldError(columnName, "backendError.duplicate_value"));
             }
         }
 
         if (!errors.isEmpty()) {
-            throw new ConflictException("entry.field.duplicate_value");
+            throw new ConflictException("backendError.duplicate_value");
         }
     }
 
@@ -192,7 +196,7 @@ public class ContentEntryService {
             // Load target definition
             ContentDefinition targetDef = definitionService.getById(refConfig.targetDefinitionId());
             if (storage.findById(schema, targetDef, targetEntryId).isEmpty()) {
-                errors.add(new FieldError(columnName, "entry.field.invalid_reference_target"));
+                errors.add(new FieldError(columnName, "backendError.invalid_reference_target"));
             }
         }
 

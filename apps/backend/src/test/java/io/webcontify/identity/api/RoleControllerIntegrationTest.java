@@ -6,16 +6,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.webcontify.IntegrationTestBase;
 import io.webcontify.identity.model.OpenFgaBatchCheckResponse;
 import io.webcontify.identity.model.RelationshipTuple;
 import io.webcontify.identity.repository.TenantRoleRepository;
 import io.webcontify.identity.repository.TenantUserRepository;
 import io.webcontify.identity.repository.entity.TenantRoleEntity;
-import io.webcontify.identity.service.KeycloakAdminService;
-import io.webcontify.identity.service.OpenFgaService;
-import io.webcontify.identity.service.PermissionService;
-import io.webcontify.identity.service.TenantInfrastructureLookupService;
-import io.webcontify.shared.filestorage.FileStorageService;
 import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.model.ProvisioningStatus;
 import io.webcontify.shared.security.TestSecurityConfiguration;
@@ -31,32 +27,12 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
 @AutoConfigureMockMvc
-@Testcontainers
-@Import(TestSecurityConfiguration.class)
-class RoleControllerIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
-
-    @MockitoBean KeycloakAdminService keycloakAdminService;
-    @MockitoBean OpenFgaService openFgaService;
-    @MockitoBean PermissionService permissionService;
-    @MockitoBean FileStorageService fileStorageService;
-    @MockitoBean TenantInfrastructureLookupService lookupService;
+class RoleControllerIntegrationTest extends IntegrationTestBase {
 
     @Autowired MockMvc mockMvc;
     @Autowired TenantRoleRepository roleRepository;

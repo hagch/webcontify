@@ -16,6 +16,7 @@ import {
   useDeleteContentDefinition,
   getListContentDefinitionsQueryKey,
 } from "@/generated/content";
+import { getGetAppQueryKey } from "@/generated/app";
 
 interface DeleteDefinitionDialogProps {
   appSlug: string;
@@ -46,6 +47,9 @@ export function DeleteDefinitionDialog({
         toast.success(t("success"));
         qc.invalidateQueries({
           queryKey: getListContentDefinitionsQueryKey(appSlug),
+        });
+        qc.invalidateQueries({
+          queryKey: getGetAppQueryKey(appSlug),
         });
         onOpenChange(false);
       },

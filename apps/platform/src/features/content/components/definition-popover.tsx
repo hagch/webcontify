@@ -29,6 +29,7 @@ import {
   type ProblemDetail,
   type ValidationProblemDetail,
 } from "@/generated/content";
+import { getGetAppQueryKey } from "@/generated/app";
 import {
   createDefinitionSchema,
   updateDefinitionSchema,
@@ -62,14 +63,15 @@ export function DefinitionPopover(props: DefinitionPopoverProps) {
 
   const t = useTranslations("content");
   const queryClient = useQueryClient();
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const { data: defData } = useGetContentDefinition(
     appSlug,
     isCreate ? "" : props.definitionId,
     { query: { enabled: open && !isCreate && !!props.definitionId } }
   );
-  const definition = isCreate ? undefined : defData?.data;
+  const rawDef = isCreate ? undefined : defData?.data;
+  const definition = rawDef && "name" in rawDef ? rawDef : undefined;
 
   const updateDefinition = useUpdateContentDefinition();
   const createDefinition = useCreateContentDefinition();
@@ -145,6 +147,9 @@ export function DefinitionPopover(props: DefinitionPopoverProps) {
           queryClient.invalidateQueries({
             queryKey: getListContentDefinitionsQueryKey(appSlug),
           });
+          queryClient.invalidateQueries({
+            queryKey: getGetAppQueryKey(appSlug),
+          });
           const created = response.data as { id: string };
           props.onCreated?.(created.id);
           onOpenChange(false);
@@ -164,6 +169,9 @@ export function DefinitionPopover(props: DefinitionPopoverProps) {
           toast.success(t("definition.editSuccess"));
           queryClient.invalidateQueries({
             queryKey: getListContentDefinitionsQueryKey(appSlug),
+          });
+          queryClient.invalidateQueries({
+            queryKey: getGetAppQueryKey(appSlug),
           });
           onOpenChange(false);
         }

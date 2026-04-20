@@ -1149,6 +1149,12 @@ components:
         updatedBy:
           type: string
           format: uuid
+        createdByName:
+          type: string
+          nullable: true
+        updatedByName:
+          type: string
+          nullable: true
 
     CreateContentEntryRequest:
       type: object
@@ -1243,6 +1249,9 @@ components:
         changedBy:
           type: string
           format: uuid
+        changedByName:
+          type: string
+          nullable: true
 
     EntryHistoryListResponse:
       type: object

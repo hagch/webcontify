@@ -49,7 +49,7 @@ public class MirrorFieldTypeHandler implements FieldTypeHandler {
 
     @Override
     public void validateValue(Object value, FieldConfig config) {
-        throw validationError("value", "entry.field.mirror_not_writable");
+        throw validationError("value", "backendError.mirror_not_writable");
     }
 
     @Override

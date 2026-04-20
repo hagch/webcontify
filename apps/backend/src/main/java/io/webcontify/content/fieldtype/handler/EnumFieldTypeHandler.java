@@ -50,7 +50,7 @@ public class EnumFieldTypeHandler implements FieldTypeHandler {
         var str = (String) value;
 
         if (!c.allowedValues().contains(str)) {
-            throw validationError("value", "entry.field.not_in_allowed_values");
+            throw validationError("value", "backendError.not_in_allowed_values");
         }
     }
 

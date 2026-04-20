@@ -88,16 +88,16 @@ paths:
   /api/v1/apps/{appId}:
     get:
       operationId: getApp
-      summary: Get app by ID
+      summary: Get app by ID or slug
       tags:
         - App
       parameters:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       responses:
         '200':
           description: App details
@@ -121,9 +121,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       requestBody:
         required: true
         content:
@@ -165,9 +165,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       responses:
         '204':
           description: App deleted
@@ -188,9 +188,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       requestBody:
         required: true
         content:
@@ -241,9 +241,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
         - name: name
           in: query
           required: true
@@ -267,9 +267,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       requestBody:
         required: true
         content:
@@ -306,9 +306,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       responses:
         '200':
           description: Version list
@@ -327,9 +327,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       responses:
         '200':
           description: Version suggestion
@@ -348,9 +348,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
         - name: versionId
           in: path
           required: true
@@ -381,9 +381,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
         - name: versionId
           in: path
           required: true
@@ -404,6 +404,39 @@ paths:
               schema:
                 $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
 
+  /api/v1/apps/{appId}/versions/{versionId}/schema:
+    get:
+      operationId: getVersionSchema
+      summary: Get schema snapshot for a specific version
+      tags:
+        - AppVersion
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          description: App UUID or slug
+          schema:
+            type: string
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Schema snapshot for the version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionSchemaResponse'
+        '404':
+          description: App or version not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
   /api/v1/apps/{appId}/versions/{versionId}/rollback:
     post:
       operationId: rollbackAppVersion
@@ -414,9 +447,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
         - name: versionId
           in: path
           required: true
@@ -447,9 +480,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       responses:
         '200':
           description: Revision list
@@ -468,9 +501,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
         - name: revisionId
           in: path
           required: true
@@ -501,9 +534,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
         - name: revisionId
           in: path
           required: true
@@ -540,9 +573,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       responses:
         '200':
           description: Dependency list
@@ -566,9 +599,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       requestBody:
         required: true
         content:
@@ -615,9 +648,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       responses:
         '200':
           description: Dependency graph
@@ -642,9 +675,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
         - name: depAppId
           in: path
           required: true
@@ -677,9 +710,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
         - name: depAppId
           in: path
           required: true
@@ -710,9 +743,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
       responses:
         '200':
           description: Problem list
@@ -737,9 +770,9 @@ paths:
         - name: appId
           in: path
           required: true
+          description: App UUID or slug
           schema:
             type: string
-            format: uuid
         - name: versionId
           in: path
           required: true
@@ -875,6 +908,9 @@ components:
         currentVersion:
           type: string
           description: Latest published version (semver)
+        unpublishedChangeCount:
+          type: integer
+          description: Number of unpublished draft changes
         createdAt:
           type: string
           format: date-time
@@ -982,6 +1018,133 @@ components:
         currentValue:
           type: string
         versionValue:
+          type: string
+
+    VersionSchemaResponse:
+      type: object
+      required:
+        - versionId
+        - version
+        - contentDefinitions
+        - dependencies
+      properties:
+        versionId:
+          type: string
+          format: uuid
+        version:
+          type: string
+        contentDefinitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionSchemaDefinition'
+        dependencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionSchemaDependency'
+        graphNodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionSchemaGraphNode'
+        graphEdges:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionSchemaGraphEdge'
+
+    VersionSchemaGraphNode:
+      type: object
+      required:
+        - id
+        - accessible
+      properties:
+        id:
+          type: string
+          format: uuid
+        accessible:
+          type: boolean
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+        isCurrent:
+          type: boolean
+
+    VersionSchemaGraphEdge:
+      type: object
+      required:
+        - source
+        - target
+        - direct
+      properties:
+        source:
+          type: string
+          format: uuid
+        target:
+          type: string
+          format: uuid
+        direct:
+          type: boolean
+
+    VersionSchemaDefinition:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - fields
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        displayFormat:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionSchemaField'
+
+    VersionSchemaField:
+      type: object
+      required:
+        - id
+        - fieldKey
+        - fieldType
+        - required
+        - position
+      properties:
+        id:
+          type: string
+        fieldKey:
+          type: string
+        fieldType:
+          type: string
+        required:
+          type: boolean
+        uniqueValue:
+          type: boolean
+        sortable:
+          type: boolean
+        filterable:
+          type: boolean
+        config:
+          type: string
+        position:
+          type: integer
+
+    VersionSchemaDependency:
+      type: object
+      required:
+        - appSlug
+      properties:
+        appSlug:
+          type: string
+        version:
           type: string
 
     VersionSuggestionResponse:

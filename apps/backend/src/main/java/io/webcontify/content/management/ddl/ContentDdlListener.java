@@ -7,6 +7,7 @@ import io.webcontify.content.definition.repository.entity.ContentDefinitionEntit
 import io.webcontify.content.definition.repository.entity.ContentFieldEntity;
 import io.webcontify.content.management.ddl.repository.ContentFieldChangeLogRepository;
 import io.webcontify.content.management.ddl.repository.entity.ContentFieldChangeLogEntity;
+import io.webcontify.shared.event.TenantAwareModuleListener;
 import io.webcontify.shared.persistence.TenantSlugCache;
 import io.webcontify.shared.util.UuidGenerator;
 import java.time.OffsetDateTime;
@@ -14,13 +15,15 @@ import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 
 /**
  * Listens for {@link AppPublishedEvent} and applies pending DDL changes
  * (table creation, column additions/removals) for all content definitions
  * belonging to the published app.
+ *
+ * <p>Uses {@link TenantAwareModuleListener} which sets the tenant SecurityContext
+ * before the transaction opens, ensuring RLS-enabled JPA queries work correctly.
  */
 @Component
 public class ContentDdlListener {
@@ -49,7 +52,7 @@ public class ContentDdlListener {
         this.tenantSlugCache = tenantSlugCache;
     }
 
-    @ApplicationModuleListener
+    @TenantAwareModuleListener
     public void on(AppPublishedEvent event) {
         UUID tenantId = event.tenantId();
         UUID appId = event.appId();
@@ -82,7 +85,6 @@ public class ContentDdlListener {
             return;
         }
 
-        // Determine if this is a new table (no field has ever been published)
         boolean isNewTable = definition.getFields().stream()
                 .noneMatch(ContentFieldEntity::isPublished);
 
@@ -100,14 +102,12 @@ public class ContentDdlListener {
             dynamicTableManager.applyChanges(schemaName, definition, changes);
         }
 
-        // After successful DDL: clear pending flags and log changes
         for (ContentFieldEntity field : pendingFields) {
             String pendingAction = field.getPendingAction();
             String oldType = "REMOVED".equals(pendingAction) ? field.getFieldType() : null;
             String newType = "ADDED".equals(pendingAction) ? field.getFieldType() : null;
             boolean dataLoss = "REMOVED".equals(pendingAction) || "MODIFIED".equals(pendingAction);
 
-            // Log the change
             var changeLog = new ContentFieldChangeLogEntity();
             changeLog.setId(UuidGenerator.generate());
             changeLog.setTenantId(tenantId);
@@ -118,10 +118,9 @@ public class ContentDdlListener {
             changeLog.setNewType(newType);
             changeLog.setDataLoss(dataLoss);
             changeLog.setExecutedAt(OffsetDateTime.now());
-            changeLog.setExecutedBy(tenantId); // system action, use tenantId as actor
+            changeLog.setExecutedBy(tenantId);
             changeLogRepository.save(changeLog);
 
-            // Clear pending state
             field.setPublished(!"REMOVED".equals(pendingAction));
             field.setPendingAction(null);
             fieldRepository.save(field);

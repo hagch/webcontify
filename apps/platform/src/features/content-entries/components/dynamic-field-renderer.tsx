@@ -6,6 +6,7 @@ import type {
   TextFieldConfig,
   IntegerFieldConfig,
   DecimalFieldConfig,
+  DateFieldConfig,
   EnumFieldConfig,
   ReferenceFieldConfig,
   ContentDefinitionResponse,
@@ -24,6 +25,8 @@ interface DynamicFieldRendererProps {
   appSlug: string;
   /** All definitions in context, used to resolve REFERENCE target slugs */
   allDefinitions?: ContentDefinitionResponse[];
+  /** Raw entry values from the API (used to extract resolved reference display texts) */
+  entryValues?: Record<string, unknown>;
 }
 
 /**
@@ -35,6 +38,7 @@ export function DynamicFieldRenderer({
   control,
   appSlug,
   allDefinitions,
+  entryValues,
 }: DynamicFieldRendererProps) {
   const key = `cf_${field.fieldKey}`;
   const label = field.fieldKey;
@@ -88,15 +92,18 @@ export function DynamicFieldRenderer({
           required={field.required}
         />
       );
-    case "DATE":
+    case "DATE": {
+      const config = field.config as DateFieldConfig | undefined;
       return (
         <DateFieldInput
           control={control}
           name={key}
           label={label}
           required={field.required}
+          dateFormat={config?.dateFormat}
         />
       );
+    }
     case "ENUM": {
       const config = field.config as EnumFieldConfig | undefined;
       return (
@@ -115,6 +122,12 @@ export function DynamicFieldRenderer({
         (d) => d.id === config?.targetDefinitionId
       );
       const targetDefSlug = targetDef?.slug ?? "";
+      // Extract display text from resolved reference value (backend returns { id, display })
+      const rawRef = entryValues?.[key];
+      const initialDisplay =
+        typeof rawRef === "object" && rawRef !== null && "display" in rawRef
+          ? (rawRef as { display: string }).display
+          : undefined;
       return (
         <ReferenceFieldInput
           control={control}
@@ -123,6 +136,7 @@ export function DynamicFieldRenderer({
           required={field.required}
           appSlug={appSlug}
           targetDefSlug={targetDefSlug}
+          initialDisplay={initialDisplay}
         />
       );
     }

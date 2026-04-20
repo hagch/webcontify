@@ -12,50 +12,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.webcontify.IntegrationTestBase;
 import io.webcontify.identity.model.CreateKeycloakUserResponse;
 import io.webcontify.identity.model.CreateRealmResponse;
 import io.webcontify.identity.model.CreateStoreResponse;
 import io.webcontify.identity.model.UserStatus;
 import io.webcontify.identity.repository.TenantUserRepository;
-import io.webcontify.shared.filestorage.FileStorageService;
 import io.webcontify.shared.model.ProvisioningStatus;
 import io.webcontify.shared.model.ProvisioningStepStatus;
-import io.webcontify.shared.security.TestSecurityConfiguration;
 import io.webcontify.tenant.repository.TenantRepository;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
 @AutoConfigureMockMvc
-@Testcontainers
-@Import(TestSecurityConfiguration.class)
-class TenantProvisioningIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
-
-    @MockitoBean
-    KeycloakAdminService keycloakAdminService;
-
-    @MockitoBean
-    OpenFgaService openFgaService;
-
-    @MockitoBean
-    FileStorageService fileStorageService;
+class TenantProvisioningIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     MockMvc mockMvc;
@@ -128,9 +104,8 @@ class TenantProvisioningIntegrationTest {
         verify(openFgaService).write(any());
 
         // Step 5: Verify tenant_user entry was created
-        var tenantUsers = tenantUserRepository.findAll();
-        assertThat(tenantUsers).hasSize(1);
-        var tenantUser = tenantUsers.get(0);
+        var tenantUser = tenantUserRepository.findActiveByEmail("admin@acme.com")
+                .orElseThrow(() -> new AssertionError("Expected tenant_user with email admin@acme.com"));
         assertThat(tenantUser.getEmail()).isEqualTo("admin@acme.com");
         assertThat(tenantUser.getStatus()).isEqualTo(UserStatus.INVITED);
         assertThat(tenantUser.getInvitedBy()).isNull(); // System-Erstellung

@@ -24,8 +24,6 @@ export function IntegerFieldInput<T extends FieldValues>({
   name,
   label,
   required,
-  min,
-  max,
 }: IntegerFieldInputProps<T>) {
   return (
     <FormField
@@ -40,15 +38,17 @@ export function IntegerFieldInput<T extends FieldValues>({
           <FormControl>
             <Input
               data-testid={`field-${name}`}
-              type="number"
-              step={1}
-              min={min}
-              max={max}
+              inputMode="numeric"
               {...field}
               value={field.value ?? ""}
               onChange={(e) => {
                 const val = e.target.value;
-                field.onChange(val === "" ? null : Number(val));
+                if (val === "") {
+                  field.onChange(null);
+                  return;
+                }
+                const num = Number(val);
+                field.onChange(Number.isNaN(num) ? field.value : num);
               }}
             />
           </FormControl>

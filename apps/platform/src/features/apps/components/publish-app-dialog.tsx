@@ -42,10 +42,13 @@ import {
 
 interface PublishAppDialogProps {
   appId: string;
+  /** App slug for cache invalidation (route uses slug, cache key differs from UUID) */
+  appSlug?: string;
+  unpublishedChangeCount?: number;
   children: React.ReactNode;
 }
 
-export function PublishAppDialog({ appId, children }: PublishAppDialogProps) {
+export function PublishAppDialog({ appId, appSlug, unpublishedChangeCount, children }: PublishAppDialogProps) {
   const [open, setOpen] = useState(false);
   const publishApp = usePublishApp();
   const t = useTranslations("apps");
@@ -76,6 +79,9 @@ export function PublishAppDialog({ appId, children }: PublishAppDialogProps) {
   function invalidateQueries() {
     queryClient.invalidateQueries({ queryKey: getListAppsQueryKey() });
     queryClient.invalidateQueries({ queryKey: getGetAppQueryKey(appId) });
+    if (appSlug && appSlug !== appId) {
+      queryClient.invalidateQueries({ queryKey: getGetAppQueryKey(appSlug) });
+    }
     queryClient.invalidateQueries({
       queryKey: getListAppVersionsQueryKey(appId),
     });
@@ -123,6 +129,11 @@ export function PublishAppDialog({ appId, children }: PublishAppDialogProps) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {unpublishedChangeCount != null && unpublishedChangeCount > 0 && (
+              <p className="text-sm text-muted-foreground">
+                {t("versions.publishDialog.changeCount", { count: unpublishedChangeCount })}
+              </p>
+            )}
             <FormField
               control={form.control}
               name="version"

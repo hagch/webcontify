@@ -30,6 +30,22 @@
       "branding": "Branding",
       "email": "Email",
       "domain": "Domain"
+    },
+    "appSidebar": {
+      "backToApps": "Apps",
+      "schema": "Schema",
+      "definitions": "Definitions",
+      "dependencies": "Dependencies",
+      "data": "Data",
+      "dataLive": "Data (Live)",
+      "publishFirst": "Publish the app to manage entries",
+      "pages": "Pages",
+      "workflows": "Workflows",
+      "config": "Config",
+      "overview": "Overview",
+      "versions": "Versions",
+      "revisions": "Revisions",
+      "dataHint": "Switch to Draft to manage data"
     }
   },
   "header": {
@@ -579,7 +595,8 @@
         "submit": "Publish",
         "cancel": "Cancel",
         "successToast": "Version published successfully",
-        "versionExists": "This version already exists"
+        "versionExists": "This version already exists",
+        "changeCount": "{count, plural, one {# unpublished change will be included in this version.} other {# unpublished changes will be included in this version.}}"
       },
       "rollbackDialog": {
         "title": "Rollback to Version",
@@ -833,6 +850,23 @@
       "fieldRequired": "This field is required",
       "fieldInvalid": "Invalid value"
     },
+    "backendError": {
+      "invalid_value": "Invalid value for this field",
+      "required": "This field is required",
+      "invalid_date": "Invalid date format",
+      "invalid_integer": "Must be a whole number",
+      "invalid_decimal": "Must be a valid number",
+      "invalid_uuid": "Invalid reference",
+      "below_min": "Value is too small",
+      "exceeds_max": "Value is too large",
+      "below_min_length": "Text is too short",
+      "exceeds_max_length": "Text is too long",
+      "pattern_mismatch": "Value does not match the required format",
+      "not_in_allowed_values": "Value is not in the list of allowed values",
+      "duplicate_value": "This value already exists",
+      "invalid_reference_target": "Referenced entry does not exist",
+      "mirror_not_writable": "Mirror fields are read-only"
+    },
     "table": {
       "noResults": "No entries match your filters",
       "actions": "Actions",
@@ -880,7 +914,23 @@
       "noResults": "No results found",
       "loading": "Loading...",
       "clear": "Clear selection"
+    },
+    "page": {
+      "new": "New Entry",
+      "save": "Save",
+      "saving": "Saving...",
+      "saved": "Entry saved",
+      "history": "History",
+      "delete": "Delete",
+      "systemFields": "System Information",
+      "unsavedChanges": "You have unsaved changes"
     }
+  },
+  "appVersion": {
+    "viewingVersion": "Viewing version {version}",
+    "switchToDraft": "Switch to Draft",
+    "draft": "Draft",
+    "active": "Active"
   },
   "settings": {
     "title": "Settings",

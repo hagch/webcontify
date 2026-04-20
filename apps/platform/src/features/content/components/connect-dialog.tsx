@@ -33,6 +33,7 @@ import {
   type ProblemDetail,
   type ValidationProblemDetail,
 } from "@/generated/content";
+import { getGetAppQueryKey } from "@/generated/app";
 import {
   connectReferenceSchema,
   type ConnectReferenceForm,
@@ -90,6 +91,7 @@ export function ConnectDialog({
           sortable: false,
           filterable: true,
           config: {
+            fieldType: "REFERENCE" as const,
             targetDefinitionId,
             relationType: values.relationType,
             onDelete: values.onDelete,
@@ -101,6 +103,9 @@ export function ConnectDialog({
         toast.success(t("field.createSuccess"));
         queryClient.invalidateQueries({
           queryKey: getListContentDefinitionsQueryKey(appSlug),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getGetAppQueryKey(appSlug),
         });
         form.reset();
         onOpenChange(false);

@@ -2,11 +2,9 @@ package io.webcontify.tenant.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.webcontify.identity.service.KeycloakAdminService;
-import io.webcontify.shared.filestorage.FileStorageService;
+import io.webcontify.IntegrationTestBase;
 import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.model.SystemUser;
-import io.webcontify.shared.security.TestSecurityConfiguration;
 import io.webcontify.tenant.event.TenantBrandingUpdatedEvent;
 import io.webcontify.tenant.model.TenantConfig.BrandingConfig;
 import io.webcontify.tenant.repository.TenantRepository;
@@ -18,31 +16,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
-@Testcontainers
 @RecordApplicationEvents
-@Import(TestSecurityConfiguration.class)
-class TenantConfigBrandingSyncIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
-
-    @MockitoBean
-    private KeycloakAdminService keycloakAdminService;
-
-    @MockitoBean
-    private FileStorageService fileStorageService;
+class TenantConfigBrandingSyncIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     private TenantConfigService tenantConfigService;

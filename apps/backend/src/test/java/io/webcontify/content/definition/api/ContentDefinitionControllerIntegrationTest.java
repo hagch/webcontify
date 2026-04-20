@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.webcontify.identity.service.PermissionService;
+import io.webcontify.IntegrationTestBase;
 import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.model.SystemUser;
 import io.webcontify.shared.security.TestSecurityConfiguration;
@@ -21,33 +21,13 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
 @AutoConfigureMockMvc
-@Testcontainers
-@Import(TestSecurityConfiguration.class)
-class ContentDefinitionControllerIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
-
-    @MockitoBean PermissionService permissionService;
-    @MockitoBean io.webcontify.identity.service.KeycloakAdminService keycloakAdminService;
-    @MockitoBean io.webcontify.identity.service.OpenFgaService openFgaService;
-    @MockitoBean io.webcontify.shared.filestorage.FileStorageService fileStorageService;
-    @MockitoBean io.webcontify.identity.service.TenantInfrastructureLookupService lookupService;
+class ContentDefinitionControllerIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     private MockMvc mockMvc;
@@ -69,7 +49,7 @@ class ContentDefinitionControllerIntegrationTest {
         lenient().when(permissionService.check(any())).thenReturn(true);
         lenient()
                 .when(permissionService.getEffectiveActions(anyString(), any(UUID.class), anyList()))
-                .thenReturn(List.of("viewer", "editor", "deleter"));
+                .thenReturn(List.of("viewer", "editor", "admin"));
 
         if (tenantRepository.findByIdAndAuditInfoDeletedAtIsNull(TEST_TENANT_ID).isEmpty()) {
             TenantEntity tenant = new TenantEntity();
@@ -264,6 +244,7 @@ class ContentDefinitionControllerIntegrationTest {
                     "fieldType": "TEXT",
                     "required": true,
                     "config": {
+                        "fieldType": "TEXT",
                         "minLength": 1,
                         "maxLength": 255
                     }
@@ -297,6 +278,7 @@ class ContentDefinitionControllerIntegrationTest {
                     "fieldKey": "customer",
                     "fieldType": "REFERENCE",
                     "config": {
+                        "fieldType": "REFERENCE",
                         "targetDefinitionId": "%s",
                         "relationType": "MANY_TO_ONE",
                         "onDelete": "SET_NULL"
@@ -462,6 +444,7 @@ class ContentDefinitionControllerIntegrationTest {
                     "fieldKey": "bad_text",
                     "fieldType": "TEXT",
                     "config": {
+                        "fieldType": "TEXT",
                         "minLength": 100,
                         "maxLength": 10
                     }

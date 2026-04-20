@@ -7,29 +7,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.webcontify.generated.model.CreateTenantRequest;
 import io.webcontify.generated.model.UpdateTenantRequest;
 import io.webcontify.generated.model.UpdateTenantStatusRequest;
-import io.webcontify.shared.security.TestSecurityConfiguration;
+import io.webcontify.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
 @AutoConfigureMockMvc
-@Testcontainers
-@Import(TestSecurityConfiguration.class)
-class TenantAdminControllerIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
+class TenantAdminControllerIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     private MockMvc mockMvc;
@@ -105,7 +92,8 @@ class TenantAdminControllerIntegrationTest {
 
     @Test
     void shouldReturn404ForNonExistentTenant() throws Exception {
-        mockMvc.perform(get("/api/v1/admin/tenants/00000000-0000-0000-0000-000000000001"))
+        String randomId = java.util.UUID.randomUUID().toString();
+        mockMvc.perform(get("/api/v1/admin/tenants/" + randomId))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("tenant.not_found"));
     }

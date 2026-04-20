@@ -35,6 +35,8 @@ interface ReferenceFieldInputProps<T extends FieldValues> {
   required?: boolean;
   appSlug: string;
   targetDefSlug: string;
+  /** Display text for the currently selected value (from resolved reference) */
+  initialDisplay?: string;
 }
 
 export function ReferenceFieldInput<T extends FieldValues>({
@@ -44,6 +46,7 @@ export function ReferenceFieldInput<T extends FieldValues>({
   required,
   appSlug,
   targetDefSlug,
+  initialDisplay,
 }: ReferenceFieldInputProps<T>) {
   const t = useTranslations("entries.reference");
   const [open, setOpen] = useState(false);
@@ -57,9 +60,9 @@ export function ReferenceFieldInput<T extends FieldValues>({
       control={control}
       name={name}
       render={({ field }) => {
-        const selectedDisplay = results.find(
-          (r) => r.id === field.value
-        )?.display;
+        const selectedDisplay =
+          results.find((r) => r.id === field.value)?.display ??
+          initialDisplay;
 
         return (
           <FormItem className="flex flex-col">
@@ -67,11 +70,12 @@ export function ReferenceFieldInput<T extends FieldValues>({
               {label}
               {required && <span className="text-destructive"> *</span>}
             </FormLabel>
-            <div className="flex gap-1">
+            <div className="relative">
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger
                   render={
                     <Button
+                      type="button"
                       variant="outline"
                       role="combobox"
                       aria-expanded={open}
@@ -83,7 +87,7 @@ export function ReferenceFieldInput<T extends FieldValues>({
                   }
                 >
                   <span className="truncate">
-                    {selectedDisplay ?? field.value ?? t("search")}
+                    {selectedDisplay ?? t("search")}
                   </span>
                   <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                 </PopoverTrigger>
@@ -137,15 +141,16 @@ export function ReferenceFieldInput<T extends FieldValues>({
                   </FormControl>
                 </PopoverContent>
               </Popover>
-              {field.value && !required && (
+              {!required && field.value && (
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-xs"
+                  className="absolute right-8 top-1/2 -translate-y-1/2"
                   onClick={() => field.onChange(null)}
                   aria-label={t("clear")}
                 >
-                  <X className="size-4" />
+                  <X className="size-3" />
                 </Button>
               )}
             </div>

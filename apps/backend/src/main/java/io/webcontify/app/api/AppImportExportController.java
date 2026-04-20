@@ -8,9 +8,14 @@ import io.webcontify.app.model.AppSnapshot;
 import io.webcontify.app.model.ImportPreview;
 import io.webcontify.app.service.AppExportService;
 import io.webcontify.app.service.AppImportService;
+import io.webcontify.app.service.AppService;
 import io.webcontify.generated.api.AppImportExportApi;
 import io.webcontify.generated.model.*;
+import io.webcontify.identity.model.CheckPermissionRequest;
 import io.webcontify.identity.security.RequiresPermission;
+import io.webcontify.identity.service.PermissionService;
+import io.webcontify.shared.security.TenantContext;
+import org.springframework.security.access.AccessDeniedException;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -24,22 +29,41 @@ public class AppImportExportController implements AppImportExportApi {
     private final AppImportService appImportService;
     private final AppMapper appMapper;
     private final ObjectMapper objectMapper;
+    private final AppService appService;
+    private final PermissionService permissionService;
 
     public AppImportExportController(
             AppExportService appExportService,
             AppImportService appImportService,
-            AppMapper appMapper) {
+            AppMapper appMapper,
+            AppService appService,
+            PermissionService permissionService) {
         this.appExportService = appExportService;
         this.appImportService = appImportService;
         this.appMapper = appMapper;
         this.objectMapper = new ObjectMapper();
+        this.appService = appService;
+        this.permissionService = permissionService;
     }
 
     @Override
-    @RequiresPermission(action = "admin", resource = "app", resourceId = "#appId")
-    public ResponseEntity<AppBlueprintResponse> exportAppBlueprint(UUID appId, UUID versionId) {
-        AppBlueprint blueprint = appExportService.exportBlueprint(appId, versionId);
+    public ResponseEntity<AppBlueprintResponse> exportAppBlueprint(String appId, UUID versionId) {
+        App app = appService.getBySlugOrId(appId);
+        checkAppPermission("admin", app.getId());
+        AppBlueprint blueprint = appExportService.exportBlueprint(app.getId(), versionId);
         return ResponseEntity.ok(toBlueprintResponse(blueprint));
+    }
+
+    private void checkAppPermission(String action, UUID resourceId) {
+        var tenantInfo = TenantContext.getTenantInformation();
+        if (tenantInfo.platformAdmin()) {
+            return;
+        }
+        UUID userId = TenantContext.getCurrentUserId();
+        var request = new CheckPermissionRequest(userId, action, "app", resourceId);
+        if (!permissionService.check(request)) {
+            throw new AccessDeniedException("Insufficient permissions");
+        }
     }
 
     @Override

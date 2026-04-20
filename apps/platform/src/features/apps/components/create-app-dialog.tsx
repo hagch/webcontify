@@ -75,7 +75,7 @@ export function CreateAppDialog({ children }: CreateAppDialogProps) {
         toast.success(t("createDialog.successToast"));
         setOpen(false);
         form.reset();
-        router.push(`/apps/${response.data.id}`);
+        router.push(`/apps/${response.data.slug}`);
       }
     } catch (error: unknown) {
       const err = error as ValidationProblemDetail | ProblemDetail;

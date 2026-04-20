@@ -49,7 +49,7 @@ class ContentEntryMapperTest {
 
         var page = new CursorPage<>(List.of(entry), "nextCursorToken", true);
 
-        ContentEntryListResponse response = mapper.toListResponse(page);
+        ContentEntryListResponse response = mapper.toListResponse(page, Map.of());
 
         assertThat(response.getItems()).hasSize(1);
         assertThat(response.getNextCursor()).isEqualTo("nextCursorToken");
@@ -74,7 +74,7 @@ class ContentEntryMapperTest {
                 UUID.randomUUID(), UUID.randomUUID(), "UPDATED",
                 changes, OffsetDateTime.now(), UUID.randomUUID());
 
-        EntryHistoryResponse response = mapper.toHistoryResponse(record);
+        EntryHistoryResponse response = mapper.toHistoryResponse(record, Map.of());
 
         assertThat(response.getId()).isEqualTo(record.id());
         assertThat(response.getAction()).isEqualTo("UPDATED");
