@@ -29,6 +29,7 @@ export type TenantStatus = typeof TenantStatus[keyof typeof TenantStatus];
 
 
 export const TenantStatus = {
+  PROVISIONING: 'PROVISIONING',
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
   SUSPENDED: 'SUSPENDED',
@@ -40,12 +41,18 @@ export interface CreateTenantRequest {
    * @maxLength 255
    */
   name: string;
+  /** @maxLength 255 */
+  adminEmail: string;
   /**
    * @minLength 1
-   * @maxLength 100
-   * @pattern ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$
+   * @maxLength 255
    */
-  slug: string;
+  adminFirstName: string;
+  /**
+   * @minLength 1
+   * @maxLength 255
+   */
+  adminLastName: string;
 }
 
 export interface UpdateTenantRequest {
@@ -66,13 +73,55 @@ export interface UpdateTenantStatusRequest {
   status: TenantStatus;
 }
 
+export type ProvisioningStepInfoStep = typeof ProvisioningStepInfoStep[keyof typeof ProvisioningStepInfoStep];
+
+
+export const ProvisioningStepInfoStep = {
+  S3_BUCKET: 'S3_BUCKET',
+  KEYCLOAK_REALM: 'KEYCLOAK_REALM',
+  OPENFGA_STORE: 'OPENFGA_STORE',
+  INITIAL_ADMIN: 'INITIAL_ADMIN',
+} as const;
+
+export type ProvisioningStepInfoStatus = typeof ProvisioningStepInfoStatus[keyof typeof ProvisioningStepInfoStatus];
+
+
+export const ProvisioningStepInfoStatus = {
+  PENDING: 'PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+} as const;
+
+export interface ProvisioningStepInfo {
+  step: ProvisioningStepInfoStep;
+  status: ProvisioningStepInfoStatus;
+  completedAt?: string | null;
+  error?: string | null;
+}
+
+export interface ProvisioningStatus {
+  steps?: ProvisioningStepInfo[];
+  adminEmail?: string;
+  adminFirstName?: string;
+  adminLastName?: string;
+}
+
 export interface TenantResponse {
   id: string;
   name: string;
   slug: string;
   status: TenantStatus;
+  openfgaStoreId?: string | null;
+  keycloakRealmName?: string | null;
+  provisioningStatus?: ProvisioningStatus | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface NameAvailabilityResponse {
+  available: boolean;
+  suggestedSlug?: string;
 }
 
 export interface PageInfo {
@@ -198,6 +247,10 @@ export type UploadFileBody = {
   file: Blob;
   /** If true, uploads as public asset (config/), else private (files/) */
   public?: boolean;
+};
+
+export type CheckTenantNameAvailabilityParams = {
+name: string;
 };
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -1587,6 +1640,218 @@ export const useUploadFile = <TError = ProblemDetail,
         TContext
       > => {
       return useMutation(getUploadFileMutationOptions(options), queryClient);
+    }
+    
+/**
+ * @summary Check if tenant name is available
+ */
+export type checkTenantNameAvailabilityResponse200 = {
+  data: NameAvailabilityResponse
+  status: 200
+}
+
+export type checkTenantNameAvailabilityResponseSuccess = (checkTenantNameAvailabilityResponse200) & {
+  headers: Headers;
+};
+;
+
+export type checkTenantNameAvailabilityResponse = (checkTenantNameAvailabilityResponseSuccess)
+
+export const getCheckTenantNameAvailabilityUrl = (params: CheckTenantNameAvailabilityParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/admin/tenants/check-name?${stringifiedParams}` : `/api/v1/admin/tenants/check-name`
+}
+
+export const checkTenantNameAvailability = async (params: CheckTenantNameAvailabilityParams, options?: RequestInit): Promise<checkTenantNameAvailabilityResponse> => {
+  
+  return customInstance<checkTenantNameAvailabilityResponse>(getCheckTenantNameAvailabilityUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getCheckTenantNameAvailabilityQueryKey = (params?: CheckTenantNameAvailabilityParams,) => {
+    return [
+    `/api/v1/admin/tenants/check-name`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const getCheckTenantNameAvailabilityQueryOptions = <TData = Awaited<ReturnType<typeof checkTenantNameAvailability>>, TError = unknown>(params: CheckTenantNameAvailabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkTenantNameAvailability>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCheckTenantNameAvailabilityQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof checkTenantNameAvailability>>> = ({ signal }) => checkTenantNameAvailability(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof checkTenantNameAvailability>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CheckTenantNameAvailabilityQueryResult = NonNullable<Awaited<ReturnType<typeof checkTenantNameAvailability>>>
+export type CheckTenantNameAvailabilityQueryError = unknown
+
+
+export function useCheckTenantNameAvailability<TData = Awaited<ReturnType<typeof checkTenantNameAvailability>>, TError = unknown>(
+ params: CheckTenantNameAvailabilityParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkTenantNameAvailability>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkTenantNameAvailability>>,
+          TError,
+          Awaited<ReturnType<typeof checkTenantNameAvailability>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCheckTenantNameAvailability<TData = Awaited<ReturnType<typeof checkTenantNameAvailability>>, TError = unknown>(
+ params: CheckTenantNameAvailabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkTenantNameAvailability>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkTenantNameAvailability>>,
+          TError,
+          Awaited<ReturnType<typeof checkTenantNameAvailability>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCheckTenantNameAvailability<TData = Awaited<ReturnType<typeof checkTenantNameAvailability>>, TError = unknown>(
+ params: CheckTenantNameAvailabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkTenantNameAvailability>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Check if tenant name is available
+ */
+
+export function useCheckTenantNameAvailability<TData = Awaited<ReturnType<typeof checkTenantNameAvailability>>, TError = unknown>(
+ params: CheckTenantNameAvailabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkTenantNameAvailability>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCheckTenantNameAvailabilityQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+/**
+ * @summary Retry failed provisioning steps
+ */
+export type retryTenantProvisioningResponse202 = {
+  data: void
+  status: 202
+}
+
+export type retryTenantProvisioningResponse404 = {
+  data: ProblemDetail
+  status: 404
+}
+
+export type retryTenantProvisioningResponse409 = {
+  data: ProblemDetail
+  status: 409
+}
+
+export type retryTenantProvisioningResponseSuccess = (retryTenantProvisioningResponse202) & {
+  headers: Headers;
+};
+export type retryTenantProvisioningResponseError = (retryTenantProvisioningResponse404 | retryTenantProvisioningResponse409) & {
+  headers: Headers;
+};
+
+export type retryTenantProvisioningResponse = (retryTenantProvisioningResponseSuccess | retryTenantProvisioningResponseError)
+
+export const getRetryTenantProvisioningUrl = (tenantId: string,) => {
+
+
+  
+
+  return `/api/v1/admin/tenants/${tenantId}/retry-provisioning`
+}
+
+export const retryTenantProvisioning = async (tenantId: string, options?: RequestInit): Promise<retryTenantProvisioningResponse> => {
+  
+  return customInstance<retryTenantProvisioningResponse>(getRetryTenantProvisioningUrl(tenantId),
+  {      
+    ...options,
+    method: 'POST'
+    
+    
+  }
+);}
+  
+
+
+
+export const getRetryTenantProvisioningMutationOptions = <TError = ProblemDetail,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryTenantProvisioning>>, TError,{tenantId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof retryTenantProvisioning>>, TError,{tenantId: string}, TContext> => {
+
+const mutationKey = ['retryTenantProvisioning'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof retryTenantProvisioning>>, {tenantId: string}> = (props) => {
+          const {tenantId} = props ?? {};
+
+          return  retryTenantProvisioning(tenantId,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RetryTenantProvisioningMutationResult = NonNullable<Awaited<ReturnType<typeof retryTenantProvisioning>>>
+    
+    export type RetryTenantProvisioningMutationError = ProblemDetail
+
+    /**
+ * @summary Retry failed provisioning steps
+ */
+export const useRetryTenantProvisioning = <TError = ProblemDetail,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryTenantProvisioning>>, TError,{tenantId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof retryTenantProvisioning>>,
+        TError,
+        {tenantId: string},
+        TContext
+      > => {
+      return useMutation(getRetryTenantProvisioningMutationOptions(options), queryClient);
     }
     
 /**

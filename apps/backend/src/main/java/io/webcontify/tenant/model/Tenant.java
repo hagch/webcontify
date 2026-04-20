@@ -10,6 +10,9 @@ public class Tenant {
     private String slug;
     private TenantStatus status;
     private TenantConfig config;
+    private String openfgaStoreId;
+    private String keycloakRealmName;
+    private String provisioningStatus;
     private OffsetDateTime createdAt;
     private UUID createdBy;
     private OffsetDateTime updatedAt;
@@ -53,6 +56,30 @@ public class Tenant {
 
     public void setConfig(TenantConfig config) {
         this.config = config;
+    }
+
+    public String getOpenfgaStoreId() {
+        return openfgaStoreId;
+    }
+
+    public void setOpenfgaStoreId(String openfgaStoreId) {
+        this.openfgaStoreId = openfgaStoreId;
+    }
+
+    public String getKeycloakRealmName() {
+        return keycloakRealmName;
+    }
+
+    public void setKeycloakRealmName(String keycloakRealmName) {
+        this.keycloakRealmName = keycloakRealmName;
+    }
+
+    public String getProvisioningStatus() {
+        return provisioningStatus;
+    }
+
+    public void setProvisioningStatus(String provisioningStatus) {
+        this.provisioningStatus = provisioningStatus;
     }
 
     public OffsetDateTime getCreatedAt() {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -24,10 +25,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useCreateTenant } from "@/generated/tenant";
+import { Separator } from "@/components/ui/separator";
+import {
+  useCreateTenant,
+  checkTenantNameAvailability,
+  type ValidationProblemDetail,
+  type ProblemDetail,
+} from "@/generated/tenant";
 import {
   createTenantSchema,
-  type CreateTenantInput,
+  type CreateTenantFormValues,
 } from "../schemas/create-tenant";
 
 interface CreateTenantDialogProps {
@@ -36,38 +43,61 @@ interface CreateTenantDialogProps {
 
 export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
   const createTenant = useCreateTenant();
 
-  const form = useForm<CreateTenantInput>({
+  const form = useForm<CreateTenantFormValues>({
     resolver: zodResolver(createTenantSchema),
     defaultValues: {
       name: "",
-      slug: "",
+      adminEmail: "",
+      adminFirstName: "",
+      adminLastName: "",
     },
   });
 
-  async function onSubmit(values: CreateTenantInput) {
+  async function onSubmit(values: CreateTenantFormValues) {
+    // Name-Eindeutigkeitsprüfung vor dem Erstellen
     try {
-      await createTenant.mutateAsync({ data: values });
-      toast.success("Tenant created successfully");
-      setOpen(false);
-      form.reset();
+      const nameCheck = await checkTenantNameAvailability({ name: values.name });
+      if (!nameCheck.data.available) {
+        form.setError("name", {
+          message: "Dieser Name ist bereits vergeben. Bitte wähle einen anderen.",
+        });
+        return;
+      }
+    } catch {
+      // Fehler bei der Prüfung ignorieren — Backend-Validierung schlägt dann fehl
+    }
+
+    try {
+      const response = await createTenant.mutateAsync({ data: values });
+      if (response.status === 201) {
+        toast.success("Tenant wird erstellt...");
+        setOpen(false);
+        form.reset();
+        router.push(`/tenants/${response.data.id}`);
+      }
     } catch (error: unknown) {
-      const err = error as {
-        data?: { errors?: Array<{ field?: string; message?: string }> };
-        status?: number;
-      };
-      if (err.status === 422 && err.data?.errors) {
-        for (const fieldError of err.data.errors) {
-          if (fieldError.field && fieldError.message) {
-            form.setError(fieldError.field as keyof CreateTenantInput, {
+      const err = error as ValidationProblemDetail | ProblemDetail;
+      if (err.status === 400) {
+        const validationErr = err as ValidationProblemDetail;
+        if (validationErr.errors) {
+          for (const fieldError of validationErr.errors) {
+            form.setError(fieldError.field as keyof CreateTenantFormValues, {
               message: fieldError.message,
             });
           }
+          return;
         }
-      } else {
-        toast.error("Failed to create tenant. Please try again.");
       }
+      if (err.status === 409) {
+        form.setError("name", {
+          message: "Dieser Name ist bereits vergeben. Bitte wähle einen anderen.",
+        });
+        return;
+      }
+      toast.error("Fehler beim Erstellen des Tenants. Bitte versuche es erneut.");
     }
   }
 
@@ -76,13 +106,14 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
       <DialogTrigger render={children as React.ReactElement} />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Tenant</DialogTitle>
+          <DialogTitle>Tenant erstellen</DialogTitle>
           <DialogDescription>
-            Create a new tenant on the platform.
+            Erstelle einen neuen Tenant auf der Plattform.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Sektion 1: Tenant */}
             <FormField
               control={form.control}
               name="name"
@@ -98,34 +129,72 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
                 </FormItem>
               )}
             />
+
+            <Separator />
+            <p className="text-sm font-medium text-muted-foreground">
+              Initialer Administrator
+            </p>
+
+            {/* Sektion 2: Administrator */}
             <FormField
               control={form.control}
-              name="slug"
+              name="adminEmail"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Slug <span className="text-destructive">*</span>
+                    E-Mail <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="acme-corp" {...field} />
+                    <Input type="email" placeholder="admin@acme.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="adminFirstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Vorname <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Max" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="adminLastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Nachname <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Mustermann" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                Abbrechen
               </Button>
               <Button type="submit" aria-busy={createTenant.isPending}>
                 {createTenant.isPending && (
                   <Loader2 className="mr-2 size-4 animate-spin" />
                 )}
-                Create
+                Erstellen
               </Button>
             </DialogFooter>
           </form>

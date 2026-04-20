@@ -21,8 +21,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @ConditionalOnProperty(name = "webcontify.security.enabled", havingValue = "true", matchIfMissing = true)
 public class SecurityConfiguration {
 
-    @Value("${webcontify.cors.allowed-origins:http://platform.localhost}")
-    private String allowedOrigins;
+    @Value("${webcontify.cors.allowed-origin-patterns:http://*.localhost}")
+    private String allowedOriginPatterns;
 
     private final JwtToTenantAuthenticationConverter jwtToTenantAuthenticationConverter;
     private final TenantSlugResolver tenantSlugResolver;
@@ -57,7 +57,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        configuration.setAllowedOriginPatterns(Arrays.asList(allowedOriginPatterns.split(",")));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

@@ -6,10 +6,17 @@ import { AppHeader } from "@/components/layout/app-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetTenant, type TenantResponse } from "@/generated/tenant";
+import {
+  useGetTenant,
+  useRetryTenantProvisioning,
+  type TenantResponse,
+} from "@/generated/tenant";
+import { ProvisioningStatus } from "@/features/tenants/components/provisioning-status";
 
 function isTenantResponse(data: unknown): data is TenantResponse {
-  return typeof data === "object" && data !== null && "name" in data && "slug" in data;
+  return (
+    typeof data === "object" && data !== null && "name" in data && "slug" in data
+  );
 }
 
 export default function TenantDetailPage({
@@ -18,7 +25,22 @@ export default function TenantDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { data, isLoading, error } = useGetTenant(id);
+
+  const isProvisioning = (tenant: TenantResponse) =>
+    tenant.status === "PROVISIONING";
+
+  const { data, isLoading, error } = useGetTenant(id, {
+    query: {
+      refetchInterval: (query) => {
+        const rawData = query.state.data?.data;
+        const tenant = isTenantResponse(rawData) ? rawData : undefined;
+        return tenant && isProvisioning(tenant) ? 3000 : false;
+      },
+    },
+  });
+
+  const retryProvisioning = useRetryTenantProvisioning();
+
   const rawData = data?.data;
   const tenant = isTenantResponse(rawData) ? rawData : undefined;
 
@@ -46,36 +68,46 @@ export default function TenantDetailPage({
             </CardContent>
           </Card>
         ) : tenant ? (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <CardTitle className="text-2xl">{tenant.name}</CardTitle>
-                <Badge
-                  variant={
-                    tenant.status === "ACTIVE" ? "default" : "secondary"
-                  }
-                >
-                  {tenant.status}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Slug
-                  </dt>
-                  <dd className="mt-1 text-sm">{tenant.slug}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    ID
-                  </dt>
-                  <dd className="mt-1 font-mono text-sm">{tenant.id}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
+          <div className="min-h-[300px]">
+            {isProvisioning(tenant) ? (
+              <ProvisioningStatus
+                steps={tenant.provisioningStatus?.steps ?? null}
+                onRetry={() => retryProvisioning.mutate({ tenantId: id })}
+                isRetrying={retryProvisioning.isPending}
+              />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <CardTitle className="text-2xl">{tenant.name}</CardTitle>
+                    <Badge
+                      variant={
+                        tenant.status === "ACTIVE" ? "default" : "secondary"
+                      }
+                    >
+                      {tenant.status}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        Slug
+                      </dt>
+                      <dd className="mt-1 text-sm">{tenant.slug}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        ID
+                      </dt>
+                      <dd className="mt-1 font-mono text-sm">{tenant.id}</dd>
+                    </div>
+                  </dl>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         ) : null}
       </div>
     </>

@@ -83,6 +83,18 @@
         "offline_access",
         "microprofile-jwt"
       ]
+    },
+    {
+      "clientId": "platform-backend",
+      "name": "Platform Backend Service Account",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "platform-backend-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "publicClient": false,
+      "protocol": "openid-connect"
     }
   ],
   "users": [

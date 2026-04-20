@@ -79,12 +79,11 @@ class TenantMapperTest {
 
     @Test
     void shouldMapCreateRequestToDomain() {
-        CreateTenantRequest request = new CreateTenantRequest("New Tenant", "new-tenant");
+        CreateTenantRequest request = new CreateTenantRequest("New Tenant", "admin@example.com", "Admin", "User");
 
         Tenant tenant = mapper.toDomain(request);
 
         assertThat(tenant.getName()).isEqualTo("New Tenant");
-        assertThat(tenant.getSlug()).isEqualTo("new-tenant");
     }
 
     @Test

@@ -33,6 +33,13 @@ management:
 server:
   port: 8080
 
+keycloak:
+  admin:
+    server-url: http://auth.localhost
+    client-id: platform-backend
+    client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:platform-backend-secret}
+    realm: webcontify-platform
+
 webcontify:
   encryption:
     key: ${ENCRYPTION_KEY:}
@@ -41,3 +48,15 @@ webcontify:
     region: ${S3_REGION:us-east-1}
     access-key: ${S3_ACCESS_KEY:}
     secret-key: ${S3_SECRET_KEY:}
+
+openfga:
+  api-url: ${OPENFGA_API_URL:http://localhost:8082}
+  authorization-model-path: classpath:openfga/model.json
+
+platform:
+  smtp:
+    host: ${PLATFORM_SMTP_HOST:localhost}
+    port: ${PLATFORM_SMTP_PORT:1025}
+    username: ${PLATFORM_SMTP_USER:}
+    password: ${PLATFORM_SMTP_PASSWORD:}
+    starttls: ${PLATFORM_SMTP_STARTTLS:false}

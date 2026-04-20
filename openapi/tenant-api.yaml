@@ -11,6 +11,8 @@ servers:
 tags:
   - name: PlatformAdmin
     description: Platform Admin Tenant Management
+  - name: Tenant Admin
+    description: Tenant Admin Operations
   - name: TenantConfig
     description: Tenant Configuration Management (Admin)
   - name: TenantSelfService
@@ -436,6 +438,55 @@ paths:
               schema:
                 $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
 
+  /api/v1/admin/tenants/check-name:
+    get:
+      operationId: checkTenantNameAvailability
+      summary: Check if tenant name is available
+      tags:
+        - Tenant Admin
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Name availability result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NameAvailabilityResponse'
+
+  /api/v1/admin/tenants/{tenantId}/retry-provisioning:
+    post:
+      operationId: retryTenantProvisioning
+      summary: Retry failed provisioning steps
+      tags:
+        - Tenant Admin
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '202':
+          description: Provisioning retry initiated
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Tenant is not in PROVISIONING status
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
   /api/v1/tenant/files/{storageKey}:
     get:
       operationId: getFile
@@ -488,6 +539,7 @@ components:
     TenantStatus:
       type: string
       enum:
+        - PROVISIONING
         - ACTIVE
         - INACTIVE
         - SUSPENDED
@@ -496,17 +548,26 @@ components:
       type: object
       required:
         - name
-        - slug
+        - adminEmail
+        - adminFirstName
+        - adminLastName
       properties:
         name:
           type: string
           minLength: 1
           maxLength: 255
-        slug:
+        adminEmail:
+          type: string
+          format: email
+          maxLength: 255
+        adminFirstName:
           type: string
           minLength: 1
-          maxLength: 100
-          pattern: '^[a-z0-9]([a-z0-9-]*[a-z0-9])?$'
+          maxLength: 255
+        adminLastName:
+          type: string
+          minLength: 1
+          maxLength: 255
 
     UpdateTenantRequest:
       type: object
@@ -551,12 +612,73 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/TenantStatus'
+        openfgaStoreId:
+          type: string
+          nullable: true
+        keycloakRealmName:
+          type: string
+          nullable: true
+        provisioningStatus:
+          $ref: '#/components/schemas/ProvisioningStatus'
+          nullable: true
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    ProvisioningStatus:
+      type: object
+      properties:
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProvisioningStepInfo'
+        adminEmail:
+          type: string
+        adminFirstName:
+          type: string
+        adminLastName:
+          type: string
+
+    ProvisioningStepInfo:
+      type: object
+      required:
+        - step
+        - status
+      properties:
+        step:
+          type: string
+          enum:
+            - S3_BUCKET
+            - KEYCLOAK_REALM
+            - OPENFGA_STORE
+            - INITIAL_ADMIN
+        status:
+          type: string
+          enum:
+            - PENDING
+            - IN_PROGRESS
+            - COMPLETED
+            - FAILED
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        error:
+          type: string
+          nullable: true
+
+    NameAvailabilityResponse:
+      type: object
+      required:
+        - available
+      properties:
+        available:
+          type: boolean
+        suggestedSlug:
+          type: string
 
     PageInfo:
       type: object

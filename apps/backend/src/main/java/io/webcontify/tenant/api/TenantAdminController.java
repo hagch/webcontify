@@ -5,7 +5,6 @@ import io.webcontify.generated.model.*;
 import io.webcontify.tenant.mapper.TenantMapper;
 import io.webcontify.tenant.model.Tenant;
 import io.webcontify.tenant.model.TenantStatus;
-import io.webcontify.tenant.service.TenantProvisioningService;
 import io.webcontify.tenant.service.TenantService;
 import java.net.URI;
 import java.util.UUID;
@@ -20,22 +19,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class TenantAdminController implements PlatformAdminApi {
 
     private final TenantService tenantService;
-    private final TenantProvisioningService tenantProvisioningService;
     private final TenantMapper tenantMapper;
 
-    public TenantAdminController(
-            TenantService tenantService,
-            TenantProvisioningService tenantProvisioningService,
-            TenantMapper tenantMapper) {
+    public TenantAdminController(TenantService tenantService, TenantMapper tenantMapper) {
         this.tenantService = tenantService;
-        this.tenantProvisioningService = tenantProvisioningService;
         this.tenantMapper = tenantMapper;
     }
 
     @Override
     public ResponseEntity<TenantResponse> createTenant(CreateTenantRequest createTenantRequest) {
         Tenant tenant = tenantMapper.toDomain(createTenantRequest);
-        Tenant created = tenantProvisioningService.provision(tenant);
+        Tenant created = tenantService.create(
+                tenant,
+                createTenantRequest.getAdminEmail(),
+                createTenantRequest.getAdminFirstName(),
+                createTenantRequest.getAdminLastName());
         TenantResponse response = tenantMapper.toResponse(created);
         return ResponseEntity.created(URI.create("/api/v1/admin/tenants/" + created.getId()))
                 .body(response);

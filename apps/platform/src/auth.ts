@@ -1,17 +1,22 @@
 import NextAuth from "next-auth";
 import Keycloak from "next-auth/providers/keycloak";
+import { getKeycloakIssuer } from "@/lib/auth-utils";
 
+// Platform Admins behalten ihre Platform-Session auch auf Tenant-Subdomains.
+// Das Backend akzeptiert PLATFORM_ADMIN Tokens auf allen Tenants (RLS Bypass).
+// Vollstaendiges dynamisches Issuer-Switching pro Request wird in Phase 3b
+// implementiert, wenn Tenant-User sich einloggen koennen.
 const KEYCLOAK_ISSUER =
-  process.env.KEYCLOAK_ISSUER ??
-  "http://auth.localhost/realms/webcontify-platform";
+  process.env.KEYCLOAK_ISSUER ?? getKeycloakIssuer("platform.localhost");
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Keycloak({
       clientId: process.env.AUTH_KEYCLOAK_CLIENT_ID ?? "platform-ui",
-      // Public client: kein Client Secret
-      clientSecret: "",
       issuer: KEYCLOAK_ISSUER,
+      client: {
+        token_endpoint_auth_method: "none",
+      },
       authorization: {
         params: {
           scope: "openid profile email offline_access",

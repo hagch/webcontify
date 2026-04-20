@@ -36,13 +36,12 @@ class TenantProvisioningServiceTest {
         // Arrange
         Tenant input = new Tenant();
         input.setName("Acme Corp");
-        input.setSlug("acme-corp");
 
         Tenant created = new Tenant();
         created.setId(UUID.randomUUID());
         created.setName("Acme Corp");
         created.setSlug("acme-corp");
-        created.setStatus(TenantStatus.INACTIVE);
+        created.setStatus(TenantStatus.PROVISIONING);
 
         Tenant activated = new Tenant();
         activated.setId(created.getId());
@@ -50,11 +49,12 @@ class TenantProvisioningServiceTest {
         activated.setSlug("acme-corp");
         activated.setStatus(TenantStatus.ACTIVE);
 
-        when(tenantService.create(any(Tenant.class))).thenReturn(created);
+        when(tenantService.create(any(Tenant.class), eq("admin@acme.com"), eq("John"), eq("Doe")))
+                .thenReturn(created);
         when(tenantService.updateStatus(created.getId(), TenantStatus.ACTIVE)).thenReturn(activated);
 
         // Act
-        Tenant result = provisioningService.provision(input);
+        Tenant result = provisioningService.provision(input, "admin@acme.com", "John", "Doe");
 
         // Assert
         assertThat(result.getStatus()).isEqualTo(TenantStatus.ACTIVE);
@@ -63,28 +63,28 @@ class TenantProvisioningServiceTest {
     }
 
     @Test
-    void shouldReturnInactiveTenantWhenBucketCreationFails() {
+    void shouldReturnProvisioningTenantWhenBucketCreationFails() {
         // Arrange
         Tenant input = new Tenant();
         input.setName("Broken Corp");
-        input.setSlug("broken-corp");
 
         Tenant created = new Tenant();
         created.setId(UUID.randomUUID());
         created.setName("Broken Corp");
         created.setSlug("broken-corp");
-        created.setStatus(TenantStatus.INACTIVE);
+        created.setStatus(TenantStatus.PROVISIONING);
 
-        when(tenantService.create(any(Tenant.class))).thenReturn(created);
+        when(tenantService.create(any(Tenant.class), eq("admin@broken.com"), eq("Jane"), eq("Doe")))
+                .thenReturn(created);
         doThrow(new RuntimeException("S3 nicht erreichbar"))
                 .when(fileStorageService)
                 .createBucket("tenant-broken-corp");
 
         // Act — kein Fehler erwartet
-        Tenant result = provisioningService.provision(input);
+        Tenant result = provisioningService.provision(input, "admin@broken.com", "Jane", "Doe");
 
         // Assert
-        assertThat(result.getStatus()).isEqualTo(TenantStatus.INACTIVE);
+        assertThat(result.getStatus()).isEqualTo(TenantStatus.PROVISIONING);
         verify(fileStorageService).createBucket("tenant-broken-corp");
         // updateStatus darf NICHT aufgerufen werden, da Bucket-Erstellung gescheitert
         verify(tenantService, never()).updateStatus(any(), eq(TenantStatus.ACTIVE));

@@ -9,6 +9,7 @@ import io.webcontify.shared.exception.ConflictException;
 import io.webcontify.shared.exception.NotFoundException;
 import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.model.SystemUser;
+import io.webcontify.tenant.event.TenantCreatedEvent;
 import io.webcontify.tenant.mapper.TenantMapper;
 import io.webcontify.tenant.mapper.TenantMapperImpl;
 import io.webcontify.tenant.model.Tenant;
@@ -22,8 +23,10 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
@@ -33,47 +36,95 @@ class TenantServiceTest {
     @Mock
     private TenantRepository tenantRepository;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private TenantMapper tenantMapper = new TenantMapperImpl();
+
+    private SlugGenerator slugGenerator = new SlugGenerator();
 
     private TenantService tenantService;
 
     @BeforeEach
     void setUp() {
-        tenantService = new TenantService(tenantRepository, tenantMapper);
+        tenantService = new TenantService(tenantRepository, tenantMapper, slugGenerator, eventPublisher);
     }
 
     @Test
-    void shouldCreateTenant() {
+    void shouldCreateTenantWithGeneratedSlugAndProvisioningStatus() {
         Tenant input = new Tenant();
         input.setName("Test Tenant");
-        input.setSlug("test-tenant");
 
+        when(tenantRepository.existsByNameAndAuditInfoDeletedAtIsNull("Test Tenant"))
+                .thenReturn(false);
         when(tenantRepository.findBySlugAndAuditInfoDeletedAtIsNull("test-tenant"))
                 .thenReturn(Optional.empty());
         when(tenantRepository.save(any(TenantEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Tenant result = tenantService.create(input);
+        Tenant result = tenantService.create(input, "admin@example.com", "Max", "Mustermann");
 
         assertThat(result.getId()).isNotNull();
         assertThat(result.getName()).isEqualTo("Test Tenant");
         assertThat(result.getSlug()).isEqualTo("test-tenant");
-        assertThat(result.getStatus()).isEqualTo(TenantStatus.INACTIVE);
+        assertThat(result.getStatus()).isEqualTo(TenantStatus.PROVISIONING);
+        assertThat(result.getProvisioningStatus()).isNotNull();
+        assertThat(result.getProvisioningStatus()).contains("admin@example.com");
         verify(tenantRepository).save(any(TenantEntity.class));
     }
 
     @Test
-    void shouldThrowConflictOnDuplicateSlug() {
+    void shouldPublishTenantCreatedEventOnCreate() {
         Tenant input = new Tenant();
-        input.setName("Test");
-        input.setSlug("existing-slug");
+        input.setName("Event Tenant");
 
-        when(tenantRepository.findBySlugAndAuditInfoDeletedAtIsNull("existing-slug"))
-                .thenReturn(Optional.of(new TenantEntity()));
+        when(tenantRepository.existsByNameAndAuditInfoDeletedAtIsNull("Event Tenant"))
+                .thenReturn(false);
+        when(tenantRepository.findBySlugAndAuditInfoDeletedAtIsNull("event-tenant"))
+                .thenReturn(Optional.empty());
+        when(tenantRepository.save(any(TenantEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThatThrownBy(() -> tenantService.create(input))
+        tenantService.create(input, "admin@example.com", "Max", "Mustermann");
+
+        ArgumentCaptor<TenantCreatedEvent> eventCaptor = ArgumentCaptor.forClass(TenantCreatedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+        TenantCreatedEvent event = eventCaptor.getValue();
+        assertThat(event.tenantId()).isNotNull();
+        assertThat(event.slug()).isEqualTo("event-tenant");
+        assertThat(event.adminEmail()).isEqualTo("admin@example.com");
+        assertThat(event.adminFirstName()).isEqualTo("Max");
+        assertThat(event.adminLastName()).isEqualTo("Mustermann");
+    }
+
+    @Test
+    void shouldThrowConflictOnDuplicateName() {
+        Tenant input = new Tenant();
+        input.setName("Existing Name");
+
+        when(tenantRepository.existsByNameAndAuditInfoDeletedAtIsNull("Existing Name"))
+                .thenReturn(true);
+
+        assertThatThrownBy(() -> tenantService.create(input, "admin@example.com", "Max", "Mustermann"))
                 .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("tenant.slug_already_exists");
+                .hasMessageContaining("tenant.name_already_exists");
+    }
+
+    @Test
+    void shouldReturnTrueWhenNameIsAvailable() {
+        when(tenantRepository.existsByNameAndAuditInfoDeletedAtIsNull("Free Name"))
+                .thenReturn(false);
+
+        assertThat(tenantService.isNameAvailable("Free Name")).isTrue();
+    }
+
+    @Test
+    void shouldReturnFalseWhenNameIsTaken() {
+        when(tenantRepository.existsByNameAndAuditInfoDeletedAtIsNull("Taken Name"))
+                .thenReturn(true);
+
+        assertThat(tenantService.isNameAvailable("Taken Name")).isFalse();
     }
 
     @Test

@@ -1,0 +1,291 @@
+{
+  "schema_version": "1.1",
+  "type_definitions": [
+    {
+      "type": "user"
+    },
+    {
+      "type": "platform",
+      "relations": {
+        "admin": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "admin": {
+            "directly_related_user_types": [
+              { "type": "user" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "tenant",
+      "relations": {
+        "admin": {
+          "this": {}
+        },
+        "member": {
+          "union": {
+            "child": [
+              { "this": {} },
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "admin"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "admin": {
+            "directly_related_user_types": [
+              { "type": "user" }
+            ]
+          },
+          "member": {
+            "directly_related_user_types": [
+              { "type": "user" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "role",
+      "relations": {
+        "tenant": {
+          "this": {}
+        },
+        "assignee": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "tenant": {
+            "directly_related_user_types": [
+              { "type": "tenant" }
+            ]
+          },
+          "assignee": {
+            "directly_related_user_types": [
+              { "type": "user" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "user_management",
+      "relations": {
+        "tenant": {
+          "this": {}
+        },
+        "inviter": {
+          "union": {
+            "child": [
+              { "this": {} },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "tenant"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "admin"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "editor": {
+          "union": {
+            "child": [
+              { "this": {} },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "tenant"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "admin"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "deleter": {
+          "union": {
+            "child": [
+              { "this": {} },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "tenant"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "admin"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "reader": {
+          "union": {
+            "child": [
+              { "this": {} },
+              { "computedUserset": { "object": "", "relation": "editor" } },
+              { "computedUserset": { "object": "", "relation": "inviter" } },
+              { "computedUserset": { "object": "", "relation": "deleter" } },
+              {
+                "tupleToUserset": {
+                  "tupleset": { "object": "", "relation": "tenant" },
+                  "computedUserset": { "object": "", "relation": "admin" }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "tenant": {
+            "directly_related_user_types": [{ "type": "tenant" }]
+          },
+          "inviter": {
+            "directly_related_user_types": [
+              { "type": "user" },
+              { "type": "role", "relation": "assignee" }
+            ]
+          },
+          "editor": {
+            "directly_related_user_types": [
+              { "type": "user" },
+              { "type": "role", "relation": "assignee" }
+            ]
+          },
+          "deleter": {
+            "directly_related_user_types": [
+              { "type": "user" },
+              { "type": "role", "relation": "assignee" }
+            ]
+          },
+          "reader": {
+            "directly_related_user_types": [
+              { "type": "user" },
+              { "type": "role", "relation": "assignee" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "role_management",
+      "relations": {
+        "tenant": {
+          "this": {}
+        },
+        "creator": {
+          "union": {
+            "child": [
+              { "this": {} },
+              {
+                "tupleToUserset": {
+                  "tupleset": { "object": "", "relation": "tenant" },
+                  "computedUserset": { "object": "", "relation": "admin" }
+                }
+              }
+            ]
+          }
+        },
+        "editor": {
+          "union": {
+            "child": [
+              { "this": {} },
+              {
+                "tupleToUserset": {
+                  "tupleset": { "object": "", "relation": "tenant" },
+                  "computedUserset": { "object": "", "relation": "admin" }
+                }
+              }
+            ]
+          }
+        },
+        "deleter": {
+          "union": {
+            "child": [
+              { "this": {} },
+              {
+                "tupleToUserset": {
+                  "tupleset": { "object": "", "relation": "tenant" },
+                  "computedUserset": { "object": "", "relation": "admin" }
+                }
+              }
+            ]
+          }
+        },
+        "reader": {
+          "union": {
+            "child": [
+              { "this": {} },
+              { "computedUserset": { "object": "", "relation": "editor" } },
+              { "computedUserset": { "object": "", "relation": "creator" } },
+              { "computedUserset": { "object": "", "relation": "deleter" } },
+              {
+                "tupleToUserset": {
+                  "tupleset": { "object": "", "relation": "tenant" },
+                  "computedUserset": { "object": "", "relation": "admin" }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "tenant": {
+            "directly_related_user_types": [{ "type": "tenant" }]
+          },
+          "creator": {
+            "directly_related_user_types": [
+              { "type": "user" },
+              { "type": "role", "relation": "assignee" }
+            ]
+          },
+          "editor": {
+            "directly_related_user_types": [
+              { "type": "user" },
+              { "type": "role", "relation": "assignee" }
+            ]
+          },
+          "deleter": {
+            "directly_related_user_types": [
+              { "type": "user" },
+              { "type": "role", "relation": "assignee" }
+            ]
+          },
+          "reader": {
+            "directly_related_user_types": [
+              { "type": "user" },
+              { "type": "role", "relation": "assignee" }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

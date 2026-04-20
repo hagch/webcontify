@@ -67,6 +67,19 @@ dependencies {
     // Security — OAuth2 Resource Server with JWT (Keycloak)
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
+    // OpenFGA Java SDK
+    implementation("dev.openfga:openfga-sdk:0.7.2")
+
+    // Keycloak Admin Client
+    implementation("org.keycloak:keycloak-admin-client:26.0.0")
+
+    // Caffeine Cache
+    implementation("com.github.ben-manes.caffeine:caffeine")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+
+    // AOP for @RequiresPermission (included in spring-boot-starter in Spring Boot 4)
+    implementation("org.springframework:spring-aspects")
+
     // Structured Logging
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
 
@@ -83,6 +96,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.awaitility:awaitility:4.2.2")
 }
 
 // OpenAPI Code Generation — Multi-Spec
@@ -125,6 +139,12 @@ sourceSets {
 tasks.named("compileJava") {
     dependsOn("openApiGenerate")
 }
+
+tasks.register<Copy>("syncOpenFgaModel") {
+    from(file("${projectDir}/../../infra/openfga/model.fga"))
+    into("src/main/resources/openfga/")
+}
+tasks.named("processResources") { dependsOn("syncOpenFgaModel") }
 
 tasks.withType<Test> {
     useJUnitPlatform()

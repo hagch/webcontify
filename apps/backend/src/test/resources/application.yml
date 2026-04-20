@@ -3,6 +3,17 @@ spring:
     host: localhost
     port: 1025
 
+openfga:
+  api-url: http://localhost:8083
+  authorization-model-path: classpath:openfga/model.json
+
+keycloak:
+  admin:
+    server-url: http://localhost:8080
+    client-id: platform-backend
+    client-secret: test-secret
+    realm: webcontify-platform
+
 webcontify:
   security:
     enabled: false

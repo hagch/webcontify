@@ -116,21 +116,52 @@
 | E.16 | Done | asChild → render Prop Migration (React 19 / shadcn v4 / Base UI) |
 | E.17 | Done | Build Verification (Build + Tests + Lint gruen) |
 
-## Phase 3: Identity & Access (User Management)
+## Phase 3a: Identity Infrastructure (abgeschlossen 2026-03-14)
 
 | Task | Status | Beschreibung |
 |---|---|---|
-| 3a | Offen | Infrastruktur: OpenFGA Dev-Setup, Keycloak Admin Client, OpenFGA SDK, DB-Migrations |
-| 3b | Offen | OpenFGA Basis-Integration (Wrapper-Services, Authorization Model) |
-| 3c | Offen | Keycloak Admin Client (User CRUD, Realm Management) |
-| 3d | Offen | User Management vertikaler Slice (OpenAPI, Backend, Frontend, Tests) |
-| 3e | Offen | User-Einladung (Invite-Token, Email mit Branding, Registrierung) |
-| 3f | Offen | Rollen-Verwaltung (CRUD, Permission-Matrix, OpenFGA Relationships) |
-| 3g | Offen | Platform Admin User Management |
+| 3a.1 | Done | Gradle: OpenFGA SDK 0.7.2, Keycloak Admin Client 26, Caffeine Cache, AOP |
+| 3a.2 | Done | Docker: OpenFGA v1.8.1 gepinnt, Traefik Wildcard fuer Tenant-Subdomains |
+| 3a.3 | Done | Flyway: openfga_store_id, keycloak_realm_name, provisioning_status, PROVISIONING Status |
+| 3a.4 | Done | OpenAPI Spec: CreateTenantRequest (adminEmail/First/LastName), ProvisioningStatus, retry endpoint |
+| 3a.5 | Done | SlugGenerator mit Umlaut-Handling und Eindeutigkeitspruefung (TDD) |
+| 3a.6 | Done | OpenFGA Authorization Model (model.json): user, tenant, user_management |
+| 3a.7 | Done | OpenFGA Configuration (ClientConfiguration, api-url property) |
+| 3a.8 | Done | OpenFGA Request/Response Records (CreateStore, Check, Write, Delete, ListObjects) |
+| 3a.9 | Done | OpenFgaService: Store erstellen + Model deployen, Check, Write, Delete, ListObjects (TDD) |
+| 3a.10 | Done | OpenFGA Integration Test mit Testcontainers (3 Tests: Store, Check, Deny) |
+| 3a.11 | Done | Keycloak Admin Client Configuration (Service Account, client_credentials) |
+| 3a.12 | Done | KeycloakAdminService Request/Response Records |
+| 3a.13 | Done | KeycloakAdminService: Realm erstellen, User erstellen, SMTP, Branding, Invite Email (TDD) |
+| 3a.14 | Done | Caffeine Cache fuer TenantInfrastructureLookupService (5min TTL) |
+| 3a.15 | Done | TenantInfrastructureLookupService: openfga_store_id + keycloak_realm_name Lookup (TDD) |
+| 3a.16 | Done | PermissionService: check, grant, revoke, listObjects via OpenFGA (TDD) |
+| 3a.17 | Done | @RequiresPermission Annotation + PermissionCheckAspect (SpEL, Platform Admin Bypass, TDD) |
+| 3a.18 | Done | ProvisioningStatus Model: ProvisioningStep, ProvisioningStepType, ProvisioningStepStatus |
+| 3a.19 | Done | TenantService.create() migriert: Slug auto-generiert, async Event, isNameAvailable() |
+| 3a.20 | Done | TenantProvisioningListener: @ApplicationModuleListener, S3→Keycloak→OpenFGA→Admin (TDD) |
+| 3a.21 | Done | Retry Provisioning Endpoint: POST /tenants/{id}/retry-provisioning (TDD) |
+| 3a.22 | Done | Provisioning Integration Test: full flow mit gemockten externen Services + Awaitility |
+| 3a.23 | Done | Frontend: Dynamic NextAuth Realm-Aufloesung (platform vs. tenant subdomain) |
+| 3a.24 | Done | Frontend: Create Tenant Dialog mit Admin-Feldern (kein Slug, Name-Check) |
+| 3a.25 | Done | Frontend: ProvisioningStatus Komponente mit Polling, Retry, a11y (TDD) |
+
+## Phase 3b–3g: Identity & Access — noch offen
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 3b | Offen | User Management vertikaler Slice (OpenAPI, Backend, Frontend, Tests) |
+| 3c | Offen | User-Einladung (Invite-Token, Email mit Branding, Registrierung) |
+| 3d | Offen | Rollen-Verwaltung (CRUD, Permission-Matrix, OpenFGA Relationships) |
+| 3e | Offen | Platform Admin User Management |
+| 3f | Offen | E2E Tests Auth Flow + Security Review |
+| 3g | Offen | Tenant Self-Service User Management |
 
 ## Naechste Schritte
 
-- Phase 3: Identity & Access (OpenFGA, Keycloak Admin, User Management)
+- Phase 3b: User Management (OpenAPI Spec → UserService → UserController → Frontend User List/Detail)
+- Voraussetzung: Tenant muss ACTIVE sein (Provisioning abgeschlossen)
+- Infrastructure ist bereit: OpenFGA Stores, Keycloak Realms, PermissionService, @RequiresPermission
 
 ## Lokale Entwicklung
 

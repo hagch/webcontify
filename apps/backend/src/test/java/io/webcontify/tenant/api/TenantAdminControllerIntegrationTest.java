@@ -38,7 +38,7 @@ class TenantAdminControllerIntegrationTest {
 
     @Test
     void shouldCreateTenantAndReturn201WithLocation() throws Exception {
-        CreateTenantRequest request = new CreateTenantRequest("Integration Test", "integration-test");
+        CreateTenantRequest request = new CreateTenantRequest("Integration Test", "admin@example.com", "Admin", "User");
 
         mockMvc.perform(
                         post("/api/v1/admin/tenants")
@@ -48,13 +48,13 @@ class TenantAdminControllerIntegrationTest {
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.name").value("Integration Test"))
                 .andExpect(jsonPath("$.slug").value("integration-test"))
-                .andExpect(jsonPath("$.status").value("INACTIVE"))
+                .andExpect(jsonPath("$.status").value("PROVISIONING"))
                 .andExpect(jsonPath("$.id").isNotEmpty());
     }
 
     @Test
-    void shouldReturn409OnDuplicateSlug() throws Exception {
-        CreateTenantRequest request = new CreateTenantRequest("First", "duplicate-slug");
+    void shouldReturn409OnDuplicateName() throws Exception {
+        CreateTenantRequest request = new CreateTenantRequest("First", "admin@example.com", "Admin", "User");
         mockMvc.perform(
                 post("/api/v1/admin/tenants")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -65,12 +65,12 @@ class TenantAdminControllerIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("tenant.slug_already_exists"));
+                .andExpect(jsonPath("$.code").value("tenant.name_already_exists"));
     }
 
     @Test
     void shouldListTenants() throws Exception {
-        CreateTenantRequest request = new CreateTenantRequest("Listed", "listed-tenant");
+        CreateTenantRequest request = new CreateTenantRequest("Listed", "admin@example.com", "Admin", "User");
         mockMvc.perform(
                 post("/api/v1/admin/tenants")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -84,7 +84,7 @@ class TenantAdminControllerIntegrationTest {
 
     @Test
     void shouldGetTenantById() throws Exception {
-        CreateTenantRequest request = new CreateTenantRequest("Get Test", "get-test");
+        CreateTenantRequest request = new CreateTenantRequest("Get Test", "admin@example.com", "Admin", "User");
         MvcResult createResult =
                 mockMvc.perform(
                                 post("/api/v1/admin/tenants")
@@ -112,7 +112,7 @@ class TenantAdminControllerIntegrationTest {
 
     @Test
     void shouldUpdateTenant() throws Exception {
-        CreateTenantRequest createRequest = new CreateTenantRequest("Before Update", "before-update");
+        CreateTenantRequest createRequest = new CreateTenantRequest("Before Update", "admin@example.com", "Admin", "User");
         MvcResult createResult =
                 mockMvc.perform(
                                 post("/api/v1/admin/tenants")
@@ -139,7 +139,7 @@ class TenantAdminControllerIntegrationTest {
 
     @Test
     void shouldUpdateTenantStatus() throws Exception {
-        CreateTenantRequest createRequest = new CreateTenantRequest("Status Test", "status-test");
+        CreateTenantRequest createRequest = new CreateTenantRequest("Status Test", "admin@example.com", "Admin", "User");
         MvcResult createResult =
                 mockMvc.perform(
                                 post("/api/v1/admin/tenants")
@@ -166,7 +166,7 @@ class TenantAdminControllerIntegrationTest {
 
     @Test
     void shouldSoftDeleteTenant() throws Exception {
-        CreateTenantRequest createRequest = new CreateTenantRequest("Delete Test", "delete-test");
+        CreateTenantRequest createRequest = new CreateTenantRequest("Delete Test", "admin@example.com", "Admin", "User");
         MvcResult createResult =
                 mockMvc.perform(
                                 post("/api/v1/admin/tenants")

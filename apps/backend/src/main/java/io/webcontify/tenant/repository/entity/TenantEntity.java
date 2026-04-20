@@ -25,6 +25,16 @@ public class TenantEntity extends AuditableBaseEntity {
     @Column(name = "config", columnDefinition = "jsonb")
     private TenantConfig config;
 
+    @Column(name = "openfga_store_id")
+    private String openfgaStoreId;
+
+    @Column(name = "keycloak_realm_name")
+    private String keycloakRealmName;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "provisioning_status", columnDefinition = "jsonb")
+    private String provisioningStatus;
+
     public String getName() {
         return name;
     }
@@ -55,5 +65,29 @@ public class TenantEntity extends AuditableBaseEntity {
 
     public void setConfig(TenantConfig config) {
         this.config = config;
+    }
+
+    public String getOpenfgaStoreId() {
+        return openfgaStoreId;
+    }
+
+    public void setOpenfgaStoreId(String openfgaStoreId) {
+        this.openfgaStoreId = openfgaStoreId;
+    }
+
+    public String getKeycloakRealmName() {
+        return keycloakRealmName;
+    }
+
+    public void setKeycloakRealmName(String keycloakRealmName) {
+        this.keycloakRealmName = keycloakRealmName;
+    }
+
+    public String getProvisioningStatus() {
+        return provisioningStatus;
+    }
+
+    public void setProvisioningStatus(String provisioningStatus) {
+        this.provisioningStatus = provisioningStatus;
     }
 }

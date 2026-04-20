@@ -11,6 +11,8 @@ public interface TenantRepository extends JpaRepository<TenantEntity, UUID> {
 
     Optional<TenantEntity> findBySlugAndAuditInfoDeletedAtIsNull(String slug);
 
+    boolean existsByNameAndAuditInfoDeletedAtIsNull(String name);
+
     Optional<TenantEntity> findByIdAndAuditInfoDeletedAtIsNull(UUID id);
 
     Page<TenantEntity> findByAuditInfoDeletedAtIsNull(Pageable pageable);

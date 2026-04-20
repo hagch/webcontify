@@ -1,0 +1,34 @@
+model
+  schema 1.1
+
+type user
+
+type platform
+  relations
+    define admin: [user]
+
+type tenant
+  relations
+    define admin: [user]
+    define member: [user] or admin
+
+type role
+  relations
+    define tenant: [tenant]
+    define assignee: [user]
+
+type user_management
+  relations
+    define tenant: [tenant]
+    define inviter: [user, role#assignee] or admin from tenant
+    define editor: [user, role#assignee] or admin from tenant
+    define deleter: [user, role#assignee] or admin from tenant
+    define reader: [user, role#assignee] or editor or inviter or deleter or admin from tenant
+
+type role_management
+  relations
+    define tenant: [tenant]
+    define creator: [user, role#assignee] or admin from tenant
+    define editor: [user, role#assignee] or admin from tenant
+    define deleter: [user, role#assignee] or admin from tenant
+    define reader: [user, role#assignee] or editor or creator or deleter or admin from tenant

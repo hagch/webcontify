@@ -26,11 +26,16 @@ public interface TenantMapper {
     TenantEntity toEntity(Tenant tenant);
 
     @Mapping(source = "status", target = "status", qualifiedByName = "domainStatusToApiStatus")
+    @Mapping(target = "provisioningStatus", ignore = true)
     TenantResponse toResponse(Tenant tenant);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "slug", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "config", ignore = true)
+    @Mapping(target = "openfgaStoreId", ignore = true)
+    @Mapping(target = "keycloakRealmName", ignore = true)
+    @Mapping(target = "provisioningStatus", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -40,6 +45,9 @@ public interface TenantMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "config", ignore = true)
+    @Mapping(target = "openfgaStoreId", ignore = true)
+    @Mapping(target = "keycloakRealmName", ignore = true)
+    @Mapping(target = "provisioningStatus", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -50,6 +58,9 @@ public interface TenantMapper {
     @Mapping(target = "auditInfo", ignore = true)
     @Mapping(target = "config", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "openfgaStoreId", ignore = true)
+    @Mapping(target = "keycloakRealmName", ignore = true)
+    @Mapping(target = "provisioningStatus", ignore = true)
     void updateEntity(@MappingTarget TenantEntity entity, Tenant tenant);
 
     @Named("stringToTenantStatus")

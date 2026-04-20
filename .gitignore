@@ -49,3 +49,6 @@ coverage/
 test-results/
 playwright-report/
 .superpowers/
+
+# Git Worktrees
+.worktrees/

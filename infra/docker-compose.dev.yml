@@ -49,10 +49,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.keycloak.rule=Host(`auth.localhost`)"
+      - "traefik.http.routers.keycloak.priority=10"
       - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
 
   openfga-migrate:
-    image: openfga/openfga:latest
+    image: openfga/openfga:v1.8.1
     command: migrate
     environment:
       OPENFGA_DATASTORE_ENGINE: postgres
@@ -62,7 +63,7 @@ services:
         condition: service_healthy
 
   openfga:
-    image: openfga/openfga:latest
+    image: openfga/openfga:v1.8.1
     command: run
     environment:
       OPENFGA_DATASTORE_ENGINE: postgres
@@ -76,6 +77,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.openfga.rule=Host(`fga.localhost`)"
+      - "traefik.http.routers.openfga.priority=10"
       - "traefik.http.services.openfga.loadbalancer.server.port=8080"
 
   minio:
@@ -89,6 +91,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.minio.rule=Host(`s3.localhost`)"
+      - "traefik.http.routers.minio.priority=10"
       - "traefik.http.services.minio.loadbalancer.server.port=9001"
 
   mailpit:
@@ -98,7 +101,22 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.mailpit.rule=Host(`mail.localhost`)"
+      - "traefik.http.routers.mailpit.priority=10"
       - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
+
+  platform:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm run dev"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.platform.rule=Host(`platform.localhost`)"
+      - "traefik.http.routers.platform.priority=10"
+      - "traefik.http.routers.platform.entrypoints=web"
+      - "traefik.http.routers.platform-wildcard.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.localhost`)"
+      - "traefik.http.routers.platform-wildcard.priority=1"
+      - "traefik.http.routers.platform-wildcard.entrypoints=web"
+      - "traefik.http.services.platform.loadbalancer.server.port=3000"
 
 volumes:
   postgres-data:
