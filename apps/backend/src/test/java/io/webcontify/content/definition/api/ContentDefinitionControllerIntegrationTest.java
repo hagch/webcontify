@@ -44,6 +44,10 @@ class ContentDefinitionControllerIntegrationTest {
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
 
     @MockitoBean PermissionService permissionService;
+    @MockitoBean io.webcontify.identity.service.KeycloakAdminService keycloakAdminService;
+    @MockitoBean io.webcontify.identity.service.OpenFgaService openFgaService;
+    @MockitoBean io.webcontify.shared.filestorage.FileStorageService fileStorageService;
+    @MockitoBean io.webcontify.identity.service.TenantInfrastructureLookupService lookupService;
 
     @Autowired
     private MockMvc mockMvc;

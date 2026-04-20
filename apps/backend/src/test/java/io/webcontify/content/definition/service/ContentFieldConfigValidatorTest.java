@@ -1,11 +1,11 @@
 package io.webcontify.content.definition.service;
 
 import io.webcontify.content.definition.model.*;
+import io.webcontify.content.fieldtype.FieldTypeRegistry;
+import io.webcontify.content.fieldtype.handler.*;
 import io.webcontify.shared.exception.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,14 +13,23 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
 class ContentFieldConfigValidatorTest {
 
     private ContentFieldConfigValidator validator;
 
     @BeforeEach
     void setUp() {
-        validator = new ContentFieldConfigValidator();
+        var registry = new FieldTypeRegistry(List.of(
+                new TextFieldTypeHandler(),
+                new IntegerFieldTypeHandler(),
+                new DecimalFieldTypeHandler(),
+                new BooleanFieldTypeHandler(),
+                new DateFieldTypeHandler(),
+                new EnumFieldTypeHandler(),
+                new ReferenceFieldTypeHandler(),
+                new MirrorFieldTypeHandler()
+        ));
+        validator = new ContentFieldConfigValidator(registry);
     }
 
     @Test

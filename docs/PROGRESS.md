@@ -398,15 +398,33 @@
 | 4g.8 | Offen | E2E Tests ausfuehren (erfordert pnpm dev / Docker Stack) |
 | 4g.9 | Offen | Manual BDU Browser Verification (verify-e2e) |
 
+## Phase 5 — Content Entry Management (2026-04-16)
+
+**Branch:** `feat/content-entries-v2`
+**Design Spec:** `docs/superpowers/specs/2026-04-16-content-entry-management-design.md`
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 5a | Done | Tenant Schema Infrastructure: `tenant_{slug}` Schemas, RLS `search_path` Erweiterung, `TenantSchemaService`, Provisioning Step, Cleanup Listener |
+| 5b | Done | FieldTypeRegistry + 8 Handler (Text, Integer, Decimal, Boolean, Date, Enum, Reference, Mirror) mit cast/validateValue/columnType/formatForDisplay |
+| 5c | Done | DynamicTableManager + DDL Lifecycle: `pending_action`/`published` Flags, `DdlDiffEngine`, `ContentDdlListener` auf `AppPublishedEvent`, `content_field_change_log` Audit |
+| 5d | Done | Storage Foundation: `ContentStorage` Interface, `DedicatedTableStorage` (save/update/softDelete/findById/findAll/findByReferenceField/existsByFieldValue/nullifyField/getHistory), Optimistic Locking (version), Soft-Delete Helper, `DisplayFormatResolver` |
+| 5e | Done | Cursor Pagination + Filter + Sort: `CursorPageRequest`/`CursorPage`, `CursorPaginationBuilder` (Base64 Keyset), `RhsOperatorParser`, `buildCondition` in allen Handlern, `query()`/`search()` Storage-Methoden |
+| 5f | Done | Service + API + Events: `ContentValidationService`, `ReferenceResolver`, `ContentEntryService` (CRUD + onDelete RESTRICT/SET_NULL/CASCADE), Domain Events (Created/Updated/Deleted), OpenAPI Spec, Controller, Mapper. Keine OpenFGA-Permissions fuer Entries. |
+| 5g | Done | Frontend: Dynamische Zod-Forms, 7 Field-Inputs, Reference-Combobox mit Debounce, EntryTable mit Cursor-Pagination/Filter/Sort, Detail-Page mit History-Diff, i18n EN+DE, 22 Vitest Tests |
+| Arch | Done | Modulith-Architektur-Fix: `ContentDefinitionProvider` + `AppProvider` Interfaces in shared (Zyklen content↔identity und app↔identity gebrochen), Events nach shared verschoben (Zyklus app↔content gebrochen), NamedInterface-Deklarationen |
+| Fix | Done | RlsConnectionProvider: Rekursive Connection-Allokation bei Slug-Lookup verhindert (direkter JDBC-Query statt JPA), Schema-Existenz-Check vor search_path |
+
+**Bekannte offene Punkte:**
+- `ContentDefinitionControllerIntegrationTest` (12 Tests): Pre-existing auf main — fehlende Mocks fuer externe Services (Keycloak, MinIO, OpenFGA). Nicht durch Phase 5 verursacht.
+
 ## Naechste Schritte
 
-- E2E Tests ausfuehren: `pnpm dev` starten, dann `cd apps/e2e && npx playwright test tests/apps/`
-- Manual BDU Walkthrough im Browser
-- Phase 4 abschliessen: alle Sub-Plaene 4a-4g fertig, Branch mergen
-- Sub-Plan 4e: App Permissions (OpenFGA) + Permission Matrix UI
-- Sub-Plan 4f: App Import/Export
-- Sub-Plan 4g: E2E Tests (Playwright)
-- Design Doc: `docs/plans/2026-04-04-app-domain-design.md`
+- **Phase 5 E2E Tests:** `pnpm dev` starten, Content Entries manuell testen, Playwright E2E Tests schreiben
+- **Content Entry Permissions (OpenFGA):** Neue Types `content_entry` im FGA Model, `@RequiresPermission` auf Entry-Endpoints
+- **Full-Text Search:** PostgreSQL tsvector/trigram Indexe auf TEXT-Feldern, Search-Endpoint erweitern
+- **Zusaetzliche Feldtypen:** FILE (S3-Integration), JSON, RICH_TEXT
+- **ContentDefinitionControllerIntegrationTest fixen:** Fehlende @MockitoBean fuer Keycloak/MinIO/OpenFGA/FileStorage (pre-existing auf main)
 - **Offen:** E2E Tests fuer Keycloak Theme + Invite Flow (erfordert Docker/Infrastruktur)
 
 ## Lokale Entwicklung

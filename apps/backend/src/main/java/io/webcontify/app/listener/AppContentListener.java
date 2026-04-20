@@ -1,7 +1,7 @@
 package io.webcontify.app.listener;
 
 import io.webcontify.app.service.AppService;
-import io.webcontify.content.definition.event.ContentDefinitionChangedEvent;
+import io.webcontify.shared.event.ContentDefinitionChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.modulith.events.ApplicationModuleListener;

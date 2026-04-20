@@ -59,6 +59,7 @@ class JwtToTenantAuthenticationConverterTest {
         when(jwt.getClaim("realm_access"))
                 .thenReturn(Map.of("roles", List.of("default-roles-webcontify")));
         when(jwt.getClaim("tenant_id")).thenReturn(tenantId.toString());
+        when(tenantSlugResolver.resolveSlugByTenantId(tenantId)).thenReturn(Optional.of("acme"));
 
         AbstractAuthenticationToken result = converter.convert(jwt);
 
@@ -67,6 +68,7 @@ class JwtToTenantAuthenticationConverterTest {
         assertThat(auth.getPrincipal()).isEqualTo(UUID.fromString("00000000-0000-0000-0000-000000000002"));
         assertThat(auth.getTenantInformation().platformAdmin()).isFalse();
         assertThat(auth.getTenantInformation().tenantId()).isEqualTo(tenantId);
+        assertThat(auth.getTenantInformation().slug()).isEqualTo("acme");
         assertThat(auth.getAuthorities()).isEmpty();
         assertThat(auth.isAuthenticated()).isTrue();
     }
@@ -81,12 +83,14 @@ class JwtToTenantAuthenticationConverterTest {
         when(jwt.getClaim("tenant_id")).thenReturn(null);
         when(jwt.getIssuer()).thenReturn(new URL("http://auth.localhost/realms/tenant-acme"));
         when(tenantSlugResolver.resolveTenantIdBySlug("acme")).thenReturn(Optional.of(tenantId));
+        when(tenantSlugResolver.resolveSlugByTenantId(tenantId)).thenReturn(Optional.of("acme"));
 
         AbstractAuthenticationToken result = converter.convert(jwt);
 
         TenantAwareAuthentication auth = (TenantAwareAuthentication) result;
         assertThat(auth.getTenantInformation().tenantId()).isEqualTo(tenantId);
         assertThat(auth.getTenantInformation().platformAdmin()).isFalse();
+        assertThat(auth.getTenantInformation().slug()).isEqualTo("acme");
     }
 
     @Test
@@ -124,12 +128,14 @@ class JwtToTenantAuthenticationConverterTest {
         when(jwt.getSubject()).thenReturn("00000000-0000-0000-0000-000000000002");
         when(jwt.getClaim("realm_access")).thenReturn(null);
         when(jwt.getClaim("tenant_id")).thenReturn(tenantId.toString());
+        when(tenantSlugResolver.resolveSlugByTenantId(tenantId)).thenReturn(Optional.of("test-tenant"));
 
         AbstractAuthenticationToken result = converter.convert(jwt);
 
         TenantAwareAuthentication auth = (TenantAwareAuthentication) result;
         assertThat(auth.getTenantInformation().platformAdmin()).isFalse();
         assertThat(auth.getTenantInformation().tenantId()).isEqualTo(tenantId);
+        assertThat(auth.getTenantInformation().slug()).isEqualTo("test-tenant");
     }
 
     @Test
@@ -142,11 +148,13 @@ class JwtToTenantAuthenticationConverterTest {
         when(jwt.getClaim("tenant_id")).thenReturn("not-a-valid-uuid");
         when(jwt.getIssuer()).thenReturn(new URL("http://auth.localhost/realms/tenant-acme"));
         when(tenantSlugResolver.resolveTenantIdBySlug("acme")).thenReturn(Optional.of(tenantId));
+        when(tenantSlugResolver.resolveSlugByTenantId(tenantId)).thenReturn(Optional.of("acme"));
 
         AbstractAuthenticationToken result = converter.convert(jwt);
 
         TenantAwareAuthentication auth = (TenantAwareAuthentication) result;
         assertThat(auth.getTenantInformation().tenantId()).isEqualTo(tenantId);
+        assertThat(auth.getTenantInformation().slug()).isEqualTo("acme");
     }
 
     @Test
@@ -157,6 +165,7 @@ class JwtToTenantAuthenticationConverterTest {
         when(jwt.getClaim("realm_access"))
                 .thenReturn(Map.of("roles", List.of("some-other-role")));
         when(jwt.getClaim("tenant_id")).thenReturn(tenantId.toString());
+        when(tenantSlugResolver.resolveSlugByTenantId(tenantId)).thenReturn(Optional.of("test"));
 
         AbstractAuthenticationToken result = converter.convert(jwt);
 

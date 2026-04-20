@@ -42,4 +42,32 @@ class TenantInformationTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Tenant ID is required for non-platform-admin");
     }
+
+    @Test
+    void shouldCreateTenantInformationWithSlug() {
+        UUID tenantId = UUID.randomUUID();
+        TenantInformation info = new TenantInformation(tenantId, false, "tenant-acme", "acme");
+
+        assertThat(info.tenantId()).isEqualTo(tenantId);
+        assertThat(info.platformAdmin()).isFalse();
+        assertThat(info.realmName()).isEqualTo("tenant-acme");
+        assertThat(info.slug()).isEqualTo("acme");
+    }
+
+    @Test
+    void shouldAllowNullSlugForPlatformAdmin() {
+        TenantInformation info = new TenantInformation(null, true);
+
+        assertThat(info.slug()).isNull();
+        assertThat(info.platformAdmin()).isTrue();
+    }
+
+    @Test
+    void shouldAllowNullSlugWithThreeArgConstructor() {
+        UUID tenantId = UUID.randomUUID();
+        TenantInformation info = new TenantInformation(tenantId, false, "tenant-acme");
+
+        assertThat(info.slug()).isNull();
+        assertThat(info.realmName()).isEqualTo("tenant-acme");
+    }
 }

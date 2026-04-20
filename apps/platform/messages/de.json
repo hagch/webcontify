@@ -812,6 +812,75 @@
       "nothingToRedo": "Nichts zum Wiederherstellen"
     }
   },
+  "entries": {
+    "title": "Eintraege",
+    "empty": "Noch keine Eintraege vorhanden",
+    "loadMore": "Mehr laden",
+    "create": "Eintrag erstellen",
+    "edit": "Eintrag bearbeiten",
+    "delete": "Eintrag loeschen",
+    "deleteConfirm": "Bist du sicher, dass du diesen Eintrag loeschen moechtest? Diese Aktion kann nicht rueckgaengig gemacht werden.",
+    "deleteRestricted": "Dieser Eintrag kann nicht geloescht werden, da er von anderen Eintraegen referenziert wird.",
+    "created": "Eintrag erfolgreich erstellt",
+    "updated": "Eintrag erfolgreich aktualisiert",
+    "deleted": "Eintrag erfolgreich geloescht",
+    "notFound": "Eintrag nicht gefunden",
+    "versionConflict": "Dieser Eintrag wurde von jemand anderem geaendert. Bitte lade die Seite neu und versuche es erneut.",
+    "form": {
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "fieldRequired": "Dieses Feld ist erforderlich",
+      "fieldInvalid": "Ungueltiger Wert"
+    },
+    "table": {
+      "noResults": "Keine Eintraege entsprechen deinen Filtern",
+      "actions": "Aktionen",
+      "view": "Anzeigen",
+      "edit": "Bearbeiten",
+      "delete": "Loeschen",
+      "sortAsc": "Aufsteigend sortieren",
+      "sortDesc": "Absteigend sortieren",
+      "clearSort": "Sortierung aufheben",
+      "filter": "Filtern...",
+      "true": "Ja",
+      "false": "Nein"
+    },
+    "detail": {
+      "title": "Eintrag-Details",
+      "tabs": {
+        "details": "Details",
+        "history": "Verlauf"
+      },
+      "fields": {
+        "id": "ID",
+        "createdAt": "Erstellt",
+        "updatedAt": "Zuletzt aktualisiert",
+        "createdBy": "Erstellt von",
+        "updatedBy": "Aktualisiert von",
+        "version": "Version"
+      },
+      "back": "Zurueck zu Eintraegen"
+    },
+    "history": {
+      "title": "Verlauf",
+      "empty": "Kein Verlauf verfuegbar",
+      "action": {
+        "CREATED": "Erstellt",
+        "UPDATED": "Aktualisiert",
+        "DELETED": "Geloescht"
+      },
+      "changedFields": "Geaenderte Felder",
+      "oldValue": "Alt",
+      "newValue": "Neu",
+      "loadMore": "Mehr Verlauf laden"
+    },
+    "reference": {
+      "search": "Suchen...",
+      "noResults": "Keine Ergebnisse gefunden",
+      "loading": "Laden...",
+      "clear": "Auswahl aufheben"
+    }
+  },
   "settings": {
     "title": "Einstellungen",
     "branding": {

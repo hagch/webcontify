@@ -25,4 +25,7 @@ public interface ContentDefinitionRepository extends JpaRepository<ContentDefini
 
     boolean existsByNameAndAppIdAndIdNotAndAuditInfoDeletedAtIsNull(
             String name, UUID appId, UUID id);
+
+    Optional<ContentDefinitionEntity> findBySlugAndAppIdAndAuditInfoDeletedAtIsNull(
+            String slug, UUID appId);
 }

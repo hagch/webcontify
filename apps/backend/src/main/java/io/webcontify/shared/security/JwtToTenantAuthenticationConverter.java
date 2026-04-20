@@ -40,7 +40,7 @@ public class JwtToTenantAuthenticationConverter implements Converter<Jwt, Abstra
 
         TenantInformation tenantInformation;
         if (isPlatformAdmin) {
-            tenantInformation = new TenantInformation(null, true, realmName);
+            tenantInformation = new TenantInformation(null, true, realmName, null);
             log.debug("Authenticated platform admin: sub={}", subject);
         } else {
             UUID tenantId = resolveTenantId(jwt);
@@ -48,8 +48,9 @@ public class JwtToTenantAuthenticationConverter implements Converter<Jwt, Abstra
                 log.warn("Could not resolve tenant_id for non-admin user: sub={}", subject);
                 throw new IllegalArgumentException("Could not resolve tenant_id from JWT");
             }
-            tenantInformation = new TenantInformation(tenantId, false, realmName);
-            log.debug("Authenticated tenant user: sub={}, tenantId={}", subject, tenantId);
+            String slug = tenantSlugResolver.resolveSlugByTenantId(tenantId).orElse(null);
+            tenantInformation = new TenantInformation(tenantId, false, realmName, slug);
+            log.debug("Authenticated tenant user: sub={}, tenantId={}, slug={}", subject, tenantId, slug);
         }
 
         Collection<GrantedAuthority> authorities = buildAuthorities(isPlatformAdmin);

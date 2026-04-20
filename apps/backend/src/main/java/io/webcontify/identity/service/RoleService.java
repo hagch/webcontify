@@ -1,9 +1,9 @@
 package io.webcontify.identity.service;
 
 import com.fasterxml.uuid.Generators;
-import io.webcontify.app.repository.AppRepository;
-import io.webcontify.content.definition.repository.ContentDefinitionRepository;
-import io.webcontify.content.definition.repository.entity.ContentDefinitionEntity;
+import io.webcontify.shared.AppProvider;
+import io.webcontify.shared.ContentDefinitionProvider;
+import io.webcontify.shared.ContentDefinitionProvider.DefinitionInfo;
 import io.webcontify.generated.model.AppPermissionEntry;
 import io.webcontify.generated.model.RoleDefinitionPermissionEntry;
 import io.webcontify.generated.model.SetRoleAppPermissionsRequestAppPermissionsInner;
@@ -21,7 +21,6 @@ import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.security.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,8 +49,8 @@ public class RoleService {
 
     private final TenantRoleRepository roleRepository;
     private final TenantUserRepository userRepository;
-    private final AppRepository appRepository;
-    private final ContentDefinitionRepository definitionRepository;
+    private final AppProvider appProvider;
+    private final ContentDefinitionProvider definitionProvider;
     private final OpenFgaService openFgaService;
     private final TenantInfrastructureLookupService lookupService;
     private final RoleMapper roleMapper;
@@ -60,16 +59,16 @@ public class RoleService {
     public RoleService(
             TenantRoleRepository roleRepository,
             TenantUserRepository userRepository,
-            AppRepository appRepository,
-            ContentDefinitionRepository definitionRepository,
+            AppProvider appProvider,
+            ContentDefinitionProvider definitionProvider,
             OpenFgaService openFgaService,
             TenantInfrastructureLookupService lookupService,
             RoleMapper roleMapper,
             PermissionService permissionService) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
-        this.appRepository = appRepository;
-        this.definitionRepository = definitionRepository;
+        this.appProvider = appProvider;
+        this.definitionProvider = definitionProvider;
         this.openFgaService = openFgaService;
         this.lookupService = lookupService;
         this.roleMapper = roleMapper;
@@ -536,13 +535,13 @@ public class RoleService {
         var infrastructure = lookupService.getInfrastructure(tenantInfo.tenantId());
         String roleSubject = "role:" + roleId + "#assignee";
 
-        var apps = appRepository.findByAuditInfoDeletedAtIsNull(Pageable.unpaged()).getContent();
+        var apps = appProvider.findAllActiveApps();
 
         return apps.stream().map(app -> {
             var grantedActions = new ArrayList<AppPermissionEntry.ActionsEnum>();
             for (var action : APP_ACTIONS) {
                 var tuples = openFgaService.readTuples(new OpenFgaReadTuplesRequest(
-                        infrastructure.openfgaStoreId(), "app", app.getId().toString(), action));
+                        infrastructure.openfgaStoreId(), "app", app.id().toString(), action));
                 boolean hasAction = tuples.stream().anyMatch(t -> t.user().equals(roleSubject));
                 if (hasAction) {
                     grantedActions.add(AppPermissionEntry.ActionsEnum.fromValue(action));
@@ -551,36 +550,36 @@ public class RoleService {
 
             // isRestricted: role has `restricted` marker on this app
             var restrictedTuples = openFgaService.readTuples(new OpenFgaReadTuplesRequest(
-                    infrastructure.openfgaStoreId(), "app", app.getId().toString(), "restricted"));
+                    infrastructure.openfgaStoreId(), "app", app.id().toString(), "restricted"));
             boolean isRestricted = restrictedTuples.stream()
                     .anyMatch(t -> t.user().equals(roleSubject));
 
             // Per-definition grants for content_definitions of this app
-            var defs = definitionRepository.findByAppIdAndAuditInfoDeletedAtIsNull(app.getId());
+            var defInfos = definitionProvider.findDefinitionsByAppId(app.id());
             var defPerms = new ArrayList<RoleDefinitionPermissionEntry>();
-            for (var def : defs) {
+            for (var defInfo : defInfos) {
                 var defActions = new ArrayList<RoleDefinitionPermissionEntry.ActionsEnum>();
                 for (var action : DEFINITION_ACTIONS) {
                     var tuples = openFgaService.readTuples(new OpenFgaReadTuplesRequest(
                             infrastructure.openfgaStoreId(),
-                            "content_definition", def.getId().toString(), action));
+                            "content_definition", defInfo.id().toString(), action));
                     if (tuples.stream().anyMatch(t -> t.user().equals(roleSubject))) {
                         defActions.add(RoleDefinitionPermissionEntry.ActionsEnum.fromValue(action));
                     }
                 }
                 if (!defActions.isEmpty()) {
                     var defEntry = new RoleDefinitionPermissionEntry();
-                    defEntry.setDefinitionId(def.getId());
-                    defEntry.setDefinitionName(def.getName());
+                    defEntry.setDefinitionId(defInfo.id());
+                    defEntry.setDefinitionName(defInfo.name());
                     defEntry.setActions(defActions);
                     defPerms.add(defEntry);
                 }
             }
 
             var entry = new AppPermissionEntry();
-            entry.setAppId(app.getId());
-            entry.setAppName(app.getName());
-            entry.setAppSlug(app.getSlug());
+            entry.setAppId(app.id());
+            entry.setAppName(app.name());
+            entry.setAppSlug(app.slug());
             entry.setActions(grantedActions);
             entry.setIsRestricted(isRestricted);
             entry.setDefinitionPermissions(defPerms);
@@ -669,21 +668,20 @@ public class RoleService {
             }
 
             // 2b. per-definition tuples: collect current + desired, diff
-            var defs = definitionRepository.findByAppIdAndAuditInfoDeletedAtIsNull(appId);
-            var defIdsInApp = defs.stream()
-                    .map(ContentDefinitionEntity::getId)
+            var defIdsInApp = definitionProvider.findDefinitionsByAppId(appId).stream()
+                    .map(DefinitionInfo::id)
                     .collect(Collectors.toSet());
 
             var currentDefTuples = new HashSet<RelationshipTuple>();
-            for (var def : defs) {
+            for (var defId : defIdsInApp) {
                 for (var action : DEFINITION_ACTIONS) {
                     openFgaService.readTuples(new OpenFgaReadTuplesRequest(
                             infrastructure.openfgaStoreId(),
-                            "content_definition", def.getId().toString(), action))
+                            "content_definition", defId.toString(), action))
                             .stream()
                             .filter(t -> t.user().equals(roleSubject))
                             .forEach(t -> currentDefTuples.add(new RelationshipTuple(
-                                    roleSubject, action, "content_definition:" + def.getId())));
+                                    roleSubject, action, "content_definition:" + defId)));
                 }
             }
 

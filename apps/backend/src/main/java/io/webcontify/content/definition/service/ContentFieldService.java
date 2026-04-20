@@ -1,6 +1,6 @@
 package io.webcontify.content.definition.service;
 
-import io.webcontify.content.definition.event.ContentDefinitionChangedEvent;
+import io.webcontify.shared.event.ContentDefinitionChangedEvent;
 import io.webcontify.content.definition.mapper.ContentFieldMapper;
 import io.webcontify.content.definition.mapper.FieldConfigConverter;
 import io.webcontify.content.definition.model.*;
@@ -74,6 +74,8 @@ public class ContentFieldService {
         ContentFieldEntity entity = fieldMapper.toEntity(field);
         entity.setTenantId(tenantInfo.tenantId());
         entity.setDefinition(definition);
+        entity.setPublished(false);
+        entity.setPendingAction("ADDED");
         entity = fieldRepository.save(entity);
 
         FieldDefinition created = fieldMapper.toDomain(entity);
@@ -140,6 +142,9 @@ public class ContentFieldService {
             List<ContentFieldEntity> mirrorFields = fieldRepository.findMirrorFieldsBySourceFieldId("{\"sourceFieldId\":\"" + fieldId + "\"}");
             for (ContentFieldEntity mirror : mirrorFields) {
                 mirror.getAuditInfo().setDeletedAt(OffsetDateTime.now());
+                if (mirror.isPublished()) {
+                    mirror.setPendingAction("REMOVED");
+                }
                 fieldRepository.save(mirror);
             }
         }
@@ -150,11 +155,17 @@ public class ContentFieldService {
             fieldRepository.findByIdAndAuditInfoDeletedAtIsNull(mirrorConfig.sourceFieldId())
                     .ifPresent(refEntity -> {
                         refEntity.getAuditInfo().setDeletedAt(OffsetDateTime.now());
+                        if (refEntity.isPublished()) {
+                            refEntity.setPendingAction("REMOVED");
+                        }
                         fieldRepository.save(refEntity);
                     });
         }
 
         entity.getAuditInfo().setDeletedAt(OffsetDateTime.now());
+        if (entity.isPublished()) {
+            entity.setPendingAction("REMOVED");
+        }
         fieldRepository.save(entity);
 
         changeRecordService.create(
@@ -214,6 +225,8 @@ public class ContentFieldService {
             mirrorEntity.setFieldType("MIRROR");
             mirrorEntity.setPosition(mirrorPosition);
             mirrorEntity.setConfig(fieldConfigConverter.toJson(mirrorConfig));
+            mirrorEntity.setPublished(false);
+            mirrorEntity.setPendingAction("ADDED");
 
             fieldRepository.save(mirrorEntity);
         }

@@ -38,6 +38,8 @@ class RoleServiceTest {
 
     @Mock TenantRoleRepository roleRepository;
     @Mock TenantUserRepository userRepository;
+    @Mock io.webcontify.shared.AppProvider appProvider;
+    @Mock io.webcontify.shared.ContentDefinitionProvider definitionProvider;
     @Mock OpenFgaService openFgaService;
     @Mock TenantInfrastructureLookupService lookupService;
     @Mock RoleMapper roleMapper;

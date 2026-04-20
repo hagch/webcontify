@@ -10,8 +10,8 @@ import io.webcontify.content.definition.model.ContentDefinitionListResult;
 import io.webcontify.content.definition.model.FieldType;
 import io.webcontify.content.definition.model.ReferenceFieldConfig;
 import io.webcontify.content.definition.model.UndoRedoResult;
-import io.webcontify.content.definition.event.ContentDefinitionChangedEvent;
-import io.webcontify.content.definition.event.ContentDefinitionDeletedEvent;
+import io.webcontify.shared.event.ContentDefinitionChangedEvent;
+import io.webcontify.shared.event.ContentDefinitionDeletedEvent;
 import io.webcontify.content.definition.mapper.ContentDefinitionMapper;
 import io.webcontify.content.definition.model.ContentDefinition;
 import io.webcontify.content.definition.repository.ContentDefinitionRepository;
@@ -104,6 +104,13 @@ public class ContentDefinitionService {
         eventPublisher.publishEvent(new ContentDefinitionChangedEvent(appId, tenantId));
 
         return created;
+    }
+
+    @Transactional(readOnly = true)
+    public ContentDefinition getBySlugAndAppId(String slug, UUID appId) {
+        return definitionRepository.findBySlugAndAppIdAndAuditInfoDeletedAtIsNull(slug, appId)
+                .map(definitionMapper::toDomain)
+                .orElseThrow(() -> new NotFoundException("content_definition.not_found"));
     }
 
     @Transactional(readOnly = true)

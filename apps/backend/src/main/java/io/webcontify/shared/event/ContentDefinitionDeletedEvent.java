@@ -1,4 +1,4 @@
-package io.webcontify.content.definition.event;
+package io.webcontify.shared.event;
 
 import java.util.UUID;
 

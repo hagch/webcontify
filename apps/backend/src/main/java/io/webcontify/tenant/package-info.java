@@ -1,4 +1,9 @@
 @org.springframework.modulith.ApplicationModule(
-    allowedDependencies = {"shared"}
+    allowedDependencies = {
+        "shared",
+        "shared::shared-persistence",
+        "shared::shared-security",
+        "shared::shared-util"
+    }
 )
 package io.webcontify.tenant;

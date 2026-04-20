@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import io.webcontify.content.definition.event.ContentDefinitionChangedEvent;
+import io.webcontify.shared.event.ContentDefinitionChangedEvent;
 import io.webcontify.content.definition.mapper.ContentFieldMapper;
 import io.webcontify.content.definition.mapper.FieldConfigConverter;
 import io.webcontify.content.definition.model.*;
@@ -98,7 +98,11 @@ class ContentFieldServiceTest {
         assertThat(created.getFieldKey()).isEqualTo("title");
         assertThat(created.getPosition()).isEqualTo(3);
         verify(configValidator).validate(FieldType.TEXT, input.getConfig());
-        verify(fieldRepository).save(any(ContentFieldEntity.class));
+
+        ArgumentCaptor<ContentFieldEntity> entityCaptor = ArgumentCaptor.forClass(ContentFieldEntity.class);
+        verify(fieldRepository).save(entityCaptor.capture());
+        assertThat(entityCaptor.getValue().isPublished()).isFalse();
+        assertThat(entityCaptor.getValue().getPendingAction()).isEqualTo("ADDED");
     }
 
     @Test
@@ -169,6 +173,8 @@ class ContentFieldServiceTest {
         assertThat(mirrorEntity.getFieldKey()).isEqualTo("articles");
         assertThat(mirrorEntity.getFieldType()).isEqualTo("MIRROR");
         assertThat(mirrorEntity.getPosition()).isEqualTo(2);
+        assertThat(mirrorEntity.isPublished()).isFalse();
+        assertThat(mirrorEntity.getPendingAction()).isEqualTo("ADDED");
     }
 
     @Test
@@ -313,11 +319,12 @@ class ContentFieldServiceTest {
     // --- deleteField ---
 
     @Test
-    void shouldSoftDeleteField() {
+    void shouldSoftDeletePublishedFieldWithPendingRemoved() {
         UUID fieldId = UUID.randomUUID();
         ContentFieldEntity entity = createFieldEntity("title", "TEXT", 0);
         entity.setId(fieldId);
         entity.setDefinitionId(TEST_DEFINITION_ID);
+        entity.setPublished(true);
         AuditInfo auditInfo = new AuditInfo();
         entity.setAuditInfo(auditInfo);
 
@@ -331,6 +338,32 @@ class ContentFieldServiceTest {
         service.deleteField(fieldId);
 
         assertThat(entity.getAuditInfo().getDeletedAt()).isNotNull();
+        assertThat(entity.getPendingAction()).isEqualTo("REMOVED");
+        verify(fieldRepository).save(entity);
+    }
+
+    @Test
+    void shouldSoftDeleteUnpublishedFieldWithoutPendingRemoved() {
+        UUID fieldId = UUID.randomUUID();
+        ContentFieldEntity entity = createFieldEntity("title", "TEXT", 0);
+        entity.setId(fieldId);
+        entity.setDefinitionId(TEST_DEFINITION_ID);
+        entity.setPublished(false);
+        entity.setPendingAction("ADDED");
+        AuditInfo auditInfo = new AuditInfo();
+        entity.setAuditInfo(auditInfo);
+
+        ContentDefinitionEntity defEntity = createDefinitionEntity();
+
+        when(fieldRepository.findByIdAndAuditInfoDeletedAtIsNull(fieldId))
+                .thenReturn(Optional.of(entity));
+        when(definitionRepository.findByIdAndAuditInfoDeletedAtIsNull(TEST_DEFINITION_ID))
+                .thenReturn(Optional.of(defEntity));
+
+        service.deleteField(fieldId);
+
+        assertThat(entity.getAuditInfo().getDeletedAt()).isNotNull();
+        assertThat(entity.getPendingAction()).isEqualTo("ADDED");
         verify(fieldRepository).save(entity);
     }
 
@@ -357,7 +390,7 @@ class ContentFieldServiceTest {
                 .thenReturn(Optional.of(refEntity));
         when(definitionRepository.findByIdAndAuditInfoDeletedAtIsNull(TEST_DEFINITION_ID))
                 .thenReturn(Optional.of(defEntity));
-        when(fieldRepository.findMirrorFieldsBySourceFieldId(fieldId.toString()))
+        when(fieldRepository.findMirrorFieldsBySourceFieldId("{\"sourceFieldId\":\"" + fieldId + "\"}"))
                 .thenReturn(List.of(mirrorEntity));
 
         service.deleteField(fieldId);

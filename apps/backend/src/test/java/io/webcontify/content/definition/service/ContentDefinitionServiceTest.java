@@ -7,8 +7,8 @@ import static org.mockito.Mockito.*;
 
 import io.webcontify.app.repository.AppRepository;
 import io.webcontify.app.repository.entity.AppEntity;
-import io.webcontify.content.definition.event.ContentDefinitionChangedEvent;
-import io.webcontify.content.definition.event.ContentDefinitionDeletedEvent;
+import io.webcontify.shared.event.ContentDefinitionChangedEvent;
+import io.webcontify.shared.event.ContentDefinitionDeletedEvent;
 import io.webcontify.content.definition.mapper.ContentDefinitionMapper;
 import io.webcontify.content.definition.model.ContentDefinition;
 import io.webcontify.content.definition.model.ContentDefinitionListResult;

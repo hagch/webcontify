@@ -22,6 +22,8 @@ public interface ContentFieldRepository extends JpaRepository<ContentFieldEntity
 
     int countByDefinitionIdAndAuditInfoDeletedAtIsNull(UUID definitionId);
 
+    List<ContentFieldEntity> findByDefinitionIdAndPendingActionIsNotNull(UUID definitionId);
+
     @Query(
             value = "SELECT * FROM content_field_definition f WHERE f.field_type = 'REFERENCE'"
                     + " AND f.config @> CAST(:targetJson AS jsonb) AND f.deleted_at IS NULL",

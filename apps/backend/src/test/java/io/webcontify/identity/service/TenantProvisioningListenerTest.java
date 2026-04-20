@@ -8,6 +8,7 @@ import io.webcontify.shared.model.ProvisioningStatus;
 import io.webcontify.shared.model.ProvisioningStepStatus;
 import io.webcontify.shared.model.ProvisioningStepType;
 import io.webcontify.tenant.event.TenantCreatedEvent;
+import io.webcontify.tenant.service.TenantSchemaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,7 @@ class TenantProvisioningListenerTest {
     @Mock private OpenFgaService openFgaService;
     @Mock private io.webcontify.identity.repository.TenantUserRepository tenantUserRepository;
     @Mock private io.webcontify.identity.repository.TenantRoleRepository tenantRoleRepository;
+    @Mock private TenantSchemaService tenantSchemaService;
 
     private TenantProvisioningListener listener;
 
@@ -40,7 +42,7 @@ class TenantProvisioningListenerTest {
         var smtpProps = new PlatformSmtpProperties("localhost", 1025, "noreply@webcontify.io", "", "", false);
         listener = new TenantProvisioningListener(
                 statusPersister, fileStorageService, keycloakAdminService, openFgaService, smtpProps,
-                tenantUserRepository, tenantRoleRepository);
+                tenantUserRepository, tenantRoleRepository, tenantSchemaService);
     }
 
     @Test
@@ -61,6 +63,7 @@ class TenantProvisioningListenerTest {
         verify(fileStorageService).createBucket("tenant-acme");
         verify(keycloakAdminService).createRealm(any());
         verify(openFgaService).createStore(any());
+        verify(tenantSchemaService).createSchema("acme");
         verify(keycloakAdminService).createUser(any());
         verify(keycloakAdminService).sendInviteEmail(any());
         verify(openFgaService).write(any());
@@ -68,18 +71,18 @@ class TenantProvisioningListenerTest {
         // 3 system roles must be saved (Admin, Editor, Viewer)
         verify(tenantRoleRepository, times(3)).save(any());
 
-        // 4 persist calls: after step 0, 1, 2, and final completed
-        verify(statusPersister, times(4)).persistStatus(eq(tenantId), any(), anyBoolean(), any());
+        // 5 persist calls: after step 0, 1, 2, 3, and final completed
+        verify(statusPersister, times(5)).persistStatus(eq(tenantId), any(), anyBoolean(), any());
 
         // Last call should be completed=true
         var statusCaptor = ArgumentCaptor.forClass(ProvisioningStatus.class);
         var completedCaptor = ArgumentCaptor.forClass(Boolean.class);
-        verify(statusPersister, times(4)).persistStatus(eq(tenantId), statusCaptor.capture(),
+        verify(statusPersister, times(5)).persistStatus(eq(tenantId), statusCaptor.capture(),
                 completedCaptor.capture(), any());
-        var lastCompleted = completedCaptor.getAllValues().get(3);
+        var lastCompleted = completedCaptor.getAllValues().get(4);
         assertThat(lastCompleted).isTrue();
 
-        var lastStatus = statusCaptor.getAllValues().get(3);
+        var lastStatus = statusCaptor.getAllValues().get(4);
         assertThat(lastStatus.steps()).allMatch(s -> s.status() == ProvisioningStepStatus.COMPLETED);
     }
 
@@ -206,6 +209,7 @@ class TenantProvisioningListenerTest {
                 io.webcontify.shared.model.ProvisioningStep.pending(ProvisioningStepType.S3_BUCKET).completed(),
                 io.webcontify.shared.model.ProvisioningStep.pending(ProvisioningStepType.KEYCLOAK_REALM),
                 io.webcontify.shared.model.ProvisioningStep.pending(ProvisioningStepType.OPENFGA_STORE),
+                io.webcontify.shared.model.ProvisioningStep.pending(ProvisioningStepType.TENANT_SCHEMA),
                 io.webcontify.shared.model.ProvisioningStep.pending(ProvisioningStepType.INITIAL_ADMIN)
         );
         var partialStatus = new ProvisioningStatus(steps, "admin@acme.com", "Max", "Muster");
@@ -215,11 +219,39 @@ class TenantProvisioningListenerTest {
         when(keycloakAdminService.createRealm(any())).thenReturn(new CreateRealmResponse("tenant-acme"));
         when(keycloakAdminService.createUser(any())).thenReturn(new CreateKeycloakUserResponse(UUID.randomUUID()));
         when(openFgaService.createStore(any())).thenReturn(new CreateStoreResponse("store-456"));
+        when(tenantRoleRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         listener.onTenantCreated(event);
 
         verifyNoInteractions(fileStorageService);
         verify(keycloakAdminService).createRealm(any());
+        verify(tenantSchemaService).createSchema("acme");
+    }
+
+    @Test
+    void shouldMigrate4StepSnapshotTo5Steps() {
+        var tenantId = UUID.randomUUID();
+        var event = new TenantCreatedEvent(tenantId, "acme", "admin@acme.com", "Max", "Muster");
+
+        // Old 4-step format (without TENANT_SCHEMA)
+        var steps = java.util.List.of(
+                io.webcontify.shared.model.ProvisioningStep.pending(ProvisioningStepType.S3_BUCKET).completed(),
+                io.webcontify.shared.model.ProvisioningStep.pending(ProvisioningStepType.KEYCLOAK_REALM).completed(),
+                io.webcontify.shared.model.ProvisioningStep.pending(ProvisioningStepType.OPENFGA_STORE).completed(),
+                io.webcontify.shared.model.ProvisioningStep.pending(ProvisioningStepType.INITIAL_ADMIN)
+        );
+        var partialStatus = new ProvisioningStatus(steps, "admin@acme.com", "Max", "Muster");
+
+        when(statusPersister.loadSnapshot(tenantId))
+                .thenReturn(new ProvisioningStatusPersister.ProvisioningSnapshot("Acme Corp", partialStatus));
+        when(keycloakAdminService.createUser(any())).thenReturn(new CreateKeycloakUserResponse(UUID.randomUUID()));
+        when(tenantRoleRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        listener.onTenantCreated(event);
+
+        // TENANT_SCHEMA step should be auto-migrated as COMPLETED
+        verifyNoInteractions(tenantSchemaService);
+        verify(keycloakAdminService).createUser(any());
     }
 
     @Test

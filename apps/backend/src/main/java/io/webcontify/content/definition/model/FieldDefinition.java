@@ -14,6 +14,8 @@ public class FieldDefinition {
     private boolean filterable;
     private FieldConfig config;
     private int position;
+    private boolean published;
+    private String pendingAction;
 
     public FieldDefinition() {}
 
@@ -39,4 +41,8 @@ public class FieldDefinition {
     public void setConfig(FieldConfig config) { this.config = config; }
     public int getPosition() { return position; }
     public void setPosition(int position) { this.position = position; }
+    public boolean isPublished() { return published; }
+    public void setPublished(boolean published) { this.published = published; }
+    public String getPendingAction() { return pendingAction; }
+    public void setPendingAction(String pendingAction) { this.pendingAction = pendingAction; }
 }

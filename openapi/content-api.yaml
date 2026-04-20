@@ -13,6 +13,8 @@ tags:
     description: Content Definition Management
   - name: ContentField
     description: Content Field Management
+  - name: ContentEntry
+    description: Content Entry Management
 
 paths:
   /api/v1/content/{appSlug}/definitions:
@@ -374,6 +376,245 @@ paths:
               schema:
                 $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
 
+  /api/v1/content/{appSlug}/definitions/{defSlug}/entries:
+    get:
+      operationId: listContentEntries
+      summary: List content entries with filtering, sorting, and cursor pagination
+      tags:
+        - ContentEntry
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefSlugPath'
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Cursor for keyset pagination
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: Page size
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Sort expression (e.g. cf_title:asc,created_at:desc)
+      responses:
+        '200':
+          description: Paginated entry list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentEntryListResponse'
+        '404':
+          description: Definition not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    post:
+      operationId: createContentEntry
+      summary: Create a new content entry
+      tags:
+        - ContentEntry
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefSlugPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContentEntryRequest'
+      responses:
+        '201':
+          description: Entry created
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentEntryResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '409':
+          description: Unique constraint violation
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/content/{appSlug}/definitions/{defSlug}/entries/{entryId}:
+    get:
+      operationId: getContentEntry
+      summary: Get a single content entry by ID
+      tags:
+        - ContentEntry
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefSlugPath'
+        - $ref: '#/components/parameters/EntryIdPath'
+      responses:
+        '200':
+          description: Entry details with resolved references
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentEntryResponse'
+        '404':
+          description: Entry or definition not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    put:
+      operationId: updateContentEntry
+      summary: Update a content entry
+      tags:
+        - ContentEntry
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefSlugPath'
+        - $ref: '#/components/parameters/EntryIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateContentEntryRequest'
+      responses:
+        '200':
+          description: Entry updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentEntryResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '404':
+          description: Entry or definition not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Optimistic lock or unique constraint violation
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    delete:
+      operationId: deleteContentEntry
+      summary: Soft delete a content entry
+      tags:
+        - ContentEntry
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefSlugPath'
+        - $ref: '#/components/parameters/EntryIdPath'
+      responses:
+        '204':
+          description: Entry deleted
+        '404':
+          description: Entry or definition not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Delete restricted by referencing entries
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/content/{appSlug}/definitions/{defSlug}/entries/search:
+    get:
+      operationId: searchContentEntries
+      summary: Search entries for reference autocomplete
+      tags:
+        - ContentEntry
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefSlugPath'
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search term
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntryReferenceListResponse'
+
+  /api/v1/content/{appSlug}/definitions/{defSlug}/entries/{entryId}/history:
+    get:
+      operationId: getContentEntryHistory
+      summary: Get entry change history
+      tags:
+        - ContentEntry
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefSlugPath'
+        - $ref: '#/components/parameters/EntryIdPath'
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Entry history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntryHistoryListResponse'
+
 components:
   parameters:
     AppSlugPath:
@@ -393,6 +634,21 @@ components:
 
     FieldIdPath:
       name: fieldId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    DefSlugPath:
+      name: defSlug
+      in: path
+      required: true
+      schema:
+        type: string
+
+    EntryIdPath:
+      name: entryId
       in: path
       required: true
       schema:
@@ -858,4 +1114,147 @@ components:
         canUndo:
           type: boolean
         canRedo:
+          type: boolean
+
+    # --- Content Entry schemas ---
+
+    ContentEntryResponse:
+      type: object
+      required:
+        - id
+        - version
+        - values
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          format: int64
+        values:
+          type: object
+          additionalProperties: true
+          description: Field values keyed by column name (cf_xxx)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          format: uuid
+        updatedBy:
+          type: string
+          format: uuid
+
+    CreateContentEntryRequest:
+      type: object
+      required:
+        - values
+      properties:
+        values:
+          type: object
+          additionalProperties: true
+          description: Field values keyed by column name (cf_xxx)
+
+    UpdateContentEntryRequest:
+      type: object
+      required:
+        - version
+        - values
+      properties:
+        version:
+          type: integer
+          format: int64
+          description: Expected current version for optimistic locking
+        values:
+          type: object
+          additionalProperties: true
+          description: Field values keyed by column name (cf_xxx)
+
+    ContentEntryListResponse:
+      type: object
+      required:
+        - items
+        - hasNext
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentEntryResponse'
+        nextCursor:
+          type: string
+        hasNext:
+          type: boolean
+
+    EntryReferenceResponse:
+      type: object
+      required:
+        - id
+        - display
+      properties:
+        id:
+          type: string
+          format: uuid
+        display:
+          type: string
+
+    EntryReferenceListResponse:
+      type: object
+      required:
+        - items
+        - hasNext
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntryReferenceResponse'
+        nextCursor:
+          type: string
+        hasNext:
+          type: boolean
+
+    EntryHistoryResponse:
+      type: object
+      required:
+        - id
+        - entryId
+        - action
+        - changedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        entryId:
+          type: string
+          format: uuid
+        action:
+          type: string
+        changedFields:
+          type: object
+          additionalProperties: true
+          description: Changed fields with old/new values
+        changedAt:
+          type: string
+          format: date-time
+        changedBy:
+          type: string
+          format: uuid
+
+    EntryHistoryListResponse:
+      type: object
+      required:
+        - items
+        - hasNext
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntryHistoryResponse'
+        nextCursor:
+          type: string
+        hasNext:
           type: boolean

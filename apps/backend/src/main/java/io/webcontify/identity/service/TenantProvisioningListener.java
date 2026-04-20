@@ -10,6 +10,7 @@ import io.webcontify.shared.filestorage.FileStorageService;
 import io.webcontify.shared.model.*;
 import io.webcontify.shared.security.TenantAwareAuthentication;
 import io.webcontify.tenant.event.TenantCreatedEvent;
+import io.webcontify.tenant.service.TenantSchemaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.modulith.events.ApplicationModuleListener;
@@ -33,6 +34,7 @@ public class TenantProvisioningListener {
     private final PlatformSmtpProperties platformSmtpProperties;
     private final TenantUserRepository tenantUserRepository;
     private final TenantRoleRepository tenantRoleRepository;
+    private final TenantSchemaService tenantSchemaService;
 
     public TenantProvisioningListener(
             ProvisioningStatusPersister statusPersister,
@@ -41,7 +43,8 @@ public class TenantProvisioningListener {
             OpenFgaService openFgaService,
             PlatformSmtpProperties platformSmtpProperties,
             TenantUserRepository tenantUserRepository,
-            TenantRoleRepository tenantRoleRepository) {
+            TenantRoleRepository tenantRoleRepository,
+            TenantSchemaService tenantSchemaService) {
         this.statusPersister = statusPersister;
         this.fileStorageService = fileStorageService;
         this.keycloakAdminService = keycloakAdminService;
@@ -49,6 +52,7 @@ public class TenantProvisioningListener {
         this.platformSmtpProperties = platformSmtpProperties;
         this.tenantUserRepository = tenantUserRepository;
         this.tenantRoleRepository = tenantRoleRepository;
+        this.tenantSchemaService = tenantSchemaService;
     }
 
     @ApplicationModuleListener
@@ -56,7 +60,7 @@ public class TenantProvisioningListener {
         log.info("Starting provisioning for tenant slug={}", event.slug());
 
         var snapshot = statusPersister.loadSnapshot(event.tenantId());
-        var initialStatus = snapshot.status();
+        var initialStatus = snapshot.status().migrateIfNeeded();
         var steps = new ArrayList<>(initialStatus.steps());
 
         String realmName = null;
@@ -117,10 +121,18 @@ public class TenantProvisioningListener {
         persistAndReturn(event, steps, initialStatus, false,
                 u -> u.setOpenfgaStoreId(finalStoreId));
 
-        // Step 3: Initial Admin
+        // Step 3: Tenant Schema
+        if (!executeStep(steps, 3, ProvisioningStepType.TENANT_SCHEMA, () ->
+                tenantSchemaService.createSchema(event.slug()))) {
+            persistAndReturn(event, steps, initialStatus, false, null);
+            return;
+        }
+        persistAndReturn(event, steps, initialStatus, false, null);
+
+        // Step 4: Initial Admin
         final String adminRealmName = realmName;
         final String adminStoreId = storeId;
-        if (!executeStep(steps, 3, ProvisioningStepType.INITIAL_ADMIN, () -> {
+        if (!executeStep(steps, 4, ProvisioningStepType.INITIAL_ADMIN, () -> {
             var userResponse = keycloakAdminService.createUser(
                     new CreateKeycloakUserRequest(adminRealmName, event.adminEmail(),
                             event.adminFirstName(), event.adminLastName()));

@@ -11,6 +11,7 @@ import io.webcontify.shared.exception.NotFoundException;
 import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.model.SystemUser;
 import io.webcontify.tenant.event.TenantCreatedEvent;
+import io.webcontify.tenant.event.TenantDeletedEvent;
 import io.webcontify.tenant.mapper.TenantMapper;
 import io.webcontify.tenant.mapper.TenantMapperImpl;
 import io.webcontify.tenant.model.Tenant;
@@ -247,6 +248,25 @@ class TenantServiceTest {
         tenantService.delete(id);
 
         verify(tenantRepository).save(argThat(e -> e.getAuditInfo().getDeletedAt() != null));
+    }
+
+    @Test
+    void shouldPublishTenantDeletedEventOnDelete() {
+        UUID id = UUID.randomUUID();
+        TenantEntity entity = createEntity();
+        entity.setId(id);
+        entity.setSlug("acme-corp");
+        when(tenantRepository.findByIdAndAuditInfoDeletedAtIsNull(id))
+                .thenReturn(Optional.of(entity));
+
+        tenantService.delete(id);
+
+        ArgumentCaptor<TenantDeletedEvent> eventCaptor = ArgumentCaptor.forClass(TenantDeletedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+        TenantDeletedEvent event = eventCaptor.getValue();
+        assertThat(event.tenantId()).isEqualTo(id);
+        assertThat(event.slug()).isEqualTo("acme-corp");
     }
 
     private TenantEntity createEntity() {

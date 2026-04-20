@@ -42,6 +42,12 @@ public class ContentFieldEntity extends TenantAwareBaseEntity {
     @Column(name = "position", nullable = false)
     private int position;
 
+    @Column(name = "published", nullable = false)
+    private boolean published;
+
+    @Column(name = "pending_action")
+    private String pendingAction;
+
     public UUID getDefinitionId() {
         return definitionId;
     }
@@ -120,5 +126,21 @@ public class ContentFieldEntity extends TenantAwareBaseEntity {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public boolean isPublished() {
+        return published;
+    }
+
+    public void setPublished(boolean published) {
+        this.published = published;
+    }
+
+    public String getPendingAction() {
+        return pendingAction;
+    }
+
+    public void setPendingAction(String pendingAction) {
+        this.pendingAction = pendingAction;
     }
 }

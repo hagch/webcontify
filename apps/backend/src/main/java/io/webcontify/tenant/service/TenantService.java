@@ -7,6 +7,7 @@ import io.webcontify.shared.model.SystemUser;
 import io.webcontify.shared.util.SlugGenerator;
 import io.webcontify.shared.util.UuidGenerator;
 import io.webcontify.tenant.event.TenantCreatedEvent;
+import io.webcontify.tenant.event.TenantDeletedEvent;
 import io.webcontify.tenant.mapper.TenantMapper;
 import io.webcontify.tenant.model.Tenant;
 import io.webcontify.tenant.model.TenantInfrastructureInfo;
@@ -135,6 +136,8 @@ public class TenantService {
         entity.getAuditInfo().setDeletedAt(OffsetDateTime.now());
         entity.getAuditInfo().setDeletedBy(SystemUser.ID);
         tenantRepository.save(entity);
+
+        eventPublisher.publishEvent(new TenantDeletedEvent(entity.getId(), entity.getSlug()));
     }
 
     private void checkNameUniqueness(String name, UUID excludeId) {
