@@ -157,20 +157,55 @@
 - Frontend: User List Page, Detail Page, Invite Dialog, Status Badge, Actions Menu
 - Tests: UserServiceTest (Unit), UserControllerIntegrationTest, Frontend Vitest
 
-## Phase 3c–3g: Identity & Access — noch offen
+## Phase 3c — Keycloak Branding + Settings UI (2026-03-16)
 
 | Task | Status | Beschreibung |
 |---|---|---|
-| 3c | Offen | User-Einladung (Invite-Token, Email mit Branding, Registrierung) |
-| 3d | Offen | Rollen-Verwaltung (CRUD, Permission-Matrix, OpenFGA Relationships) |
+| 3c.1 | Done | Keycloak Custom Theme (webcontify) — Login + Email FreeMarker Templates |
+| 3c.2 | Done | Docker-Mount + Platform Realm Theme-Konfiguration |
+| 3c.3 | Done | TenantBrandingUpdatedEvent + TenantConfigService Event-Publishing (TDD) |
+| 3c.4 | Done | TenantBrandingSyncListener — Realm-Attributes Sync zu Keycloak (mit Merge, TDD) |
+| 3c.5 | Done | CreateRealmRequest erweitert — Theme + Default-Attributes bei Provisioning (TDD) |
+| 3c.6 | Done | File Upload Backend-Validierung (Content-Type, Size) + TenantContext Security Fix (TDD) |
+| 3c.7 | Done | OpenAPI Spec: UpdateBrandingConfigRequest um Storage Keys erweitert + Mapper Fix |
+| 3c.8 | Done | Frontend: Branding Settings Seite (Logo Upload, Color Picker, React Hook Form) |
+| 3c.9 | Done | Frontend Tests (Vitest): ColorPickerField + BrandingForm (7 Tests) |
+| 3c.10 | Done | Backend Integration Test: Branding Sync Flow (5 Tests, Testcontainers) |
+| 3c.11 | Done | Modulith-Struktur Fix (shared -> identity::identity-security) |
+| 3c.12 | Done | Full Test Suite gruen (214 Backend, 55 Frontend), Frontend Build OK |
+
+## Phase 3d — Rollen-Verwaltung (2026-03-19)
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 3d.1 | Done | OpenFGA Model: tenant_config Type hinzugefuegt |
+| 3d.2 | Done | OpenAPI Spec: 8 Role Endpoints + 11 Schemas + InviteUserRequest erweitert |
+| 3d.3 | Done | OpenFgaService: readTuples + checkForSubject (TDD) |
+| 3d.4 | Done | Domain Model: TenantRole, RoleAssignee, RolePermissionPreview, RoleMapper, Repository Queries |
+| 3d.5 | Done | RoleService: CRUD + OpenFGA Orchestrierung + Schutzlogik (TDD, 15 Unit Tests) |
+| 3d.6 | Done | RoleController + UserRoleController + Integration Tests (5 Tests) |
+| 3d.7 | Done | UserService: invite mit copyRolesFromUserId, guardLastAdmin OpenFGA-basiert, delete Cleanup (19 Tests) |
+| 3d.8 | Done | TenantProvisioningListener: 4 System-Rollen + 20 OpenFGA-Tupel Batch |
+| 3d.9 | Done | Full Backend Test Suite gruen (252 Tests) |
+| 3d.10 | Done | Frontend: Orval Regeneration + Zod Schemas |
+| 3d.11 | Done | Frontend: Rollen-Liste (Page, Table, Create Dialog, Actions Hook) |
+| 3d.12 | Done | Frontend: Rollen-Detail (Tabs, Assignees, Permissions Preview, Edit Form) |
+| 3d.13 | Done | Frontend: Invite mit Rollen-Klon + User-Tabelle "Mit gleichen Rollen einladen" Action |
+| 3d.14 | Done | Frontend Tests: Role Table (5) + Create Dialog (4) = 78 Frontend Tests gesamt |
+| 3d.15 | Done | Build Verification: 252 Backend + 78 Frontend Tests gruen, Frontend Build OK |
+
+## Phase 3e–3g: Identity & Access — noch offen
+
+| Task | Status | Beschreibung |
+|---|---|---|
 | 3e | Offen | Platform Admin User Management |
 | 3f | Offen | E2E Tests Auth Flow + Security Review |
 | 3g | Offen | Tenant Self-Service User Management |
 
 ## Naechste Schritte
 
-- Phase 3d: Rollen-CRUD + Permission-Matrix
-- Voraussetzung: Phase 3b abgeschlossen, OpenFGA Stores + Keycloak Realms bereit
+- Phase 3e: Platform Admin User Management
+- Voraussetzung: Phase 3d abgeschlossen
 
 ## Lokale Entwicklung
 

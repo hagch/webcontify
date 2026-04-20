@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { UserTable } from "../user-table";
 import type { UserResponse } from "@/generated/identity";
 import { UserStatus } from "@/generated/identity";
@@ -12,6 +12,8 @@ vi.mock("../../hooks/use-user-actions", () => ({
 // Mock @/generated/identity
 vi.mock("@/generated/identity", () => ({
   useInviteUser: vi.fn(),
+  useListUsers: vi.fn(),
+  useGetUserRoles: vi.fn(),
   getListUsersQueryKey: vi.fn().mockReturnValue(["users"]),
   UserStatus: {
     INVITED: "INVITED",
@@ -43,8 +45,11 @@ vi.mock("next/link", () => ({
 }));
 
 import { useUserActions } from "../../hooks/use-user-actions";
+import { useListUsers, useGetUserRoles } from "@/generated/identity";
 
 const mockUseUserActions = vi.mocked(useUserActions);
+const mockUseListUsers = vi.mocked(useListUsers);
+const mockUseGetUserRoles = vi.mocked(useGetUserRoles);
 
 function defaultUserActions() {
   return {
@@ -82,6 +87,18 @@ const sampleUsers: UserResponse[] = [
 describe("UserTable", () => {
   beforeEach(() => {
     mockUseUserActions.mockReturnValue(defaultUserActions());
+
+    mockUseListUsers.mockReturnValue({
+      data: { status: 200, data: { items: [] } },
+      isPending: false,
+      isLoading: false,
+    } as unknown as ReturnType<typeof useListUsers>);
+
+    mockUseGetUserRoles.mockReturnValue({
+      data: undefined,
+      isPending: false,
+      isLoading: false,
+    } as unknown as ReturnType<typeof useGetUserRoles>);
   });
 
   it("should show empty state when no users", () => {
@@ -100,15 +117,10 @@ describe("UserTable", () => {
       <UserTable users={sampleUsers} isLoading={false} isRefetching={false} />
     );
 
-    // Names rendered as links
     expect(screen.getByText("Max Mustermann")).toBeInTheDocument();
     expect(screen.getByText("Erika Musterfrau")).toBeInTheDocument();
-
-    // Emails
     expect(screen.getByText("max@beispiel.de")).toBeInTheDocument();
     expect(screen.getByText("erika@beispiel.de")).toBeInTheDocument();
-
-    // Status badges
     expect(screen.getByText("Aktiv")).toBeInTheDocument();
     expect(screen.getByText("Eingeladen")).toBeInTheDocument();
   });
@@ -116,11 +128,40 @@ describe("UserTable", () => {
   it("should show skeleton when loading", () => {
     render(<UserTable users={[]} isLoading={true} isRefetching={false} />);
 
-    // When loading, UserTableSkeleton renders instead of the table
-    // The skeleton component renders animated placeholder rows
     expect(screen.queryByText("Noch keine Benutzer")).not.toBeInTheDocument();
-    // UserTableSkeleton renders a table with skeleton rows
     const skeletonRows = document.querySelectorAll(".animate-pulse");
     expect(skeletonRows.length).toBeGreaterThan(0);
+  });
+
+  it("should show 'Mit gleichen Rollen einladen' action only for ACTIVE users", async () => {
+    render(
+      <UserTable users={sampleUsers} isLoading={false} isRefetching={false} />
+    );
+
+    // Open actions menu for Max Mustermann (ACTIVE)
+    const actionButtons = screen.getAllByRole("button", { name: /aktionen fuer/i });
+    fireEvent.click(actionButtons[0]); // Max Mustermann — ACTIVE
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Mit gleichen Rollen einladen")
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("should NOT show 'Mit gleichen Rollen einladen' for INVITED users", async () => {
+    render(
+      <UserTable users={sampleUsers} isLoading={false} isRefetching={false} />
+    );
+
+    // Open actions menu for Erika Musterfrau (INVITED)
+    const actionButtons = screen.getAllByRole("button", { name: /aktionen fuer/i });
+    fireEvent.click(actionButtons[1]); // Erika Musterfrau — INVITED
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Mit gleichen Rollen einladen")
+      ).not.toBeInTheDocument();
+    });
   });
 });

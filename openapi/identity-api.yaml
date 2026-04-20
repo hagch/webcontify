@@ -11,6 +11,10 @@ servers:
 tags:
   - name: TenantUsers
     description: Tenant User Management
+  - name: TenantRoles
+    description: Tenant Role Management
+  - name: TenantUserRoles
+    description: User-Role Assignment
 
 paths:
   /api/v1/tenant/users:
@@ -212,6 +216,292 @@ paths:
               schema:
                 $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
 
+  /api/v1/tenant/roles:
+    post:
+      operationId: createRole
+      summary: Create a new role
+      tags:
+        - TenantRoles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleRequest'
+      responses:
+        '201':
+          description: Role created
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '409':
+          description: Role name already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+    get:
+      operationId: listRoles
+      summary: List all roles in the tenant
+      tags:
+        - TenantRoles
+      responses:
+        '200':
+          description: Role list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleListResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /api/v1/tenant/roles/{roleId}:
+    get:
+      operationId: getRole
+      summary: Get role details
+      tags:
+        - TenantRoles
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Role details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleDetailResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+    put:
+      operationId: updateRole
+      summary: Update a role
+      tags:
+        - TenantRoles
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoleRequest'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Role name already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+    delete:
+      operationId: deleteRole
+      summary: Delete a role
+      tags:
+        - TenantRoles
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Role deleted
+        '400':
+          description: Cannot delete system role
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Role still has assignees
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/tenant/roles/{roleId}/assignees:
+    put:
+      operationId: setRoleAssignees
+      summary: Set the full list of assignees for a role
+      tags:
+        - TenantUserRoles
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetRoleAssigneesRequest'
+      responses:
+        '200':
+          description: Assignees updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleDetailResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '409':
+          description: Role is a system role
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/tenant/users/{userId}/roles:
+    get:
+      operationId: getUserRoles
+      summary: Get all roles assigned to a user
+      tags:
+        - TenantUserRoles
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRolesResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+    put:
+      operationId: setUserRoles
+      summary: Set the full list of roles for a user
+      tags:
+        - TenantUserRoles
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetUserRolesRequest'
+      responses:
+        '200':
+          description: User roles updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRolesResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '409':
+          description: One or more role IDs are invalid
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
 components:
   schemas:
     InviteUserRequest:
@@ -233,6 +523,10 @@ components:
           type: string
           minLength: 1
           maxLength: 255
+        copyRolesFromUserId:
+          type: string
+          format: uuid
+          description: Optional user ID to copy roles from
 
     UpdateUserStatusRequest:
       type: object
@@ -310,3 +604,169 @@ components:
           format: int64
         totalPages:
           type: integer
+
+    CreateRoleRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 1000
+
+    UpdateRoleRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 1000
+
+    RoleResponse:
+      type: object
+      required:
+        - id
+        - name
+        - systemRole
+        - assigneeCount
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        systemRole:
+          type: boolean
+        assigneeCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RoleDetailResponse:
+      type: object
+      required:
+        - id
+        - name
+        - systemRole
+        - assignees
+        - permissions
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        systemRole:
+          type: boolean
+        assignees:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleAssigneeResponse'
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RolePermissionPreviewResponse'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RoleAssigneeResponse:
+      type: object
+      required:
+        - userId
+        - email
+        - firstName
+        - lastName
+      properties:
+        userId:
+          type: string
+          format: uuid
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+
+    RolePermissionPreviewResponse:
+      type: object
+      required:
+        - resourceType
+        - actions
+      properties:
+        resourceType:
+          type: string
+        actions:
+          type: array
+          items:
+            type: string
+
+    RoleListResponse:
+      type: object
+      required:
+        - roles
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleResponse'
+
+    SetRoleAssigneesRequest:
+      type: object
+      required:
+        - userIds
+      properties:
+        userIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 100
+
+    SetUserRolesRequest:
+      type: object
+      required:
+        - roleIds
+      properties:
+        roleIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 50
+
+    UserRolesResponse:
+      type: object
+      required:
+        - roles
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleResponse'

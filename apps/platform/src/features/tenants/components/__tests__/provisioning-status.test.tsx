@@ -3,10 +3,10 @@ import { render, screen } from '@testing-library/react'
 import { ProvisioningStatus } from '../provisioning-status'
 
 describe('ProvisioningStatus', () => {
-  it('should show all steps with correct labels and status text', () => {
+  it('should show all steps with correct labels and derived status text', () => {
     const steps = [
       { step: 'S3_BUCKET' as const, status: 'COMPLETED' as const },
-      { step: 'KEYCLOAK_REALM' as const, status: 'IN_PROGRESS' as const },
+      { step: 'KEYCLOAK_REALM' as const, status: 'PENDING' as const },
       { step: 'OPENFGA_STORE' as const, status: 'PENDING' as const },
       { step: 'INITIAL_ADMIN' as const, status: 'PENDING' as const },
     ]
@@ -18,6 +18,7 @@ describe('ProvisioningStatus', () => {
     expect(screen.getByText('Initialer Admin')).toBeInTheDocument()
 
     expect(screen.getByText('Abgeschlossen')).toBeInTheDocument()
+    // First PENDING step is derived as IN_PROGRESS
     expect(screen.getByText('Wird eingerichtet...')).toBeInTheDocument()
     expect(screen.getAllByText('Ausstehend')).toHaveLength(2)
   })
@@ -26,14 +27,16 @@ describe('ProvisioningStatus', () => {
     const steps = [
       { step: 'S3_BUCKET' as const, status: 'COMPLETED' as const },
       { step: 'KEYCLOAK_REALM' as const, status: 'COMPLETED' as const },
-      { step: 'OPENFGA_STORE' as const, status: 'IN_PROGRESS' as const },
+      { step: 'OPENFGA_STORE' as const, status: 'PENDING' as const },
       { step: 'INITIAL_ADMIN' as const, status: 'PENDING' as const },
     ]
     render(<ProvisioningStatus steps={steps} onRetry={() => {}} isRetrying={false} />)
     expect(screen.getByText('2 von 4 Schritten abgeschlossen')).toBeInTheDocument()
+    // First PENDING after completed should show as IN_PROGRESS
+    expect(screen.getByText('Wird eingerichtet...')).toBeInTheDocument()
   })
 
-  it('should show error and retry button for FAILED step', () => {
+  it('should show error and retry button for FAILED step without spinner', () => {
     const steps = [{ step: 'S3_BUCKET' as const, status: 'FAILED' as const, error: 'Connection refused' }]
     render(<ProvisioningStatus steps={steps} onRetry={() => {}} isRetrying={false} />)
     expect(screen.getByText('Fehlgeschlagen')).toBeInTheDocument()
@@ -47,9 +50,56 @@ describe('ProvisioningStatus', () => {
     expect(container.querySelector('[aria-live="polite"]')).toBeInTheDocument()
   })
 
-  it('should show all steps as PENDING when steps is null', () => {
+  it('should derive first PENDING step as IN_PROGRESS when no failures', () => {
     render(<ProvisioningStatus steps={null} onRetry={() => {}} isRetrying={false} />)
-    expect(screen.getAllByText('Ausstehend')).toHaveLength(4)
+    // First step derived as IN_PROGRESS, rest as PENDING
+    expect(screen.getByText('Wird eingerichtet...')).toBeInTheDocument()
+    expect(screen.getAllByText('Ausstehend')).toHaveLength(3)
     expect(screen.getByText('0 von 4 Schritten abgeschlossen')).toBeInTheDocument()
+  })
+
+  it('should show header spinner while provisioning is active', () => {
+    const steps = [
+      { step: 'S3_BUCKET' as const, status: 'COMPLETED' as const },
+      { step: 'KEYCLOAK_REALM' as const, status: 'PENDING' as const },
+      { step: 'OPENFGA_STORE' as const, status: 'PENDING' as const },
+      { step: 'INITIAL_ADMIN' as const, status: 'PENDING' as const },
+    ]
+    const { container } = render(<ProvisioningStatus steps={steps} onRetry={() => {}} isRetrying={false} />)
+    expect(container.querySelector('[aria-label="Einrichtung laeuft"]')).toBeInTheDocument()
+  })
+
+  it('should not show header spinner when all steps completed', () => {
+    const steps = [
+      { step: 'S3_BUCKET' as const, status: 'COMPLETED' as const },
+      { step: 'KEYCLOAK_REALM' as const, status: 'COMPLETED' as const },
+      { step: 'OPENFGA_STORE' as const, status: 'COMPLETED' as const },
+      { step: 'INITIAL_ADMIN' as const, status: 'COMPLETED' as const },
+    ]
+    const { container } = render(<ProvisioningStatus steps={steps} onRetry={() => {}} isRetrying={false} />)
+    expect(container.querySelector('[aria-label="Einrichtung laeuft"]')).not.toBeInTheDocument()
+  })
+
+  it('should not show header spinner when a step has failed', () => {
+    const steps = [
+      { step: 'S3_BUCKET' as const, status: 'FAILED' as const, error: 'err' },
+      { step: 'KEYCLOAK_REALM' as const, status: 'PENDING' as const },
+      { step: 'OPENFGA_STORE' as const, status: 'PENDING' as const },
+      { step: 'INITIAL_ADMIN' as const, status: 'PENDING' as const },
+    ]
+    const { container } = render(<ProvisioningStatus steps={steps} onRetry={() => {}} isRetrying={false} />)
+    expect(container.querySelector('[aria-label="Einrichtung laeuft"]')).not.toBeInTheDocument()
+  })
+
+  it('should not derive PENDING as IN_PROGRESS when a step has failed', () => {
+    const steps = [
+      { step: 'S3_BUCKET' as const, status: 'FAILED' as const, error: 'err' },
+      { step: 'KEYCLOAK_REALM' as const, status: 'PENDING' as const },
+      { step: 'OPENFGA_STORE' as const, status: 'PENDING' as const },
+      { step: 'INITIAL_ADMIN' as const, status: 'PENDING' as const },
+    ]
+    render(<ProvisioningStatus steps={steps} onRetry={() => {}} isRetrying={false} />)
+    expect(screen.queryByText('Wird eingerichtet...')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Ausstehend')).toHaveLength(3)
   })
 })

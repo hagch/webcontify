@@ -44,8 +44,8 @@ public interface TenantConfigMapper {
 
     default BrandingConfig toDomain(UpdateBrandingConfigRequest request) {
         return new BrandingConfig(
-                null,
-                null,
+                request.getLogoStorageKey(),
+                request.getFaviconStorageKey(),
                 request.getPrimaryColor(),
                 request.getSecondaryColor());
     }

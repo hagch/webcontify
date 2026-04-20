@@ -514,7 +514,7 @@ function SidebarMenuButton({
     defaultTagName: "button",
     props: mergeProps<"button">(
       {
-        className: cn(sidebarMenuButtonVariants({ variant, size }), className),
+        className: cn(sidebarMenuButtonVariants({ variant, size }), className, "cursor-pointer"),
       },
       props
     ),

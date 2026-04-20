@@ -23,10 +23,7 @@ interface AppHeaderProps {
 export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-      <SidebarTrigger className="-ml-1" />
-      {breadcrumbs.length > 0 && (
-        <>
-          <Separator orientation="vertical" className="mr-2 h-4" />
+      {breadcrumbs.length > 0 &&
           <Breadcrumb>
             <BreadcrumbList>
               {breadcrumbs.map((segment, index) => {
@@ -46,8 +43,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
               })}
             </BreadcrumbList>
           </Breadcrumb>
-        </>
-      )}
+      }
     </header>
   );
 }

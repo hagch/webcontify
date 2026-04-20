@@ -1,86 +1,86 @@
 import NextAuth from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import Keycloak from "next-auth/providers/keycloak";
-import { getKeycloakIssuer } from "@/lib/auth-utils";
+import { headers } from "next/headers";
+import { getKeycloakIssuer, isPlatformHost } from "@/lib/auth-utils";
 
-// Platform Admins behalten ihre Platform-Session auch auf Tenant-Subdomains.
-// Das Backend akzeptiert PLATFORM_ADMIN Tokens auf allen Tenants (RLS Bypass).
-// Vollstaendiges dynamisches Issuer-Switching pro Request wird in Phase 3b
-// implementiert, wenn Tenant-User sich einloggen koennen.
-const KEYCLOAK_ISSUER =
-  process.env.KEYCLOAK_ISSUER ?? getKeycloakIssuer("platform.localhost");
+export const { handlers, signIn, signOut, auth } = NextAuth(async () => {
+  const headersList = await headers();
+  const host = headersList.get("host")?.split(":")[0] ?? "platform.localhost";
+  const isPlatform = isPlatformHost(host);
+  const issuer = getKeycloakIssuer(host);
+  const clientId = isPlatform ? "platform-ui" : "tenant-ui";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [
-    Keycloak({
-      clientId: process.env.AUTH_KEYCLOAK_CLIENT_ID ?? "platform-ui",
-      issuer: KEYCLOAK_ISSUER,
-      client: {
-        token_endpoint_auth_method: "none",
-      },
-      authorization: {
-        params: {
-          scope: "openid profile email offline_access",
+  return {
+    providers: [
+      Keycloak({
+        clientId,
+        issuer,
+        client: {
+          token_endpoint_auth_method: "none",
         },
+        authorization: {
+          params: {
+            scope: "openid profile email offline_access",
+          },
+        },
+        checks: ["pkce", "state"],
+      }),
+    ],
+    pages: {
+      signIn: "/signin",
+    },
+    session: {
+      strategy: "jwt",
+    },
+    callbacks: {
+      async jwt({ token, account }) {
+        if (account) {
+          token.accessToken = account.access_token;
+          token.refreshToken = account.refresh_token;
+          token.expiresAt = account.expires_at;
+          token.idToken = account.id_token;
+          // Issuer und ClientId speichern fuer Token-Refresh
+          token.issuer = issuer;
+          token.clientId = clientId;
+        }
+
+        if (!token.refreshToken) {
+          return token;
+        }
+
+        const expiresAt = token.expiresAt as number | undefined;
+        if (expiresAt && Date.now() < expiresAt * 1000 - 60_000) {
+          return token;
+        }
+
+        return refreshAccessToken(token);
       },
-      checks: ["pkce", "state"],
-    }),
-  ],
-  pages: {
-    signIn: "/signin",
-  },
-  session: {
-    strategy: "jwt",
-  },
-  callbacks: {
-    async jwt({ token, account }) {
-      // Beim ersten Login: Tokens vom Provider speichern
-      if (account) {
-        token.accessToken = account.access_token;
-        token.refreshToken = account.refresh_token;
-        token.expiresAt = account.expires_at;
-        token.idToken = account.id_token;
-      }
-
-      // Kein Refresh Token vorhanden: Token unveraendert zurueckgeben
-      if (!token.refreshToken) {
-        return token;
-      }
-
-      // Token noch gultig (60 Sekunden Puffer)
-      const expiresAt = token.expiresAt as number | undefined;
-      if (expiresAt && Date.now() < expiresAt * 1000 - 60_000) {
-        return token;
-      }
-
-      // Access Token abgelaufen: Refresh
-      return refreshAccessToken(token);
+      async session({ session, token }) {
+        session.accessToken = token.accessToken as string | undefined;
+        session.error = token.error as string | undefined;
+        return session;
+      },
     },
-    async session({ session, token }) {
-      session.accessToken = token.accessToken as string | undefined;
-      session.error = token.error as string | undefined;
-      return session;
-    },
-  },
+  };
 });
 
-interface JwtToken {
-  accessToken?: string;
-  refreshToken?: string;
-  expiresAt?: number;
-  idToken?: string;
-  error?: string;
-  [key: string]: unknown;
-}
+async function refreshAccessToken(token: JWT): Promise<JWT> {
+  if (!token.issuer || !token.clientId) {
+    console.error(
+      "Missing issuer/clientId in JWT — token was not properly initialized"
+    );
+    return { ...token, error: "RefreshAccessTokenError" };
+  }
 
-async function refreshAccessToken(token: JwtToken): Promise<JwtToken> {
   try {
-    const url = `${KEYCLOAK_ISSUER}/protocol/openid-connect/token`;
+    const url = `${token.issuer}/protocol/openid-connect/token`;
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         grant_type: "refresh_token",
-        client_id: process.env.AUTH_KEYCLOAK_CLIENT_ID ?? "platform-ui",
+        client_id: token.clientId,
         refresh_token: token.refreshToken ?? "",
       }),
     });

@@ -24,6 +24,11 @@ public class GlobalExceptionHandler {
         return createProblemDetail(ex.getStatus(), ex.getCode());
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ProblemDetail handleBadRequestException(BadRequestException ex) {
+        return createProblemDetail(ex.getStatus(), ex.getCode());
+    }
+
     @ExceptionHandler(ForbiddenException.class)
     public ProblemDetail handleForbiddenException(ForbiddenException ex) {
         return createProblemDetail(ex.getStatus(), ex.getCode());

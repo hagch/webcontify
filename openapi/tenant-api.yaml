@@ -768,6 +768,12 @@ components:
         secondaryColor:
           type: string
           pattern: '^#[0-9a-fA-F]{6}$'
+        logoStorageKey:
+          type: string
+          description: S3 storage key for the logo file
+        faviconStorageKey:
+          type: string
+          description: S3 storage key for the favicon file
 
     UpdateEmailConfigRequest:
       type: object

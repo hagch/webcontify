@@ -56,8 +56,9 @@ public class OpenFgaService {
     public boolean check(OpenFgaCheckRequest request) {
         try {
             var object = buildObject(request.resourceType(), request.resourceId());
+            var subject = request.userSubject() != null ? request.userSubject() : "user:" + request.userId();
             var sdkRequest = new ClientCheckRequest()
-                    .user("user:" + request.userId())
+                    .user(subject)
                     .relation(request.action())
                     ._object(object);
             var options = new ClientCheckOptions();
@@ -100,6 +101,28 @@ public class OpenFgaService {
             client.deleteTuples(deletes, options).get();
         } catch (Exception e) {
             throw new RuntimeException("OpenFGA delete failed", e);
+        }
+    }
+
+    // TODO: OpenFGA read paginiert (Standard 100 Tupel). Fuer Phase 3d ausreichend (maxItems: 100).
+    public List<RelationshipTuple> readTuples(OpenFgaReadTuplesRequest request) {
+        try {
+            var sdkRequest = new ClientReadRequest()
+                    .relation(request.relation())
+                    ._object(request.objectType() + ":" + request.objectId());
+            client.setStoreId(request.storeId());
+            var response = client.read(sdkRequest).get();
+            if (response.getTuples() == null) {
+                return List.of();
+            }
+            return response.getTuples().stream()
+                    .map(t -> new RelationshipTuple(
+                            t.getKey().getUser(),
+                            t.getKey().getRelation(),
+                            t.getKey().getObject()))
+                    .toList();
+        } catch (Exception e) {
+            throw new RuntimeException("OpenFGA readTuples failed", e);
         }
     }
 

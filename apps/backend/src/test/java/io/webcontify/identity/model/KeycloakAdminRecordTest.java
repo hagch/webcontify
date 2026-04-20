@@ -12,10 +12,11 @@ class KeycloakAdminRecordTest {
 
     @Test
     void testSmtpConfigRecord() {
-        SmtpConfig config = new SmtpConfig("smtp.example.com", 587, "user@example.com", "password", true);
+        SmtpConfig config = new SmtpConfig("smtp.example.com", 587, "noreply@example.com", "user@example.com", "password", true);
 
         assertEquals("smtp.example.com", config.host());
         assertEquals(587, config.port());
+        assertEquals("noreply@example.com", config.from());
         assertEquals("user@example.com", config.username());
         assertEquals("password", config.password());
         assertEquals(true, config.starttls());
@@ -23,12 +24,16 @@ class KeycloakAdminRecordTest {
 
     @Test
     void testCreateRealmRequest() {
-        SmtpConfig smtp = new SmtpConfig("smtp.example.com", 587, "user@example.com", "password", true);
-        CreateRealmRequest request = new CreateRealmRequest("test-tenant", smtp);
+        SmtpConfig smtp = new SmtpConfig("smtp.example.com", 587, "noreply@example.com", "user@example.com", "password", true);
+        UUID tenantId = UUID.randomUUID();
+        CreateRealmRequest request = new CreateRealmRequest("test-tenant", tenantId, "Test Tenant", smtp, "webcontify", "webcontify", Map.of("brandTenantName", "Test"));
 
         assertEquals("test-tenant", request.tenantSlug());
         assertNotNull(request.platformSmtpConfig());
         assertEquals("smtp.example.com", request.platformSmtpConfig().host());
+        assertEquals("webcontify", request.loginTheme());
+        assertEquals("webcontify", request.emailTheme());
+        assertEquals("Test", request.initialAttributes().get("brandTenantName"));
     }
 
     @Test
@@ -68,7 +73,7 @@ class KeycloakAdminRecordTest {
 
     @Test
     void testUpdateRealmSmtpRequest() {
-        SmtpConfig smtp = new SmtpConfig("smtp.example.com", 587, "user@example.com", "password", true);
+        SmtpConfig smtp = new SmtpConfig("smtp.example.com", 587, "noreply@example.com", "user@example.com", "password", true);
         UpdateRealmSmtpRequest request = new UpdateRealmSmtpRequest("test-realm", smtp);
 
         assertEquals("test-realm", request.realmName());

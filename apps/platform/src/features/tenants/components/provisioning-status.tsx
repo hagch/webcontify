@@ -18,6 +18,21 @@ const DEFAULT_STEPS: ProvisioningStepInfo[] = [
   { step: "INITIAL_ADMIN", status: "PENDING" },
 ];
 
+function deriveDisplayStatus(steps: ProvisioningStepInfo[]): string[] {
+  const hasFailed = steps.some((s) => s.status === "FAILED");
+  if (hasFailed) {
+    return steps.map((s) => s.status);
+  }
+  let foundFirstPending = false;
+  return steps.map((s) => {
+    if (s.status === "PENDING" && !foundFirstPending) {
+      foundFirstPending = true;
+      return "IN_PROGRESS";
+    }
+    return s.status;
+  });
+}
+
 interface ProvisioningStatusProps {
   steps: ProvisioningStepInfo[] | null | undefined;
   onRetry: () => void;
@@ -37,11 +52,21 @@ export function ProvisioningStatus({
   const progressPercent =
     totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
   const hasFailed = effectiveSteps.some((s) => s.status === "FAILED");
+  const isActive = !hasFailed && completedCount < totalCount;
+  const displayStatuses = deriveDisplayStatus(effectiveSteps);
 
   return (
     <Card className="min-h-[300px]">
       <CardHeader>
-        <CardTitle>Tenant wird eingerichtet</CardTitle>
+        <div className="flex items-center gap-3">
+          <CardTitle>Tenant wird eingerichtet</CardTitle>
+          {isActive && (
+            <Loader2
+              className="size-4 text-primary animate-spin"
+              aria-label="Einrichtung laeuft"
+            />
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -57,15 +82,15 @@ export function ProvisioningStatus({
         </div>
 
         <div aria-live="polite" className="space-y-3">
-          {effectiveSteps.map((step) => (
+          {effectiveSteps.map((step, index) => (
             <div key={step.step} className="flex items-start gap-3">
-              <StepIcon status={step.status} />
+              <StepIcon status={displayStatuses[index]} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">
                   {STEP_LABELS[step.step] ?? step.step}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  <StepStatusText status={step.status} />
+                  <StepStatusText status={displayStatuses[index]} />
                 </p>
                 {step.status === "FAILED" && step.error && (
                   <p className="text-xs text-destructive mt-0.5">

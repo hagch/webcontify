@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record PlatformSmtpProperties(
         String host,
         int port,
+        String from,
         String username,
         String password,
         boolean starttls

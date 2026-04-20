@@ -11,7 +11,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
+  SidebarMenuItem, SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { NavUser } from "./nav-user";
@@ -75,6 +75,7 @@ export function AppSidebar({ sections, headerSlot }: AppSidebarProps) {
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }

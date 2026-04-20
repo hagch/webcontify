@@ -1,14 +1,16 @@
 import { z } from "zod";
 
 export const updateBrandingSchema = z.object({
+  logoStorageKey: z.string().optional().or(z.literal("")),
+  faviconStorageKey: z.string().optional().or(z.literal("")),
   primaryColor: z
     .string()
-    .regex(/^#[0-9a-fA-F]{6}$/)
+    .regex(/^#[0-9a-fA-F]{6}$/, "Bitte einen gueltigen Hex-Farbwert eingeben (z.B. #6366F1)")
     .optional()
     .or(z.literal("")),
   secondaryColor: z
     .string()
-    .regex(/^#[0-9a-fA-F]{6}$/)
+    .regex(/^#[0-9a-fA-F]{6}$/, "Bitte einen gueltigen Hex-Farbwert eingeben (z.B. #6366F1)")
     .optional()
     .or(z.literal("")),
 });

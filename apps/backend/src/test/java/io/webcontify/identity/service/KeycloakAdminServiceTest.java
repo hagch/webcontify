@@ -36,8 +36,9 @@ class KeycloakAdminServiceTest {
     @Test
     void createRealm_shouldCreateRealmWithCorrectSettings() {
         when(keycloak.realms()).thenReturn(realmsResource);
-        var smtp = new SmtpConfig("localhost", 1025, "", "", false);
-        var request = new CreateRealmRequest("acme", smtp);
+        var smtp = new SmtpConfig("localhost", 1025, "noreply@webcontify.io", "", "", false);
+        var tenantId = UUID.randomUUID();
+        var request = new CreateRealmRequest("acme", tenantId, "Acme Corp", smtp, null, null, null);
         var result = keycloakAdminService.createRealm(request);
         assertThat(result.realmName()).isEqualTo("tenant-acme");
 
@@ -50,8 +51,16 @@ class KeycloakAdminServiceTest {
         assertThat(realm.isResetPasswordAllowed()).isTrue();
         assertThat(realm.getSmtpServer()).containsEntry("host", "localhost");
         assertThat(realm.getClients()).hasSize(1);
-        assertThat(realm.getClients().get(0).getClientId()).isEqualTo("tenant-ui");
-        assertThat(realm.getClients().get(0).isPublicClient()).isTrue();
+        var client = realm.getClients().get(0);
+        assertThat(client.getClientId()).isEqualTo("tenant-ui");
+        assertThat(client.isPublicClient()).isTrue();
+        assertThat(client.getProtocolMappers()).hasSize(1);
+        var mapper = client.getProtocolMappers().get(0);
+        assertThat(mapper.getName()).isEqualTo("tenant_id-mapper");
+        assertThat(mapper.getProtocolMapper()).isEqualTo("oidc-hardcoded-claim-mapper");
+        assertThat(mapper.getConfig()).containsEntry("claim.name", "tenant_id");
+        assertThat(mapper.getConfig()).containsEntry("claim.value", tenantId.toString());
+        assertThat(mapper.getConfig()).containsEntry("access.token.claim", "true");
     }
 
     @Test
@@ -60,6 +69,7 @@ class KeycloakAdminServiceTest {
         when(realmResource.users()).thenReturn(usersResource);
         var userId = UUID.randomUUID();
         var response = mock(Response.class);
+        when(response.getStatus()).thenReturn(201);
         when(response.getLocation()).thenReturn(URI.create("/users/" + userId));
         when(usersResource.create(any(UserRepresentation.class))).thenReturn(response);
 

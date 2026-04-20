@@ -3,10 +3,12 @@ package io.webcontify.identity.service;
 import io.webcontify.identity.model.*;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,6 +26,7 @@ public class KeycloakAdminService {
         String realmName = "tenant-" + request.tenantSlug();
         var realm = new RealmRepresentation();
         realm.setRealm(realmName);
+        realm.setDisplayName(request.displayName());
         realm.setEnabled(true);
         realm.setRegistrationAllowed(false);
         realm.setResetPasswordAllowed(true);
@@ -32,10 +35,35 @@ public class KeycloakAdminService {
         realm.setSmtpServer(Map.of(
                 "host", smtp.host(),
                 "port", String.valueOf(smtp.port()),
+                "from", smtp.from(),
                 "user", smtp.username(),
                 "password", smtp.password(),
                 "starttls", String.valueOf(smtp.starttls()),
                 "auth", "true"
+        ));
+        if (request.loginTheme() != null) {
+            realm.setLoginTheme(request.loginTheme());
+        }
+        if (request.emailTheme() != null) {
+            realm.setEmailTheme(request.emailTheme());
+        }
+        if (request.initialAttributes() != null) {
+            realm.setAttributes(request.initialAttributes());
+        }
+        realm.setInternationalizationEnabled(true);
+        realm.setDefaultLocale("en");
+        realm.setSupportedLocales(java.util.Set.of("en"));
+        var tenantIdMapper = new ProtocolMapperRepresentation();
+        tenantIdMapper.setName("tenant_id-mapper");
+        tenantIdMapper.setProtocol("openid-connect");
+        tenantIdMapper.setProtocolMapper("oidc-hardcoded-claim-mapper");
+        tenantIdMapper.setConfig(Map.of(
+                "claim.name", "tenant_id",
+                "claim.value", request.tenantId().toString(),
+                "jsonType.label", "String",
+                "id.token.claim", "false",
+                "access.token.claim", "true",
+                "userinfo.token.claim", "false"
         ));
         var client = new ClientRepresentation();
         client.setClientId("tenant-ui");
@@ -45,8 +73,12 @@ public class KeycloakAdminService {
         client.setRedirectUris(List.of("http://" + request.tenantSlug() + ".localhost/*"));
         client.setWebOrigins(List.of("http://" + request.tenantSlug() + ".localhost"));
         client.setAttributes(Map.of("pkce.code.challenge.method", "S256"));
+        client.setProtocolMappers(List.of(tenantIdMapper));
         realm.setClients(List.of(client));
         keycloak.realms().create(realm);
+        if (request.initialAttributes() != null) {
+            updateRealmLocalizationTexts(realmName, request.initialAttributes());
+        }
         return new CreateRealmResponse(realmName);
     }
 
@@ -58,7 +90,12 @@ public class KeycloakAdminService {
         user.setEnabled(true);
         user.setEmailVerified(true);
         user.setRequiredActions(List.of("UPDATE_PASSWORD"));
+        user.setUsername(request.email());
         var response = keycloak.realm(request.realmName()).users().create(user);
+        if (response.getStatus() != 201 || response.getLocation() == null) {
+            String body = response.readEntity(String.class);
+            throw new RuntimeException("Failed to create Keycloak user (status=" + response.getStatus() + "): " + body);
+        }
         String path = response.getLocation().getPath();
         String userId = path.replaceAll(".*/([^/]+)$", "$1");
         return new CreateKeycloakUserResponse(UUID.fromString(userId));
@@ -78,6 +115,7 @@ public class KeycloakAdminService {
         realm.setSmtpServer(Map.of(
                 "host", smtp.host(),
                 "port", String.valueOf(smtp.port()),
+                "from", smtp.from(),
                 "user", smtp.username(),
                 "password", smtp.password(),
                 "starttls", String.valueOf(smtp.starttls()),
@@ -89,8 +127,21 @@ public class KeycloakAdminService {
     public void updateRealmBranding(UpdateRealmBrandingRequest request) {
         var realmResource = keycloak.realm(request.realmName());
         var realm = realmResource.toRepresentation();
-        realm.setAttributes(request.brandingAttributes());
+        var existing = realm.getAttributes() != null
+                ? new HashMap<>(realm.getAttributes())
+                : new HashMap<String, String>();
+        existing.putAll(request.brandingAttributes());
+        realm.setAttributes(existing);
+        realm.setDisplayName(request.brandingAttributes().getOrDefault("brandTenantName", realm.getDisplayName()));
         realmResource.update(realm);
+        updateRealmLocalizationTexts(request.realmName(), request.brandingAttributes());
+    }
+
+    public void updateRealmLocalizationTexts(String realmName, Map<String, String> brandingTexts) {
+        var localization = keycloak.realm(realmName).localization();
+        for (var entry : brandingTexts.entrySet()) {
+            localization.saveRealmLocalizationText("en", entry.getKey(), entry.getValue());
+        }
     }
 
     public void deleteUser(DeleteKeycloakUserRequest request) {

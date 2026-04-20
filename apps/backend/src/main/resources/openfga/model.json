@@ -286,6 +286,60 @@
           }
         }
       }
+    },
+    {
+      "type": "tenant_config",
+      "relations": {
+        "tenant": {
+          "this": {}
+        },
+        "editor": {
+          "union": {
+            "child": [
+              { "this": {} },
+              {
+                "tupleToUserset": {
+                  "tupleset": { "object": "", "relation": "tenant" },
+                  "computedUserset": { "object": "", "relation": "admin" }
+                }
+              }
+            ]
+          }
+        },
+        "reader": {
+          "union": {
+            "child": [
+              { "this": {} },
+              { "computedUserset": { "object": "", "relation": "editor" } },
+              {
+                "tupleToUserset": {
+                  "tupleset": { "object": "", "relation": "tenant" },
+                  "computedUserset": { "object": "", "relation": "admin" }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "tenant": {
+            "directly_related_user_types": [{ "type": "tenant" }]
+          },
+          "editor": {
+            "directly_related_user_types": [
+              { "type": "user" },
+              { "type": "role", "relation": "assignee" }
+            ]
+          },
+          "reader": {
+            "directly_related_user_types": [
+              { "type": "user" },
+              { "type": "role", "relation": "assignee" }
+            ]
+          }
+        }
+      }
     }
   ]
 }

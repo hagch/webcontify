@@ -1,3 +1,14 @@
 package io.webcontify.identity.model;
 
-public record CreateRealmRequest(String tenantSlug, SmtpConfig platformSmtpConfig) {}
+import java.util.Map;
+import java.util.UUID;
+
+public record CreateRealmRequest(
+        String tenantSlug,
+        UUID tenantId,
+        String displayName,
+        SmtpConfig platformSmtpConfig,
+        String loginTheme,
+        String emailTheme,
+        Map<String, String> initialAttributes
+) {}

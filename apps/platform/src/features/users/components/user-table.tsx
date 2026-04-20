@@ -24,6 +24,7 @@ import type { UserResponse } from "@/generated/identity";
 import { UserStatusBadge } from "./user-status-badge";
 import { UserActionsMenu } from "./user-actions-menu";
 import { UserTableSkeleton } from "./user-table-skeleton";
+import { InviteUserDialog } from "./invite-user-dialog";
 import { useUserActions } from "../hooks/use-user-actions";
 
 interface UserTableProps {
@@ -42,6 +43,7 @@ function formatDate(dateString: string): string {
 
 export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
   const [userToDelete, setUserToDelete] = useState<UserResponse | null>(null);
+  const [cloneFromUserId, setCloneFromUserId] = useState<string | undefined>();
   const { deleteUser, isDeletingUser } = useUserActions();
 
   if (isLoading) {
@@ -64,6 +66,10 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
     deleteUser(userToDelete.id, () => {
       setUserToDelete(null);
     });
+  }
+
+  function handleCloneRolesRequest(user: UserResponse) {
+    setCloneFromUserId(user.id);
   }
 
   return (
@@ -108,6 +114,7 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
                   <UserActionsMenu
                     user={user}
                     onDeleteRequest={(u) => setUserToDelete(u)}
+                    onCloneRolesRequest={handleCloneRolesRequest}
                   />
                 </TableCell>
               </TableRow>
@@ -157,6 +164,15 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {cloneFromUserId && (
+        <InviteUserDialog
+          key={cloneFromUserId}
+          initialCopyFromUserId={cloneFromUserId}
+        >
+          <span />
+        </InviteUserDialog>
+      )}
     </>
   );
 }

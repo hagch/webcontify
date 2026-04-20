@@ -3,6 +3,13 @@ http:
     platform:
       rule: "Host(`platform.localhost`)"
       service: platform
+      priority: 10
+      entryPoints:
+        - web
+    tenant-wildcard:
+      rule: "HostRegexp(`^[a-z0-9-]+\\.localhost$`)"
+      service: platform
+      priority: 1
       entryPoints:
         - web
     api:

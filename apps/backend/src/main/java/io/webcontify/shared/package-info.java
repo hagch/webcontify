@@ -1,5 +1,5 @@
 @org.springframework.modulith.ApplicationModule(
-    allowedDependencies = {},
+    allowedDependencies = {"identity::identity-security"},
     type = org.springframework.modulith.ApplicationModule.Type.OPEN
 )
 package io.webcontify.shared;

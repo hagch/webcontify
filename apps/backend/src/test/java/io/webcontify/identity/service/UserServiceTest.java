@@ -6,7 +6,9 @@ import static org.mockito.Mockito.*;
 
 import io.webcontify.identity.mapper.UserMapper;
 import io.webcontify.identity.model.*;
+import io.webcontify.identity.repository.TenantRoleRepository;
 import io.webcontify.identity.repository.TenantUserRepository;
+import io.webcontify.identity.repository.entity.TenantRoleEntity;
 import io.webcontify.identity.repository.entity.TenantUserEntity;
 import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
@@ -37,6 +39,8 @@ class UserServiceTest {
     @Mock PermissionService permissionService;
     @Mock TenantInfrastructureLookupService lookupService;
     @Mock UserMapper userMapper;
+    @Mock RoleService roleService;
+    @Mock TenantRoleRepository roleRepository;
 
     @InjectMocks UserService userService;
 
@@ -71,6 +75,20 @@ class UserServiceTest {
         return entity;
     }
 
+    private TenantRoleEntity createAdminRoleEntity() {
+        var entity = new TenantRoleEntity();
+        entity.setId(UUID.randomUUID());
+        entity.setName("Admin");
+        entity.setSystemRole(true);
+        var auditInfo = new AuditInfo();
+        auditInfo.setCreatedAt(OffsetDateTime.now());
+        auditInfo.setCreatedBy(CURRENT_USER_ID);
+        auditInfo.setUpdatedAt(OffsetDateTime.now());
+        auditInfo.setUpdatedBy(CURRENT_USER_ID);
+        entity.setAuditInfo(auditInfo);
+        return entity;
+    }
+
     @Nested
     class Invite {
         @Test
@@ -81,7 +99,7 @@ class UserServiceTest {
             when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(userMapper.toDomain(any(TenantUserEntity.class))).thenReturn(new TenantUser());
 
-            userService.invite("new@test.com", "Max", "Muster");
+            userService.invite("new@test.com", "Max", "Muster", null);
 
             verify(keycloakAdminService).createUser(any());
             verify(userRepository).save(any());
@@ -94,7 +112,7 @@ class UserServiceTest {
             var existing = createUserEntity(TARGET_USER_ID, UserStatus.ACTIVE);
             when(userRepository.findActiveByEmail("existing@test.com")).thenReturn(Optional.of(existing));
 
-            assertThatThrownBy(() -> userService.invite("existing@test.com", "Max", "Muster"))
+            assertThatThrownBy(() -> userService.invite("existing@test.com", "Max", "Muster", null))
                     .isInstanceOf(ConflictException.class);
 
             verify(keycloakAdminService, never()).createUser(any());
@@ -107,10 +125,88 @@ class UserServiceTest {
                     .thenReturn(new CreateKeycloakUserResponse(TARGET_USER_ID));
             when(userRepository.save(any())).thenThrow(new RuntimeException("DB error"));
 
-            assertThatThrownBy(() -> userService.invite("new@test.com", "Max", "Muster"))
+            assertThatThrownBy(() -> userService.invite("new@test.com", "Max", "Muster", null))
                     .isInstanceOf(RuntimeException.class);
 
             verify(keycloakAdminService).deleteUser(any());
+        }
+    }
+
+    @Nested
+    class InviteWithRoleClone {
+
+        @Test
+        void shouldThrowWhenSourceUserNotInTenant() {
+            UUID sourceUserId = UUID.randomUUID();
+            when(userRepository.findActiveById(sourceUserId)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> userService.invite("test@test.com", "Test", "User", sourceUserId))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage("invite.source_user_not_found");
+
+            verify(keycloakAdminService, never()).createUser(any());
+        }
+
+        @Test
+        void shouldCopyRolesFromSourceUser() {
+            UUID sourceUserId = UUID.randomUUID();
+            var sourceEntity = createUserEntity(sourceUserId, UserStatus.ACTIVE);
+
+            var role = new TenantRole();
+            role.setId(UUID.randomUUID());
+
+            when(userRepository.findActiveByEmail("new@test.com")).thenReturn(Optional.empty());
+            when(userRepository.findActiveById(sourceUserId)).thenReturn(Optional.of(sourceEntity));
+            when(keycloakAdminService.createUser(any()))
+                    .thenReturn(new CreateKeycloakUserResponse(TARGET_USER_ID));
+            when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(userMapper.toDomain(any(TenantUserEntity.class))).thenReturn(new TenantUser());
+            when(roleService.getRolesForUser(sourceUserId)).thenReturn(List.of(role));
+
+            userService.invite("new@test.com", "Max", "Muster", sourceUserId);
+
+            verify(roleService).getRolesForUser(sourceUserId);
+            verify(roleService).setRolesForUser(eq(TARGET_USER_ID), eq(List.of(role.getId())));
+        }
+
+        @Test
+        void shouldContinueInviteIfRoleCloningFails() {
+            UUID sourceUserId = UUID.randomUUID();
+            var sourceEntity = createUserEntity(sourceUserId, UserStatus.ACTIVE);
+
+            when(userRepository.findActiveByEmail("new@test.com")).thenReturn(Optional.empty());
+            when(userRepository.findActiveById(sourceUserId)).thenReturn(Optional.of(sourceEntity));
+            when(keycloakAdminService.createUser(any()))
+                    .thenReturn(new CreateKeycloakUserResponse(TARGET_USER_ID));
+            when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(userMapper.toDomain(any(TenantUserEntity.class))).thenReturn(new TenantUser());
+            when(roleService.getRolesForUser(sourceUserId)).thenThrow(new RuntimeException("OpenFGA down"));
+
+            // kein throw erwartet — best-effort
+            assertThatCode(() -> userService.invite("new@test.com", "Max", "Muster", sourceUserId))
+                    .doesNotThrowAnyException();
+
+            verify(permissionService).grant(any());
+            verify(keycloakAdminService).sendInviteEmail(any());
+        }
+
+        @Test
+        void shouldSkipRoleCopyWhenSourceUserHasNoRoles() {
+            UUID sourceUserId = UUID.randomUUID();
+            var sourceEntity = createUserEntity(sourceUserId, UserStatus.ACTIVE);
+
+            when(userRepository.findActiveByEmail("new@test.com")).thenReturn(Optional.empty());
+            when(userRepository.findActiveById(sourceUserId)).thenReturn(Optional.of(sourceEntity));
+            when(keycloakAdminService.createUser(any()))
+                    .thenReturn(new CreateKeycloakUserResponse(TARGET_USER_ID));
+            when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(userMapper.toDomain(any(TenantUserEntity.class))).thenReturn(new TenantUser());
+            when(roleService.getRolesForUser(sourceUserId)).thenReturn(List.of());
+
+            userService.invite("new@test.com", "Max", "Muster", sourceUserId);
+
+            verify(roleService).getRolesForUser(sourceUserId);
+            verify(roleService, never()).setRolesForUser(any(), any());
         }
     }
 
@@ -119,8 +215,17 @@ class UserServiceTest {
         @Test
         void shouldDeactivateActiveUser() {
             var entity = createUserEntity(TARGET_USER_ID, UserStatus.ACTIVE);
+            var adminRole = createAdminRoleEntity();
+            UUID adminRoleId = adminRole.getId();
+
             when(userRepository.findActiveById(TARGET_USER_ID)).thenReturn(Optional.of(entity));
-            when(userRepository.countByStatus(UserStatus.ACTIVE)).thenReturn(2L);
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.of(adminRole));
+            // TARGET_USER_ID hat Admin-Rolle, aber es gibt noch einen weiteren Admin
+            var otherAdminId = UUID.randomUUID();
+            when(openFgaService.readTuples(any())).thenReturn(List.of(
+                    new RelationshipTuple("user:" + TARGET_USER_ID, "assignee", "role:" + adminRoleId),
+                    new RelationshipTuple("user:" + otherAdminId, "assignee", "role:" + adminRoleId)
+            ));
             when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(userMapper.toDomain(any(TenantUserEntity.class))).thenReturn(new TenantUser());
 
@@ -151,11 +256,19 @@ class UserServiceTest {
         @Test
         void shouldRejectDeactivatingLastAdmin() {
             var entity = createUserEntity(TARGET_USER_ID, UserStatus.ACTIVE);
+            var adminRole = createAdminRoleEntity();
+            UUID adminRoleId = adminRole.getId();
+
             when(userRepository.findActiveById(TARGET_USER_ID)).thenReturn(Optional.of(entity));
-            when(userRepository.countByStatus(UserStatus.ACTIVE)).thenReturn(1L);
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.of(adminRole));
+            // Nur TARGET_USER_ID hat Admin-Rolle
+            when(openFgaService.readTuples(any())).thenReturn(List.of(
+                    new RelationshipTuple("user:" + TARGET_USER_ID, "assignee", "role:" + adminRoleId)
+            ));
 
             assertThatThrownBy(() -> userService.updateStatus(TARGET_USER_ID, UserStatus.DEACTIVATED))
-                    .isInstanceOf(BadRequestException.class);
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage("user.last_admin_cannot_be_removed");
         }
 
         @Test
@@ -169,6 +282,20 @@ class UserServiceTest {
 
             verify(keycloakAdminService).enableUser(any());
         }
+
+        @Test
+        void shouldAllowDeactivationWhenUserHasNoAdminRole() {
+            var entity = createUserEntity(TARGET_USER_ID, UserStatus.ACTIVE);
+
+            when(userRepository.findActiveById(TARGET_USER_ID)).thenReturn(Optional.of(entity));
+            // kein Admin-Role gefunden
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.empty());
+            when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(userMapper.toDomain(any(TenantUserEntity.class))).thenReturn(new TenantUser());
+
+            assertThatCode(() -> userService.updateStatus(TARGET_USER_ID, UserStatus.DEACTIVATED))
+                    .doesNotThrowAnyException();
+        }
     }
 
     @Nested
@@ -176,8 +303,18 @@ class UserServiceTest {
         @Test
         void shouldDeleteUser() {
             var entity = createUserEntity(TARGET_USER_ID, UserStatus.ACTIVE);
+            var adminRole = createAdminRoleEntity();
+            UUID adminRoleId = adminRole.getId();
+
             when(userRepository.findActiveById(TARGET_USER_ID)).thenReturn(Optional.of(entity));
-            when(userRepository.countByStatus(UserStatus.ACTIVE)).thenReturn(2L);
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.of(adminRole));
+            // TARGET_USER_ID und ein weiterer haben Admin-Rolle
+            var otherAdminId = UUID.randomUUID();
+            when(openFgaService.readTuples(any())).thenReturn(List.of(
+                    new RelationshipTuple("user:" + TARGET_USER_ID, "assignee", "role:" + adminRoleId),
+                    new RelationshipTuple("user:" + otherAdminId, "assignee", "role:" + adminRoleId)
+            ));
+            when(roleService.getRolesForUser(TARGET_USER_ID)).thenReturn(List.of());
 
             userService.delete(TARGET_USER_ID);
 
@@ -195,11 +332,40 @@ class UserServiceTest {
         @Test
         void shouldRejectDeletingLastAdmin() {
             var entity = createUserEntity(TARGET_USER_ID, UserStatus.ACTIVE);
+            var adminRole = createAdminRoleEntity();
+            UUID adminRoleId = adminRole.getId();
+
             when(userRepository.findActiveById(TARGET_USER_ID)).thenReturn(Optional.of(entity));
-            when(userRepository.countByStatus(UserStatus.ACTIVE)).thenReturn(1L);
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.of(adminRole));
+            when(openFgaService.readTuples(any())).thenReturn(List.of(
+                    new RelationshipTuple("user:" + TARGET_USER_ID, "assignee", "role:" + adminRoleId)
+            ));
 
             assertThatThrownBy(() -> userService.delete(TARGET_USER_ID))
-                    .isInstanceOf(BadRequestException.class);
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage("user.last_admin_cannot_be_removed");
+        }
+
+        @Test
+        void shouldCleanupRoleAssignmentsOnDelete() {
+            var entity = createUserEntity(TARGET_USER_ID, UserStatus.ACTIVE);
+            var adminRole = createAdminRoleEntity();
+            UUID adminRoleId = adminRole.getId();
+            var role = new TenantRole();
+            role.setId(UUID.randomUUID());
+
+            when(userRepository.findActiveById(TARGET_USER_ID)).thenReturn(Optional.of(entity));
+            when(roleRepository.findActiveByName("Admin")).thenReturn(Optional.of(adminRole));
+            var otherAdminId = UUID.randomUUID();
+            when(openFgaService.readTuples(any())).thenReturn(List.of(
+                    new RelationshipTuple("user:" + TARGET_USER_ID, "assignee", "role:" + adminRoleId),
+                    new RelationshipTuple("user:" + otherAdminId, "assignee", "role:" + adminRoleId)
+            ));
+            when(roleService.getRolesForUser(TARGET_USER_ID)).thenReturn(List.of(role));
+
+            userService.delete(TARGET_USER_ID);
+
+            verify(roleService).setRolesForUser(TARGET_USER_ID, List.of());
         }
     }
 

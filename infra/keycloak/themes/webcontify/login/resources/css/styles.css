@@ -1,0 +1,94 @@
+/* Webcontify Custom Login Theme
+ * Ueberschreibt PatternFly v5 Klassen mit Tenant-Branding via CSS Variables.
+ * Variables werden durch template.ftl aus Realm-Attributes gesetzt.
+ * Fallbacks: --wc-primary: #6366F1 (Indigo), --wc-secondary: #10B981 (Emerald)
+ */
+
+/* ------------------------------------------------------------------ */
+/* Primary Button                                                       */
+/* ------------------------------------------------------------------ */
+
+.pf-v5-c-button.pf-m-primary {
+    background-color: var(--wc-primary);
+    border-color: var(--wc-primary);
+    color: #ffffff;
+}
+
+.pf-v5-c-button.pf-m-primary:hover,
+.pf-v5-c-button.pf-m-primary:focus {
+    background-color: var(--wc-primary-hover);
+    border-color: var(--wc-primary-hover);
+}
+
+.pf-v5-c-button.pf-m-primary:active {
+    background-color: var(--wc-primary-hover);
+    border-color: var(--wc-primary-hover);
+}
+
+/* ------------------------------------------------------------------ */
+/* Links                                                                */
+/* ------------------------------------------------------------------ */
+
+a,
+a:visited {
+    color: var(--wc-primary);
+}
+
+a:hover,
+a:focus {
+    color: var(--wc-primary-hover);
+}
+
+/* ------------------------------------------------------------------ */
+/* Focus Ring                                                           */
+/* ------------------------------------------------------------------ */
+
+.pf-v5-c-form-control:focus-within {
+    --pf-v5-c-form-control--after--BorderBottomColor: var(--wc-primary);
+}
+
+/* ------------------------------------------------------------------ */
+/* Header / Branding                                                    */
+/* ------------------------------------------------------------------ */
+
+/* Keycloak-eigenes Logo-Div ausblenden — wir rendern unser Branding */
+div.kc-logo-text {
+    display: none;
+}
+
+#kc-header-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0;
+}
+
+/* Logo-Bild */
+.wc-brand-logo {
+    max-height: 48px;
+    max-width: 240px;
+    object-fit: contain;
+}
+
+/* Text-Fallback wenn kein Logo gesetzt */
+.wc-brand-name {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--pf-v5-global--Color--light-100, #ffffff);
+    text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ */
+/* Hintergrund                                                          */
+/* ------------------------------------------------------------------ */
+
+.login-pf body {
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--wc-primary) 90%, black) 0%,
+        color-mix(in srgb, var(--wc-primary) 70%, black) 100%
+    );
+    background-size: cover;
+    height: 100%;
+}

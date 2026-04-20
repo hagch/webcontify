@@ -33,11 +33,18 @@ class TenantConfigServiceTest {
     @Mock
     private EncryptionService encryptionService;
 
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private TenantFileService tenantFileService;
+
     private TenantConfigService tenantConfigService;
 
     @BeforeEach
     void setUp() {
-        tenantConfigService = new TenantConfigService(tenantRepository, encryptionService);
+        tenantConfigService = new TenantConfigService(
+                tenantRepository, encryptionService, eventPublisher, tenantFileService);
     }
 
     @Test

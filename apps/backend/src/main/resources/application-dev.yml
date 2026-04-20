@@ -15,6 +15,14 @@ spring:
   jpa:
     show-sql: true
 
+keycloak:
+  admin:
+    realm: master
+    client-id: admin-cli
+    grant-type: password
+    username: admin
+    password: admin
+
 logging:
   level:
     io.webcontify: DEBUG

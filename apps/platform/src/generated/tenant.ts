@@ -176,6 +176,10 @@ export interface UpdateBrandingConfigRequest {
   primaryColor?: string;
   /** @pattern ^#[0-9a-fA-F]{6}$ */
   secondaryColor?: string;
+  /** S3 storage key for the logo file */
+  logoStorageKey?: string;
+  /** S3 storage key for the favicon file */
+  faviconStorageKey?: string;
 }
 
 export interface UpdateEmailConfigRequest {

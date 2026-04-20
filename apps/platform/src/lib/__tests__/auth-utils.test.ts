@@ -3,7 +3,6 @@ import {
   getKeycloakIssuer,
   getRealmFromHostname,
   isPlatformHost,
-  shouldUsePlatformSession,
 } from "../auth-utils";
 
 describe("auth-utils", () => {
@@ -11,6 +10,10 @@ describe("auth-utils", () => {
     expect(getRealmFromHostname("platform.localhost")).toBe(
       "webcontify-platform"
     );
+  });
+
+  it("should return platform realm for localhost (dev without subdomain)", () => {
+    expect(getRealmFromHostname("localhost")).toBe("webcontify-platform");
   });
 
   it("should return tenant realm for tenant subdomain", () => {
@@ -31,18 +34,7 @@ describe("auth-utils", () => {
 
   it("should identify platform host", () => {
     expect(isPlatformHost("platform.localhost")).toBe(true);
+    expect(isPlatformHost("localhost")).toBe(true);
     expect(isPlatformHost("acme.localhost")).toBe(false);
-  });
-
-  it("should use platform session for platform admin on tenant subdomain", () => {
-    expect(shouldUsePlatformSession(false, true)).toBe(true);
-  });
-
-  it("should not use platform session for non-admin on tenant subdomain", () => {
-    expect(shouldUsePlatformSession(false, false)).toBe(false);
-  });
-
-  it("should always use platform session on platform host", () => {
-    expect(shouldUsePlatformSession(true, false)).toBe(true);
   });
 });

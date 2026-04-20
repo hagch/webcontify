@@ -17,20 +17,33 @@ public class KeycloakAdminConfiguration {
     @Value("${keycloak.admin.client-id}")
     private String clientId;
 
-    @Value("${keycloak.admin.client-secret}")
+    @Value("${keycloak.admin.client-secret:}")
     private String clientSecret;
 
     @Value("${keycloak.admin.realm}")
     private String realm;
 
+    @Value("${keycloak.admin.grant-type:client_credentials}")
+    private String grantType;
+
+    @Value("${keycloak.admin.username:}")
+    private String username;
+
+    @Value("${keycloak.admin.password:}")
+    private String password;
+
     @Bean
     public Keycloak keycloakAdminClient() {
-        return KeycloakBuilder.builder()
+        var builder = KeycloakBuilder.builder()
                 .serverUrl(serverUrl)
                 .realm(realm)
                 .clientId(clientId)
-                .clientSecret(clientSecret)
-                .grantType("client_credentials")
-                .build();
+                .grantType(grantType);
+        if ("password".equals(grantType)) {
+            builder.username(username).password(password);
+        } else {
+            builder.clientSecret(clientSecret);
+        }
+        return builder.build();
     }
 }

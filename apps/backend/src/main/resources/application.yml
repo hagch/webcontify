@@ -2,12 +2,6 @@ spring:
   application:
     name: webcontify-backend
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://auth.localhost/realms/webcontify-platform}
-
   jpa:
     open-in-view: false
     hibernate:
@@ -55,8 +49,9 @@ openfga:
 
 platform:
   smtp:
-    host: ${PLATFORM_SMTP_HOST:localhost}
+    host: ${PLATFORM_SMTP_HOST:mailpit}
     port: ${PLATFORM_SMTP_PORT:1025}
+    from: ${PLATFORM_SMTP_FROM:noreply@webcontify.io}
     username: ${PLATFORM_SMTP_USER:}
     password: ${PLATFORM_SMTP_PASSWORD:}
     starttls: ${PLATFORM_SMTP_STARTTLS:false}

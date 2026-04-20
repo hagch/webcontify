@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Mail, UserCheck, UserX, Trash2 } from "lucide-react";
+import { MoreHorizontal, Mail, UserCheck, UserX, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,11 +15,13 @@ import { useUserActions } from "../hooks/use-user-actions";
 interface UserActionsMenuProps {
   user: UserResponse;
   onDeleteRequest?: (user: UserResponse) => void;
+  onCloneRolesRequest?: (user: UserResponse) => void;
 }
 
 export function UserActionsMenu({
   user,
   onDeleteRequest,
+  onCloneRolesRequest,
 }: UserActionsMenuProps) {
   const { resendInvite, activateUser, deactivateUser, isUpdatingStatus, isResendingInvite } =
     useUserActions();
@@ -65,6 +67,12 @@ export function UserActionsMenu({
           >
             <UserCheck className="mr-2 size-4" />
             Aktivieren
+          </DropdownMenuItem>
+        )}
+        {user.status === UserStatus.ACTIVE && (
+          <DropdownMenuItem onClick={() => onCloneRolesRequest?.(user)}>
+            <UserPlus className="mr-2 size-4" />
+            Mit gleichen Rollen einladen
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />

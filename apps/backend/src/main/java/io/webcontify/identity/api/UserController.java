@@ -31,7 +31,8 @@ public class UserController implements TenantUsersApi {
     @Override
     @RequiresPermission(action = "inviter", resource = "user_management")
     public ResponseEntity<UserResponse> inviteUser(InviteUserRequest request) {
-        var user = userService.invite(request.getEmail(), request.getFirstName(), request.getLastName());
+        var user = userService.invite(request.getEmail(), request.getFirstName(), request.getLastName(),
+                request.getCopyRolesFromUserId());
         var response = userMapper.toResponse(user);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()

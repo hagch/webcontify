@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -25,6 +26,9 @@ public class SecurityConfiguration {
     @Value("${webcontify.cors.allowed-origin-patterns:http://*.localhost}")
     private String allowedOriginPatterns;
 
+    @Value("${keycloak.admin.server-url:http://auth.localhost}")
+    private String keycloakBaseUrl;
+
     private final JwtToTenantAuthenticationConverter jwtToTenantAuthenticationConverter;
     private final TenantSlugResolver tenantSlugResolver;
     private final UserActivationFilter userActivationFilter;
@@ -36,6 +40,11 @@ public class SecurityConfiguration {
         this.jwtToTenantAuthenticationConverter = jwtToTenantAuthenticationConverter;
         this.tenantSlugResolver = tenantSlugResolver;
         this.userActivationFilter = userActivationFilter;
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return new MultiRealmJwtDecoder(keycloakBaseUrl);
     }
 
     @Bean

@@ -2,6 +2,7 @@ package io.webcontify.tenant.service;
 
 import io.webcontify.shared.encryption.EncryptionService;
 import io.webcontify.shared.exception.NotFoundException;
+import io.webcontify.tenant.event.TenantBrandingUpdatedEvent;
 import io.webcontify.tenant.model.TenantConfig;
 import io.webcontify.tenant.model.TenantConfig.BrandingConfig;
 import io.webcontify.tenant.model.TenantConfig.DomainConfig;
@@ -9,6 +10,7 @@ import io.webcontify.tenant.model.TenantConfig.EmailConfig;
 import io.webcontify.tenant.repository.TenantRepository;
 import io.webcontify.tenant.repository.entity.TenantEntity;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +20,18 @@ public class TenantConfigService {
 
     private final TenantRepository tenantRepository;
     private final EncryptionService encryptionService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final TenantFileService tenantFileService;
 
-    public TenantConfigService(TenantRepository tenantRepository, EncryptionService encryptionService) {
+    public TenantConfigService(
+            TenantRepository tenantRepository,
+            EncryptionService encryptionService,
+            ApplicationEventPublisher eventPublisher,
+            TenantFileService tenantFileService) {
         this.tenantRepository = tenantRepository;
         this.encryptionService = encryptionService;
+        this.eventPublisher = eventPublisher;
+        this.tenantFileService = tenantFileService;
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +52,23 @@ public class TenantConfigService {
         entity.setConfig(updated);
         tenantRepository.save(entity);
 
+        String logoPublicUrl = resolveLogoPublicUrl(tenantId, branding);
+        eventPublisher.publishEvent(new TenantBrandingUpdatedEvent(
+                entity.getId(),
+                entity.getName(),
+                entity.getKeycloakRealmName(),
+                branding.primaryColor(),
+                branding.secondaryColor(),
+                logoPublicUrl));
+
         return stripPassword(updated);
+    }
+
+    private String resolveLogoPublicUrl(UUID tenantId, BrandingConfig branding) {
+        if (branding.logoStorageKey() == null || branding.logoStorageKey().isBlank()) {
+            return null;
+        }
+        return tenantFileService.getFileUrl(tenantId, branding.logoStorageKey());
     }
 
     public TenantConfig updateEmail(UUID tenantId, EmailConfig email) {

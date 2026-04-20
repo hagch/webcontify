@@ -2,6 +2,7 @@ package io.webcontify.identity.service;
 
 import io.webcontify.identity.mapper.UserMapper;
 import io.webcontify.identity.model.*;
+import io.webcontify.identity.repository.TenantRoleRepository;
 import io.webcontify.identity.repository.TenantUserRepository;
 import io.webcontify.identity.repository.entity.TenantUserEntity;
 import io.webcontify.shared.exception.BadRequestException;
@@ -17,7 +18,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -30,6 +33,8 @@ public class UserService {
     private final PermissionService permissionService;
     private final TenantInfrastructureLookupService lookupService;
     private final UserMapper userMapper;
+    private final RoleService roleService;
+    private final TenantRoleRepository roleRepository;
 
     public UserService(
             TenantUserRepository userRepository,
@@ -37,17 +42,27 @@ public class UserService {
             OpenFgaService openFgaService,
             PermissionService permissionService,
             TenantInfrastructureLookupService lookupService,
-            UserMapper userMapper) {
+            UserMapper userMapper,
+            RoleService roleService,
+            TenantRoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.keycloakAdminService = keycloakAdminService;
         this.openFgaService = openFgaService;
         this.permissionService = permissionService;
         this.lookupService = lookupService;
         this.userMapper = userMapper;
+        this.roleService = roleService;
+        this.roleRepository = roleRepository;
     }
 
     @Transactional
-    public TenantUser invite(String email, String firstName, String lastName) {
+    public TenantUser invite(String email, String firstName, String lastName, UUID copyRolesFromUserId) {
+        // Validierung copyRolesFromUserId VOR Keycloak-User-Create
+        if (copyRolesFromUserId != null) {
+            userRepository.findActiveById(copyRolesFromUserId)
+                    .orElseThrow(() -> new BadRequestException("invite.source_user_not_found"));
+        }
+
         // Duplikat-Check
         userRepository.findActiveByEmail(email).ifPresent(existing -> {
             throw new ConflictException("user.email_already_exists");
@@ -97,6 +112,19 @@ public class UserService {
         // Invite-Email senden
         keycloakAdminService.sendInviteEmail(
                 new SendInviteEmailRequest(infrastructure.keycloakRealmName(), keycloakUserId));
+
+        // Rollen-Klon (best-effort)
+        if (copyRolesFromUserId != null) {
+            try {
+                var sourceRoles = roleService.getRolesForUser(copyRolesFromUserId);
+                var roleIds = sourceRoles.stream().map(TenantRole::getId).toList();
+                if (!roleIds.isEmpty()) {
+                    roleService.setRolesForUser(keycloakUserId, roleIds);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to copy roles from userId={} to new user={}", copyRolesFromUserId, keycloakUserId, e);
+            }
+        }
 
         log.info("User invited: id={}, email={}, tenant={}", keycloakUserId, email, tenantInfo.tenantId());
         return userMapper.toDomain(entity);
@@ -200,15 +228,36 @@ public class UserService {
         permissionService.revoke(new RevokePermissionRequest(
                 userId, "admin", "tenant", tenantInfo.tenantId()));
 
+        // Alle Rollen-Zuweisungen entfernen (best-effort)
+        try {
+            var userRoles = roleService.getRolesForUser(userId);
+            if (!userRoles.isEmpty()) {
+                roleService.setRolesForUser(userId, List.of());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to cleanup role assignments for user={}", userId, e);
+        }
+
         log.info("User deleted: id={}", userId);
     }
 
-    // Phase 3b: Alle User sind Admins (Entscheidung 3), daher reicht countByStatus.
-    // TODO Phase 3d: Auf OpenFGA Admin-Rolle filtern wenn Custom Roles eingefuehrt werden.
     private void guardLastAdmin(UUID excludeUserId) {
-        long activeAdminCount = userRepository.countByStatus(UserStatus.ACTIVE);
-        var entity = userRepository.findActiveById(excludeUserId).orElse(null);
-        if (entity != null && entity.getStatus() == UserStatus.ACTIVE && activeAdminCount <= 1) {
+        var tenantInfo = TenantContext.getTenantInformation();
+        var infrastructure = lookupService.getInfrastructure(tenantInfo.tenantId());
+
+        // Finde Admin-System-Rolle
+        var adminRole = roleRepository.findActiveByName("Admin");
+        if (adminRole.isEmpty()) return;
+
+        // Pruefe welche User die Admin-Rolle haben
+        var adminTuples = openFgaService.readTuples(new OpenFgaReadTuplesRequest(
+                infrastructure.openfgaStoreId(), "role", adminRole.get().getId().toString(), "assignee"));
+
+        var adminUserIds = adminTuples.stream()
+                .map(t -> UUID.fromString(t.user().replace("user:", "")))
+                .collect(Collectors.toSet());
+
+        if (adminUserIds.contains(excludeUserId) && adminUserIds.size() <= 1) {
             throw new BadRequestException("user.last_admin_cannot_be_removed");
         }
     }
