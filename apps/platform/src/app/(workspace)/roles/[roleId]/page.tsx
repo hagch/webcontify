@@ -169,7 +169,7 @@ export default function RoleDetailPage({ params }: RoleDetailPageProps) {
                     roleId={role.id}
                     currentAssigneeIds={assigneeIds}
                   >
-                    <Button>
+                    <Button data-testid="add-assignee-button">
                       <UserPlus className="mr-2 size-4" />
                       Benutzer hinzufuegen
                     </Button>

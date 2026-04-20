@@ -7,14 +7,20 @@ import io.webcontify.shared.model.TenantInformation;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 class TenantContextTest {
 
+    @BeforeEach
+    void setUp() {
+        SecurityContextHolder.clearContext();
+    }
+
     @AfterEach
-    void clearSecurityContext() {
+    void tearDown() {
         SecurityContextHolder.clearContext();
     }
 

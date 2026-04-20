@@ -1,0 +1,287 @@
+openapi: 3.1.0
+info:
+  title: Webcontify Platform Admin API
+  version: 1.0.0
+  description: Platform Admin management endpoints
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: PlatformAdmins
+    description: Platform Admin Management
+
+paths:
+  /api/v1/admin/admins:
+    post:
+      operationId: invitePlatformAdmin
+      summary: Invite a new platform admin
+      tags:
+        - PlatformAdmins
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitePlatformAdminRequest'
+      responses:
+        '201':
+          description: Platform admin invited
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformAdminResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    get:
+      operationId: listPlatformAdmins
+      summary: List all platform admins
+      tags:
+        - PlatformAdmins
+      responses:
+        '200':
+          description: Platform admin list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformAdminListResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /api/v1/admin/admins/{adminId}:
+    get:
+      operationId: getPlatformAdmin
+      summary: Get platform admin by ID
+      tags:
+        - PlatformAdmins
+      parameters:
+        - name: adminId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Platform admin details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformAdminResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Platform admin not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    delete:
+      operationId: deletePlatformAdmin
+      summary: Delete a platform admin
+      tags:
+        - PlatformAdmins
+      parameters:
+        - name: adminId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Platform admin deleted
+        '400':
+          description: Cannot delete last platform admin
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Platform admin not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Cannot delete own account
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/admin/admins/{adminId}/status:
+    put:
+      operationId: updatePlatformAdminStatus
+      summary: Update platform admin status (activate/deactivate)
+      tags:
+        - PlatformAdmins
+      parameters:
+        - name: adminId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlatformAdminStatusRequest'
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformAdminResponse'
+        '400':
+          description: Invalid status transition
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Platform admin not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Cannot deactivate own account
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/admin/admins/{adminId}/reset-password:
+    post:
+      operationId: resetPlatformAdminPassword
+      summary: Trigger password reset for platform admin
+      tags:
+        - PlatformAdmins
+      parameters:
+        - name: adminId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Password reset email sent
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Platform admin not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    InvitePlatformAdminRequest:
+      type: object
+      required:
+        - email
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 255
+
+    UpdatePlatformAdminStatusRequest:
+      type: object
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
+
+    PlatformAdminResponse:
+      type: object
+      required:
+        - id
+        - email
+        - firstName
+        - lastName
+        - enabled
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    PlatformAdminListResponse:
+      type: object
+      required:
+        - admins
+      properties:
+        admins:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlatformAdminResponse'

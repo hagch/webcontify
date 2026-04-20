@@ -33,4 +33,36 @@ export default defineConfig({
       },
     },
   },
+  platformAdmin: {
+    input: {
+      target: "../../openapi/platform-admin-api.yaml",
+    },
+    output: {
+      target: "./src/generated/platform-admin.ts",
+      client: "react-query",
+      mode: "single",
+      override: {
+        mutator: {
+          path: "./src/lib/orval-mutator.ts",
+          name: "customInstance",
+        },
+      },
+    },
+  },
+  auth: {
+    input: {
+      target: "../../openapi/auth-api.yaml",
+    },
+    output: {
+      target: "./src/generated/auth.ts",
+      client: "react-query",
+      mode: "single",
+      override: {
+        mutator: {
+          path: "./src/lib/orval-mutator.ts",
+          name: "customInstance",
+        },
+      },
+    },
+  },
 });

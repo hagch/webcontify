@@ -99,7 +99,7 @@ export function AddAssigneesDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={children as React.ReactElement} />
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent data-testid="add-assignees-dialog" className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Benutzer hinzufuegen</DialogTitle>
           <DialogDescription>

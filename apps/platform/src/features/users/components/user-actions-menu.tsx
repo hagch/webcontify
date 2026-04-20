@@ -33,6 +33,7 @@ export function UserActionsMenu({
       <DropdownMenuTrigger
         render={
           <Button
+            data-testid={`actions-menu-${user.id}`}
             variant="ghost"
             size="icon"
             aria-label={`Aktionen fuer ${fullName}`}

@@ -52,7 +52,7 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
 
   if (users.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
+      <div data-testid="empty-state" className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
         <p className="text-lg font-medium">Noch keine Benutzer</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Lade Benutzer ein, um mit der Zusammenarbeit zu beginnen.
@@ -80,7 +80,7 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         )}
-        <Table>
+        <Table data-testid="user-table">
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -92,7 +92,7 @@ export function UserTable({ users, isLoading, isRefetching }: UserTableProps) {
           </TableHeader>
           <TableBody>
             {users.map((user) => (
-              <TableRow key={user.id}>
+              <TableRow key={user.id} data-testid="user-table-row">
                 <TableCell className="font-medium">
                   <Link
                     href={`/users/${user.id}`}

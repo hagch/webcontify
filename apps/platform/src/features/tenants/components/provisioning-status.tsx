@@ -56,7 +56,7 @@ export function ProvisioningStatus({
   const displayStatuses = deriveDisplayStatus(effectiveSteps);
 
   return (
-    <Card className="min-h-[300px]">
+    <Card data-testid="provisioning-status" className="min-h-[300px]">
       <CardHeader>
         <div className="flex items-center gap-3">
           <CardTitle>Tenant wird eingerichtet</CardTitle>

@@ -1,11 +1,11 @@
 /**
- * Keycloak Admin API Helper fuer E2E Tests.
+ * Keycloak Admin API helpers for E2E tests.
  *
- * Alle Funktionen arbeiten direkt gegen die Keycloak Admin REST API.
- * Kein Playwright Page-Objekt noetig — reine HTTP-Aufrufe via fetch.
+ * All functions work directly against the Keycloak Admin REST API.
+ * No Playwright Page object required — pure HTTP calls via fetch.
  *
  * Keycloak Admin URL: auth.localhost (via Traefik)
- * Master Realm Admin: admin / admin
+ * Master realm admin: admin / admin
  */
 
 const KEYCLOAK_URL =
@@ -22,7 +22,7 @@ export interface KeycloakUserData {
   firstName?: string;
   lastName?: string;
   password: string;
-  /** Tenant-ID wird als User-Attribut gesetzt, damit der JWT-Claim stimmt */
+  /** Tenant ID set as a user attribute so the JWT claim is correct */
   tenantId?: string;
   realmRoles?: string[];
 }
@@ -38,8 +38,8 @@ export interface KeycloakUser {
 }
 
 /**
- * Holt ein Admin-Token vom Master Realm.
- * Verwendet Resource Owner Password Credentials (admin-cli ist confidential-exempt).
+ * Fetches an admin token from the master realm.
+ * Uses Resource Owner Password Credentials (admin-cli is confidential-exempt).
  */
 export async function getKeycloakAdminToken(): Promise<string> {
   const url = `${KEYCLOAK_URL}/realms/${MASTER_REALM}/protocol/openid-connect/token`;
@@ -58,7 +58,7 @@ export async function getKeycloakAdminToken(): Promise<string> {
   if (!response.ok) {
     const body = await response.text();
     throw new Error(
-      `Keycloak Admin Token konnte nicht geholt werden: ${response.status} ${body}`
+      `Failed to get Keycloak admin token: ${response.status} ${body}`
     );
   }
 
@@ -67,13 +67,13 @@ export async function getKeycloakAdminToken(): Promise<string> {
 }
 
 /**
- * Erstellt einen User im angegebenen Realm.
- * Setzt optional tenant_id als User-Attribut.
+ * Creates a user in the specified realm.
+ * Optionally sets tenant_id as a user attribute.
  *
- * Hinweis: Realm Roles koennen nicht direkt beim Erstellen gesetzt werden.
- * Verwende assignRealmRole() nach dem Erstellen um Rollen zuzuweisen.
+ * Note: Realm roles cannot be assigned directly during creation.
+ * Use assignRealmRole() after creation to assign roles.
  *
- * @returns Die Keycloak User-ID (UUID)
+ * @returns The Keycloak user ID (UUID)
  */
 export async function createKeycloakUser(
   token: string,
@@ -98,7 +98,7 @@ export async function createKeycloakUser(
     ],
   };
 
-  // tenant_id als User-Attribut setzen (Keycloak erwartet String-Arrays)
+  // Set tenant_id as a user attribute (Keycloak expects string arrays)
   if (userData.tenantId) {
     body.attributes = {
       tenant_id: [userData.tenantId],
@@ -117,28 +117,30 @@ export async function createKeycloakUser(
   if (!response.ok) {
     const responseBody = await response.text();
     throw new Error(
-      `Keycloak User konnte nicht erstellt werden: ${response.status} ${responseBody}`
+      `Failed to create Keycloak user: ${response.status} ${responseBody}`
     );
   }
 
-  // Keycloak gibt keine Body zurueck, aber den Location Header mit der User-ID
+  // Keycloak returns no body, but provides the Location header with the user ID
   const location = response.headers.get("Location");
   if (!location) {
-    throw new Error("Keycloak hat keinen Location Header zurueckgegeben");
+    throw new Error("Keycloak did not return a Location header");
   }
 
   // Location: .../admin/realms/{realm}/users/{userId}
   const userId = location.split("/").at(-1);
   if (!userId) {
-    throw new Error(`Konnte User-ID aus Location nicht extrahieren: ${location}`);
+    throw new Error(
+      `Failed to extract user ID from Location header: ${location}`
+    );
   }
 
   return userId;
 }
 
 /**
- * Findet einen User anhand des Usernamens.
- * Gibt null zurueck wenn kein User gefunden.
+ * Finds a user by username.
+ * Returns null if no user is found.
  */
 export async function findKeycloakUser(
   token: string,
@@ -153,7 +155,7 @@ export async function findKeycloakUser(
 
   if (!response.ok) {
     throw new Error(
-      `User-Suche fehlgeschlagen: ${response.status} ${await response.text()}`
+      `User search failed: ${response.status} ${await response.text()}`
     );
   }
 
@@ -162,8 +164,8 @@ export async function findKeycloakUser(
 }
 
 /**
- * Weist einem User eine Realm-Rolle zu.
- * Holt zuerst die Rollen-Details, da Keycloak die vollstaendige Rollen-Representation braucht.
+ * Assigns a realm role to a user.
+ * Fetches role details first since Keycloak requires the full role representation.
  */
 export async function assignRealmRole(
   token: string,
@@ -171,7 +173,7 @@ export async function assignRealmRole(
   userId: string,
   roleName: string
 ): Promise<void> {
-  // Rolle per Name abrufen
+  // Fetch role by name
   const roleUrl = `${KEYCLOAK_URL}/admin/realms/${realmName}/roles/${encodeURIComponent(roleName)}`;
   const roleResponse = await fetch(roleUrl, {
     headers: { Authorization: `Bearer ${token}` },
@@ -179,13 +181,13 @@ export async function assignRealmRole(
 
   if (!roleResponse.ok) {
     throw new Error(
-      `Rolle ${roleName} nicht gefunden: ${roleResponse.status}`
+      `Role ${roleName} not found: ${roleResponse.status}`
     );
   }
 
   const role = await roleResponse.json();
 
-  // Rolle dem User zuweisen
+  // Assign the role to the user
   const assignUrl = `${KEYCLOAK_URL}/admin/realms/${realmName}/users/${userId}/role-mappings/realm`;
   const assignResponse = await fetch(assignUrl, {
     method: "POST",
@@ -198,14 +200,97 @@ export async function assignRealmRole(
 
   if (!assignResponse.ok) {
     throw new Error(
-      `Rolle konnte nicht zugewiesen werden: ${assignResponse.status}`
+      `Failed to assign role: ${assignResponse.status}`
     );
   }
 }
 
 /**
- * Loescht einen User aus dem Realm.
- * Ignoriert 404 (User existiert nicht).
+ * Sets a user's password directly via the Keycloak Admin API.
+ * Useful in E2E tests to bypass the invite/UPDATE_PASSWORD flow.
+ */
+export async function setUserPassword(
+  token: string,
+  realm: string,
+  userId: string,
+  password: string
+): Promise<void> {
+  const url = `${KEYCLOAK_URL}/admin/realms/${realm}/users/${userId}/reset-password`;
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ type: "password", value: password, temporary: false }),
+  });
+  if (!response.ok) {
+    throw new Error(
+      `Failed to set password for user ${userId}: ${response.status} ${await response.text()}`
+    );
+  }
+}
+
+/**
+ * Clears all required actions for a user so they can log in without
+ * being forced to change their password or complete other actions.
+ */
+export async function clearRequiredActions(
+  token: string,
+  realm: string,
+  userId: string
+): Promise<void> {
+  const url = `${KEYCLOAK_URL}/admin/realms/${realm}/users/${userId}`;
+  const getResponse = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!getResponse.ok) {
+    throw new Error(
+      `Failed to fetch user ${userId}: ${getResponse.status} ${await getResponse.text()}`
+    );
+  }
+  const user = await getResponse.json();
+  user.requiredActions = [];
+  const putResponse = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(user),
+  });
+  if (!putResponse.ok) {
+    throw new Error(
+      `Failed to clear required actions for user ${userId}: ${putResponse.status} ${await putResponse.text()}`
+    );
+  }
+}
+
+/**
+ * Finds a user by email address.
+ * Returns null if no user is found.
+ */
+export async function findKeycloakUserByEmail(
+  token: string,
+  realmName: string,
+  email: string
+): Promise<KeycloakUser | null> {
+  const url = `${KEYCLOAK_URL}/admin/realms/${realmName}/users?email=${encodeURIComponent(email)}&exact=true`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    throw new Error(
+      `User search by email failed: ${response.status} ${await response.text()}`
+    );
+  }
+  const users: KeycloakUser[] = await response.json();
+  return users.length > 0 ? users[0] : null;
+}
+
+/**
+ * Deletes a user from the realm.
+ * Ignores 404 (user does not exist).
  */
 export async function deleteKeycloakUser(
   token: string,
@@ -221,7 +306,7 @@ export async function deleteKeycloakUser(
 
   if (!response.ok && response.status !== 404) {
     throw new Error(
-      `User konnte nicht geloescht werden: ${response.status} ${await response.text()}`
+      `Failed to delete user: ${response.status} ${await response.text()}`
     );
   }
 }

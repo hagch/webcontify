@@ -38,7 +38,7 @@ export function TenantTable({
 
   if (tenants.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
+      <div data-testid="empty-state" className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
         <p className="text-lg font-medium">No tenants yet</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Create your first tenant to get started.
@@ -54,7 +54,7 @@ export function TenantTable({
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         </div>
       )}
-      <Table>
+      <Table data-testid="tenant-table">
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
@@ -65,7 +65,7 @@ export function TenantTable({
         </TableHeader>
         <TableBody>
           {tenants.map((tenant) => (
-            <TableRow key={tenant.id}>
+            <TableRow key={tenant.id} data-testid="tenant-table-row">
               <TableCell className="font-medium">
                 <Link
                   href={`/tenants/${tenant.id}`}

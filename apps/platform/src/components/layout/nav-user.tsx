@@ -1,7 +1,8 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { ChevronsUpDown, LogOut, Moon, Sun, Monitor } from "lucide-react";
+import { ChevronsUpDown, KeyRound, LogOut, Moon, Sun, Monitor } from "lucide-react";
+import { useGetAccountUrl } from "@/generated/auth";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -27,6 +28,8 @@ export function NavUser() {
   const { user } = useAuth();
   const { setTheme } = useTheme();
   const { isMobile, open } = useSidebar();
+  const { data: accountUrlData } = useGetAccountUrl();
+  const accountUrl = accountUrlData?.status === 200 ? accountUrlData.data.url : undefined;
 
   const initials = (user?.name ?? "U")
     .split(" ")
@@ -42,6 +45,7 @@ export function NavUser() {
           <DropdownMenuTrigger
             render={
               <SidebarMenuButton
+                data-testid="nav-user-menu"
                 size="lg"
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               />
@@ -116,8 +120,17 @@ export function NavUser() {
                   </DropdownMenuItem>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+              {accountUrl && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem data-testid="password-change-link" onClick={() => window.open(accountUrl, "_blank")}>
+                    <KeyRound className="mr-2 size-4" />
+                    Passwort aendern
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut()}>
+              <DropdownMenuItem data-testid="nav-sign-out" onClick={() => signOut()}>
                 <LogOut className="mr-2 size-4" />
                 Sign out
               </DropdownMenuItem>

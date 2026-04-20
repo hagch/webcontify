@@ -14,7 +14,7 @@ export default function TenantsPage() {
   return (
     <>
       <AppHeader breadcrumbs={[{ label: "Tenants" }]} />
-      <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+      <div data-testid="tenants-page" className="flex flex-1 flex-col gap-4 p-4 md:p-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Tenants</h1>

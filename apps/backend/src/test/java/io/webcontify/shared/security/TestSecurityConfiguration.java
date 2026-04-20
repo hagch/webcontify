@@ -102,8 +102,12 @@ public class TestSecurityConfiguration {
                             tenantUser, principal, List.of());
                 } else {
                     TenantInformation platformAdmin = new TenantInformation(null, true);
+                    String userIdHeader = request.getHeader(TEST_USER_ID_HEADER);
+                    Object principal = (userIdHeader != null && !userIdHeader.isBlank())
+                            ? userIdHeader
+                            : "test-platform-admin";
                     auth = new TenantAwareAuthentication(
-                            platformAdmin, "test-platform-admin", List.of());
+                            platformAdmin, principal, List.of());
                 }
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }

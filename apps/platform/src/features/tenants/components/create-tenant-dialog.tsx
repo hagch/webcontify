@@ -104,7 +104,7 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={children as React.ReactElement} />
-      <DialogContent className="sm:max-w-md">
+      <DialogContent data-testid="create-tenant-dialog" className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Tenant erstellen</DialogTitle>
           <DialogDescription>
@@ -123,7 +123,7 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
                     Name <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Acme Corp" {...field} />
+                    <Input data-testid="tenant-name-input" placeholder="Acme Corp" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -190,7 +190,7 @@ export function CreateTenantDialog({ children }: CreateTenantDialogProps) {
               >
                 Abbrechen
               </Button>
-              <Button type="submit" aria-busy={createTenant.isPending}>
+              <Button data-testid="create-tenant-submit" type="submit" aria-busy={createTenant.isPending}>
                 {createTenant.isPending && (
                   <Loader2 className="mr-2 size-4 animate-spin" />
                 )}

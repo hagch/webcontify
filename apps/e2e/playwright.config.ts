@@ -1,15 +1,20 @@
 import { defineConfig, devices } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.resolve(__dirname, ".env.local") });
 
 export default defineConfig({
-  testDir: "./e2e/tests",
+  testDir: "./tests",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-  reporter: "html",
+  reporter: process.env.CI ? "github" : "html",
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://platform.localhost",
+    baseURL: process.env.BASE_URL ?? "http://platform.localhost",
     trace: "on-first-retry",
+    screenshot: "only-on-failure",
   },
   projects: [
     {

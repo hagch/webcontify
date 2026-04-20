@@ -5,9 +5,11 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -177,6 +179,57 @@ public class KeycloakAdminService {
                 .get(request.userId().toString());
         var user = userResource.toRepresentation();
         user.setEnabled(false);
+        userResource.update(user);
+    }
+
+    public List<UserRepresentation> listUsersWithRole(String realmName, String roleName) {
+        return keycloak.realm(realmName)
+                .roles()
+                .get(roleName)
+                .getUserMembers();
+    }
+
+    public void assignRealmRole(String realmName, UUID userId, String roleName) {
+        var roleRepresentation = keycloak.realm(realmName)
+                .roles()
+                .get(roleName)
+                .toRepresentation();
+        keycloak.realm(realmName)
+                .users()
+                .get(userId.toString())
+                .roles()
+                .realmLevel()
+                .add(List.of(roleRepresentation));
+    }
+
+    public UserRepresentation getUserById(String realmName, UUID userId) {
+        return keycloak.realm(realmName)
+                .users()
+                .get(userId.toString())
+                .toRepresentation();
+    }
+
+    public List<RoleRepresentation> getUserRealmRoles(String realmName, UUID userId) {
+        return keycloak.realm(realmName)
+                .users()
+                .get(userId.toString())
+                .roles()
+                .realmLevel()
+                .listEffective();
+    }
+
+    public void addRequiredAction(String realmName, UUID userId, String action) {
+        var userResource = keycloak.realm(realmName)
+                .users()
+                .get(userId.toString());
+        var user = userResource.toRepresentation();
+        var actions = user.getRequiredActions() != null
+                ? new ArrayList<>(user.getRequiredActions())
+                : new ArrayList<String>();
+        if (!actions.contains(action)) {
+            actions.add(action);
+        }
+        user.setRequiredActions(actions);
         userResource.update(user);
     }
 }

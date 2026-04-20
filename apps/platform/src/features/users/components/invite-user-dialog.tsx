@@ -139,7 +139,7 @@ export function InviteUserDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={children as React.ReactElement} />
-      <DialogContent className="sm:max-w-md">
+      <DialogContent data-testid="invite-user-dialog" className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Benutzer einladen</DialogTitle>
           <DialogDescription>
@@ -157,7 +157,7 @@ export function InviteUserDialog({
                     E-Mail <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="max@beispiel.de" {...field} />
+                    <Input data-testid="user-email-input" type="email" placeholder="max@beispiel.de" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -172,7 +172,7 @@ export function InviteUserDialog({
                     Vorname <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Max" {...field} />
+                    <Input data-testid="user-firstname-input" placeholder="Max" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -187,7 +187,7 @@ export function InviteUserDialog({
                     Nachname <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Mustermann" {...field} />
+                    <Input data-testid="user-lastname-input" placeholder="Mustermann" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -206,7 +206,7 @@ export function InviteUserDialog({
                     }
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger data-testid="copy-roles-select">
                         <SelectValue placeholder="Benutzer auswaehlen (optional)" />
                       </SelectTrigger>
                     </FormControl>
@@ -234,13 +234,14 @@ export function InviteUserDialog({
             />
             <DialogFooter>
               <Button
+                data-testid="invite-user-cancel"
                 type="button"
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
               >
                 Abbrechen
               </Button>
-              <Button type="submit" aria-busy={inviteUser.isPending}>
+              <Button data-testid="invite-user-submit" type="submit" aria-busy={inviteUser.isPending}>
                 {inviteUser.isPending && (
                   <Loader2 className="mr-2 size-4 animate-spin" />
                 )}

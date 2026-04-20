@@ -85,7 +85,7 @@ export function RoleAssigneesTable({
 
   return (
     <>
-      <Table>
+      <Table data-testid="role-assignees-table">
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>

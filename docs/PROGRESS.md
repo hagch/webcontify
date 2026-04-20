@@ -194,18 +194,48 @@
 | 3d.14 | Done | Frontend Tests: Role Table (5) + Create Dialog (4) = 78 Frontend Tests gesamt |
 | 3d.15 | Done | Build Verification: 252 Backend + 78 Frontend Tests gruen, Frontend Build OK |
 
-## Phase 3e–3g: Identity & Access — noch offen
+## Phase 3e — Platform Admin Management (2026-03-19)
 
 | Task | Status | Beschreibung |
 |---|---|---|
-| 3e | Offen | Platform Admin User Management |
-| 3f | Offen | E2E Tests Auth Flow + Security Review |
+| 3e.1 | Done | OpenFGA Cleanup: type platform entfernt (ungenutzt) |
+| 3e.2 | Done | OpenAPI Specs: platform-admin-api.yaml + auth-api.yaml + Code Generation |
+| 3e.3 | Done | KeycloakAdminService: listUsersWithRole, assignRealmRole, getUserById, addRequiredAction |
+| 3e.4 | Done | SecurityConfiguration: /api/v1/auth/** als authenticated |
+| 3e.5 | Done | PlatformAdminService + AuthService (TDD, 13 Unit Tests) |
+| 3e.6 | Done | PlatformAdminController + AuthController + Integration Tests (7 Tests) |
+| 3e.7 | Done | Full Backend Test Suite gruen + TenantContextTest SecurityContext Fix |
+| 3e.8 | Done | Frontend: Orval Config + Regeneration + Zod Schema |
+| 3e.9 | Done | Frontend: Admin-Liste (Page, Table, Invite Dialog, Actions Menu) |
+| 3e.10 | Done | Frontend: "Passwort aendern" Link im NavUser Dropdown (alle User) |
+| 3e.11 | Done | Frontend Tests: Admin Table (5 Tests) = 83 Frontend Tests gesamt |
+| 3e.12 | Done | Build Verification: Backend + 83 Frontend Tests gruen, Frontend Build OK |
+
+## Phase 3f — E2E Tests + Security Review (2026-03-20)
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 3f.1 | Done | E2E Projekt Scaffold (apps/e2e/, Playwright, Nx Config) |
+| 3f.2 | Done | Helpers migriert + refactored (English, ApiClient mit Cleanup-Stack) |
+| 3f.3 | Done | data-testid Attribute auf allen UI-Komponenten |
+| 3f.4 | Done | Auth Flow Tests (Platform Login, Tenant Login, Token Expiry) |
+| 3f.5 | Done | Tenant Tests (CRUD, Config) |
+| 3f.6 | Done | User Tests (Invite, Invite mit Rollen-Klon) |
+| 3f.7 | Done | Role Tests (CRUD, Assignment, Last-Admin-Guard) |
+| 3f.8 | Done | Platform Admin Tests (Invite, Deactivate, Delete, Last-Admin) |
+| 3f.9 | Done | Security Tests (Cross-Tenant Isolation, Permissions, Unauthorized, Input Validation) |
+| 3f.10 | Done | Alte E2E Dateien migriert + geloescht, Frontend Build OK |
+
+## Phase 3g: Identity & Access — noch offen
+
+| Task | Status | Beschreibung |
+|---|---|---|
 | 3g | Offen | Tenant Self-Service User Management |
 
 ## Naechste Schritte
 
-- Phase 3e: Platform Admin User Management
-- Voraussetzung: Phase 3d abgeschlossen
+- Phase 3g: Tenant Self-Service User Management
+- Voraussetzung: Phase 3f abgeschlossen
 
 ## Lokale Entwicklung
 

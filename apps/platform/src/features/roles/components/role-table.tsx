@@ -41,7 +41,7 @@ interface RoleTableProps {
 
 function RoleTableSkeleton() {
   return (
-    <Table>
+    <Table data-testid="table-skeleton">
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
@@ -87,7 +87,7 @@ export function RoleTable({ roles, isLoading, isRefetching }: RoleTableProps) {
 
   if (roles.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
+      <div data-testid="empty-state" className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
         <p className="text-lg font-medium">Noch keine Rollen erstellt</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Erstelle eine Rolle, um Benutzerberechtigungen zu verwalten.
@@ -111,7 +111,7 @@ export function RoleTable({ roles, isLoading, isRefetching }: RoleTableProps) {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         )}
-        <Table>
+        <Table data-testid="role-table">
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -123,7 +123,7 @@ export function RoleTable({ roles, isLoading, isRefetching }: RoleTableProps) {
           </TableHeader>
           <TableBody>
             {roles.map((role) => (
-              <TableRow key={role.id}>
+              <TableRow key={role.id} data-testid="role-table-row">
                 <TableCell className="font-medium">
                   <Link
                     href={`/roles/${role.id}`}

@@ -94,7 +94,7 @@ export function CreateRoleDialog({ children }: CreateRoleDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={children as React.ReactElement} />
-      <DialogContent className="sm:max-w-md">
+      <DialogContent data-testid="create-role-dialog" className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Rolle erstellen</DialogTitle>
           <DialogDescription>
@@ -112,7 +112,7 @@ export function CreateRoleDialog({ children }: CreateRoleDialogProps) {
                     Name <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="z.B. Redakteur" {...field} />
+                    <Input data-testid="role-name-input" placeholder="z.B. Redakteur" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -126,6 +126,7 @@ export function CreateRoleDialog({ children }: CreateRoleDialogProps) {
                   <FormLabel>Beschreibung</FormLabel>
                   <FormControl>
                     <Textarea
+                      data-testid="role-description-input"
                       placeholder="Optionale Beschreibung der Rolle"
                       rows={3}
                       {...field}
@@ -137,13 +138,14 @@ export function CreateRoleDialog({ children }: CreateRoleDialogProps) {
             />
             <DialogFooter>
               <Button
+                data-testid="create-role-cancel"
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
               >
                 Abbrechen
               </Button>
-              <Button type="submit" aria-busy={createRole.isPending}>
+              <Button data-testid="create-role-submit" type="submit" aria-busy={createRole.isPending}>
                 {createRole.isPending && (
                   <Loader2 className="mr-2 size-4 animate-spin" />
                 )}

@@ -68,7 +68,7 @@ export default function TenantDetailPage({
             </CardContent>
           </Card>
         ) : tenant ? (
-          <div className="min-h-[300px]">
+          <div data-testid="tenant-detail" className="min-h-[300px]">
             {isProvisioning(tenant) ? (
               <ProvisioningStatus
                 steps={tenant.provisioningStatus?.steps ?? null}

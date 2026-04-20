@@ -56,6 +56,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("PLATFORM_ADMIN")
+                        .requestMatchers("/api/v1/auth/**").authenticated()
                         .requestMatchers("/api/v1/tenant/**").authenticated()
                         .anyRequest().denyAll()
                 )
