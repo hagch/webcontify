@@ -1,0 +1,22 @@
+http:
+  routers:
+    platform:
+      rule: "Host(`platform.localhost`)"
+      service: platform
+      entryPoints:
+        - web
+    api:
+      rule: "Host(`api.localhost`)"
+      service: api
+      entryPoints:
+        - web
+
+  services:
+    platform:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:3000"
+    api:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:8080"

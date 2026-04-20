@@ -1,0 +1,13 @@
+spring:
+  mail:
+    host: localhost
+    port: 1025
+
+webcontify:
+  encryption:
+    key: bQdR9ppwkZBVvkN1B4Z/GTJv8Yg45qL7ZSVYLgFHiZA=
+  s3:
+    endpoint: http://localhost:9000
+    region: us-east-1
+    access-key: minioadmin
+    secret-key: minioadmin

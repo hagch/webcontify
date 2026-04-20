@@ -2,5 +2,91 @@
   "home": {
     "title": "Webcontify Platform",
     "description": "Build applications with ease"
+  },
+  "nav": {
+    "tenants": "Tenants"
+  },
+  "header": {
+    "platform": "Platform Administration"
+  },
+  "tenants": {
+    "title": "Tenants",
+    "create": "Create Tenant",
+    "name": "Name",
+    "slug": "Slug",
+    "status": "Status",
+    "createdAt": "Created",
+    "actions": "Actions",
+    "noTenants": "No tenants found",
+    "createDialog": {
+      "title": "Create Tenant",
+      "description": "Create a new tenant for the platform.",
+      "nameLabel": "Name",
+      "namePlaceholder": "My Tenant",
+      "slugLabel": "Slug",
+      "slugPlaceholder": "my-tenant",
+      "slugHint": "Lowercase letters, numbers and hyphens only",
+      "cancel": "Cancel",
+      "submit": "Create"
+    },
+    "detail": {
+      "title": "Tenant Details",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure you want to delete this tenant?",
+      "statusLabel": "Status",
+      "activate": "Activate",
+      "suspend": "Suspend",
+      "deactivate": "Deactivate",
+      "config": "Configuration"
+    },
+    "statusValues": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "SUSPENDED": "Suspended"
+    }
+  },
+  "config": {
+    "title": "Configuration",
+    "branding": {
+      "title": "Branding",
+      "primaryColor": "Primary Color",
+      "primaryColorHint": "Hex color code (e.g. #3b82f6)",
+      "secondaryColor": "Secondary Color",
+      "secondaryColorHint": "Hex color code (e.g. #64748b)",
+      "save": "Save Branding",
+      "saved": "Branding saved",
+      "error": "Failed to save branding"
+    },
+    "email": {
+      "title": "Email",
+      "smtpHost": "SMTP Host",
+      "smtpPort": "SMTP Port",
+      "smtpUser": "SMTP User",
+      "smtpPassword": "SMTP Password",
+      "smtpPasswordHint": "Leave empty to keep current password",
+      "fromAddress": "From Address",
+      "fromName": "From Name",
+      "save": "Save Email",
+      "saved": "Email configuration saved",
+      "error": "Failed to save email configuration",
+      "testTitle": "Test Email",
+      "testDescription": "Send a test email to verify your configuration.",
+      "recipientEmail": "Recipient Email",
+      "sendTest": "Send Test Email",
+      "testSent": "Test email sent",
+      "testError": "Failed to send test email"
+    },
+    "domain": {
+      "title": "Domain",
+      "customDomain": "Custom Domain",
+      "customDomainHint": "e.g. app.example.com",
+      "sslStatus": "SSL Status",
+      "save": "Save Domain",
+      "saved": "Domain configuration saved",
+      "error": "Failed to save domain configuration"
+    }
   }
 }

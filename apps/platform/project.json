@@ -29,6 +29,13 @@
         "command": "pnpm generate",
         "cwd": "apps/platform"
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm vitest run",
+        "cwd": "apps/platform"
+      }
     }
   }
 }

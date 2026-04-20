@@ -1,12 +1,12 @@
 import { defineConfig } from "orval";
 
 export default defineConfig({
-  health: {
+  tenant: {
     input: {
-      target: "../../openapi/health-api.yaml",
+      target: "../../openapi/tenant-api.yaml",
     },
     output: {
-      target: "./src/generated/health.ts",
+      target: "./src/generated/tenant.ts",
       client: "react-query",
       mode: "single",
       override: {

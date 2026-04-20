@@ -6,7 +6,7 @@ import org.springframework.modulith.Modulithic;
 
 @Modulithic(
     systemName = "Webcontify",
-    sharedModules = "shared"
+    sharedModules = {"shared", "generated"}
 )
 @SpringBootApplication
 public class WebcontifyApplication {

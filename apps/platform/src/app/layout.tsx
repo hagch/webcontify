@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { Toaster } from "sonner";
+import { QueryClientProvider } from "@/providers/query-client-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -33,7 +35,8 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <QueryClientProvider>{children}</QueryClientProvider>
+          <Toaster richColors />
         </NextIntlClientProvider>
       </body>
     </html>

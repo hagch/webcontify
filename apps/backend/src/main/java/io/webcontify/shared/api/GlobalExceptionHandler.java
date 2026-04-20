@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -32,6 +33,17 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleValidationException(ValidationException ex) {
         ProblemDetail detail = createProblemDetail(ex.getStatus(), ex.getCode());
         detail.setProperty("errors", ex.getFieldErrors());
+        return detail;
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        ProblemDetail detail = createProblemDetail(HttpStatus.BAD_REQUEST, "validation.error");
+        detail.setProperty(
+                "errors",
+                ex.getBindingResult().getFieldErrors().stream()
+                        .map(e -> new FieldError(e.getField(), e.getDefaultMessage()))
+                        .toList());
         return detail;
     }
 

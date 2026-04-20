@@ -2,5 +2,91 @@
   "home": {
     "title": "Webcontify Platform",
     "description": "Applikationen einfach erstellen"
+  },
+  "nav": {
+    "tenants": "Mandanten"
+  },
+  "header": {
+    "platform": "Plattform-Verwaltung"
+  },
+  "tenants": {
+    "title": "Mandanten",
+    "create": "Mandant erstellen",
+    "name": "Name",
+    "slug": "Slug",
+    "status": "Status",
+    "createdAt": "Erstellt",
+    "actions": "Aktionen",
+    "noTenants": "Keine Mandanten gefunden",
+    "createDialog": {
+      "title": "Mandant erstellen",
+      "description": "Einen neuen Mandanten für die Plattform erstellen.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Mein Mandant",
+      "slugLabel": "Slug",
+      "slugPlaceholder": "mein-mandant",
+      "slugHint": "Nur Kleinbuchstaben, Zahlen und Bindestriche",
+      "cancel": "Abbrechen",
+      "submit": "Erstellen"
+    },
+    "detail": {
+      "title": "Mandanten-Details",
+      "edit": "Bearbeiten",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "delete": "Löschen",
+      "deleteConfirm": "Möchten Sie diesen Mandanten wirklich löschen?",
+      "statusLabel": "Status",
+      "activate": "Aktivieren",
+      "suspend": "Sperren",
+      "deactivate": "Deaktivieren",
+      "config": "Konfiguration"
+    },
+    "statusValues": {
+      "ACTIVE": "Aktiv",
+      "INACTIVE": "Inaktiv",
+      "SUSPENDED": "Gesperrt"
+    }
+  },
+  "config": {
+    "title": "Konfiguration",
+    "branding": {
+      "title": "Branding",
+      "primaryColor": "Primaerfarbe",
+      "primaryColorHint": "Hex-Farbcode (z.B. #3b82f6)",
+      "secondaryColor": "Sekundaerfarbe",
+      "secondaryColorHint": "Hex-Farbcode (z.B. #64748b)",
+      "save": "Branding speichern",
+      "saved": "Branding gespeichert",
+      "error": "Branding konnte nicht gespeichert werden"
+    },
+    "email": {
+      "title": "E-Mail",
+      "smtpHost": "SMTP Host",
+      "smtpPort": "SMTP Port",
+      "smtpUser": "SMTP Benutzer",
+      "smtpPassword": "SMTP Passwort",
+      "smtpPasswordHint": "Leer lassen um aktuelles Passwort beizubehalten",
+      "fromAddress": "Absender-Adresse",
+      "fromName": "Absender-Name",
+      "save": "E-Mail speichern",
+      "saved": "E-Mail-Konfiguration gespeichert",
+      "error": "E-Mail-Konfiguration konnte nicht gespeichert werden",
+      "testTitle": "Test-E-Mail",
+      "testDescription": "Senden Sie eine Test-E-Mail um die Konfiguration zu pruefen.",
+      "recipientEmail": "Empfaenger-E-Mail",
+      "sendTest": "Test-E-Mail senden",
+      "testSent": "Test-E-Mail gesendet",
+      "testError": "Test-E-Mail konnte nicht gesendet werden"
+    },
+    "domain": {
+      "title": "Domain",
+      "customDomain": "Eigene Domain",
+      "customDomainHint": "z.B. app.example.com",
+      "sslStatus": "SSL-Status",
+      "save": "Domain speichern",
+      "saved": "Domain-Konfiguration gespeichert",
+      "error": "Domain-Konfiguration konnte nicht gespeichert werden"
+    }
   }
 }

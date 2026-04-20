@@ -1,0 +1,669 @@
+openapi: 3.1.0
+info:
+  title: Webcontify Tenant API
+  version: 1.0.0
+  description: Platform Admin endpoints for tenant management
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: PlatformAdmin
+    description: Platform Admin Tenant Management
+  - name: TenantConfig
+    description: Tenant Configuration Management
+  - name: TenantFiles
+    description: Tenant File Management
+
+paths:
+  /api/v1/admin/tenants:
+    post:
+      operationId: createTenant
+      summary: Create a new tenant
+      tags:
+        - PlatformAdmin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTenantRequest'
+      responses:
+        '201':
+          description: Tenant created
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '409':
+          description: Slug already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    get:
+      operationId: listTenants
+      summary: List all tenants
+      tags:
+        - PlatformAdmin
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/TenantStatus'
+      responses:
+        '200':
+          description: Tenant list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantListResponse'
+
+  /api/v1/admin/tenants/{tenantId}:
+    get:
+      operationId: getTenant
+      summary: Get tenant by ID
+      tags:
+        - PlatformAdmin
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tenant details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    put:
+      operationId: updateTenant
+      summary: Update tenant
+      tags:
+        - PlatformAdmin
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTenantRequest'
+      responses:
+        '200':
+          description: Tenant updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Slug already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    delete:
+      operationId: deleteTenant
+      summary: Soft delete tenant
+      tags:
+        - PlatformAdmin
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Tenant deleted
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/admin/tenants/{tenantId}/status:
+    put:
+      operationId: updateTenantStatus
+      summary: Update tenant status
+      tags:
+        - PlatformAdmin
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTenantStatusRequest'
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/admin/tenants/{tenantId}/config:
+    get:
+      operationId: getAdminTenantConfig
+      summary: Get tenant configuration
+      tags:
+        - TenantConfig
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tenant configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantConfigResponse'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/admin/tenants/{tenantId}/config/branding:
+    put:
+      operationId: updateAdminBrandingConfig
+      summary: Update branding configuration
+      tags:
+        - TenantConfig
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBrandingConfigRequest'
+      responses:
+        '200':
+          description: Updated tenant configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantConfigResponse'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/admin/tenants/{tenantId}/config/email:
+    put:
+      operationId: updateAdminEmailConfig
+      summary: Update email configuration
+      tags:
+        - TenantConfig
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEmailConfigRequest'
+      responses:
+        '200':
+          description: Updated tenant configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantConfigResponse'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/admin/tenants/{tenantId}/config/domain:
+    put:
+      operationId: updateAdminDomainConfig
+      summary: Update domain configuration
+      tags:
+        - TenantConfig
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDomainConfigRequest'
+      responses:
+        '200':
+          description: Updated tenant configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantConfigResponse'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/admin/tenants/{tenantId}/config/email/test:
+    post:
+      operationId: testAdminEmailConfig
+      summary: Send test email with current configuration
+      tags:
+        - TenantConfig
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestEmailRequest'
+      responses:
+        '204':
+          description: Test email sent successfully
+        '400':
+          description: Email configuration invalid
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/tenant/files:
+    post:
+      operationId: uploadFile
+      summary: Upload a file
+      tags:
+        - TenantFiles
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                public:
+                  type: boolean
+                  default: false
+                  description: If true, uploads as public asset (config/), else private (files/)
+      responses:
+        '201':
+          description: File uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadResponse'
+        '400':
+          description: Invalid file
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/tenant/files/{storageKey}:
+    get:
+      operationId: getFile
+      summary: Get file (returns pre-signed URL for private, direct URL for public)
+      tags:
+        - TenantFiles
+      parameters:
+        - name: storageKey
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUrlResponse'
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    delete:
+      operationId: deleteFile
+      summary: Delete a file
+      tags:
+        - TenantFiles
+      parameters:
+        - name: storageKey
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: File deleted
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    TenantStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+        - SUSPENDED
+
+    CreateTenantRequest:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[a-z0-9]([a-z0-9-]*[a-z0-9])?$'
+
+    UpdateTenantRequest:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[a-z0-9]([a-z0-9-]*[a-z0-9])?$'
+
+    UpdateTenantStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/TenantStatus'
+
+    TenantResponse:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          $ref: '#/components/schemas/TenantStatus'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PageInfo:
+      type: object
+      required:
+        - page
+        - size
+        - totalElements
+        - totalPages
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    TenantListResponse:
+      type: object
+      required:
+        - items
+        - pageInfo
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantResponse'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+
+    TenantConfigResponse:
+      type: object
+      properties:
+        branding:
+          $ref: '#/components/schemas/BrandingConfigResponse'
+        email:
+          $ref: '#/components/schemas/EmailConfigResponse'
+        domain:
+          $ref: '#/components/schemas/DomainConfigResponse'
+
+    BrandingConfigResponse:
+      type: object
+      properties:
+        logoStorageKey:
+          type: string
+        faviconStorageKey:
+          type: string
+        primaryColor:
+          type: string
+        secondaryColor:
+          type: string
+
+    EmailConfigResponse:
+      type: object
+      properties:
+        smtpHost:
+          type: string
+        smtpPort:
+          type: integer
+        smtpUser:
+          type: string
+        fromAddress:
+          type: string
+        fromName:
+          type: string
+
+    DomainConfigResponse:
+      type: object
+      properties:
+        customDomain:
+          type: string
+        sslStatus:
+          type: string
+          enum:
+            - PENDING
+            - ACTIVE
+            - FAILED
+
+    UpdateBrandingConfigRequest:
+      type: object
+      properties:
+        primaryColor:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+        secondaryColor:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+
+    UpdateEmailConfigRequest:
+      type: object
+      required:
+        - smtpHost
+        - smtpPort
+        - fromAddress
+        - fromName
+      properties:
+        smtpHost:
+          type: string
+          minLength: 1
+        smtpPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        smtpUser:
+          type: string
+        smtpPassword:
+          type: string
+        fromAddress:
+          type: string
+          format: email
+        fromName:
+          type: string
+          minLength: 1
+
+    UpdateDomainConfigRequest:
+      type: object
+      properties:
+        customDomain:
+          type: string
+
+    TestEmailRequest:
+      type: object
+      required:
+        - recipientEmail
+      properties:
+        recipientEmail:
+          type: string
+          format: email
+
+    FileUploadResponse:
+      type: object
+      required:
+        - storageKey
+      properties:
+        storageKey:
+          type: string
+          description: The storage key to reference this file
+
+    FileUrlResponse:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          description: URL to access the file (pre-signed for private, direct for public)

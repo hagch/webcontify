@@ -1,3 +1,5 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 plugins {
     java
     id("org.springframework.boot") version "4.0.3"
@@ -21,11 +23,15 @@ repositories {
 val springModulithVersion = "2.0.3"
 val mapstructVersion = "1.6.3"
 val uuidGeneratorVersion = "5.2.0"
+val testcontainersVersion = "1.20.4"
+val awsSdkVersion = "2.31.1"
 
 dependencyManagement {
     imports {
         mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
         mavenBom("org.springframework.modulith:spring-modulith-bom:$springModulithVersion")
+        mavenBom("org.testcontainers:testcontainers-bom:$testcontainersVersion")
+        mavenBom("software.amazon.awssdk:bom:$awsSdkVersion")
     }
 }
 
@@ -33,8 +39,11 @@ dependencies {
     // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
+    implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     // Spring Modulith
@@ -43,9 +52,7 @@ dependencies {
 
     // Database
     runtimeOnly("org.postgresql:postgresql")
-    implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
-    implementation("org.jooq:jooq")
 
     // MapStruct
     implementation("org.mapstruct:mapstruct:$mapstructVersion")
@@ -53,6 +60,9 @@ dependencies {
 
     // UUID v7
     implementation("com.fasterxml.uuid:java-uuid-generator:$uuidGeneratorVersion")
+
+    // AWS S3
+    implementation("software.amazon.awssdk:s3")
 
     // Security (SecurityContext only, no auto-config — Keycloak in Phase 2)
     implementation("org.springframework.security:spring-security-core")
@@ -63,36 +73,45 @@ dependencies {
     // OpenAPI generated code dependencies
     implementation("jakarta.validation:jakarta.validation-api")
     implementation("jakarta.annotation:jakarta.annotation-api")
-    implementation("io.swagger.core.v3:swagger-annotations:2.2.43")
 
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.modulith:spring-modulith-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:junit-jupiter")
 }
 
-// OpenAPI Code Generation
+// OpenAPI Code Generation — Multi-Spec
 val openApiSpecDir = "${rootProject.projectDir}/../../openapi"
 val openApiOutputDir = "${layout.buildDirectory.get()}/generated/openapi"
 
+val openApiConfigOptions = mapOf(
+    "interfaceOnly" to "true",
+    "useSpringBoot3" to "true",
+    "useTags" to "true",
+    "skipDefaultInterface" to "false",
+    "openApiNullable" to "false",
+    "documentationProvider" to "none",
+    "generateBuilders" to "false",
+    "additionalModelTypeAnnotations" to ""
+)
+
+val openApiTypeMappings = mapOf(
+    "DateTime" to "java.time.OffsetDateTime"
+)
+
 openApiGenerate {
     generatorName.set("spring")
-    inputSpec.set("$openApiSpecDir/health-api.yaml")
+    inputSpec.set("$openApiSpecDir/tenant-api.yaml")
     outputDir.set(openApiOutputDir)
     apiPackage.set("io.webcontify.generated.api")
     modelPackage.set("io.webcontify.generated.model")
-    configOptions.set(mapOf(
-        "interfaceOnly" to "true",
-        "useSpringBoot3" to "true",
-        "useTags" to "true",
-        "skipDefaultInterface" to "false",
-        "openApiNullable" to "false",
-        "documentationProvider" to "none",
-        "generateBuilders" to "false",
-        "additionalModelTypeAnnotations" to ""
-    ))
-    typeMappings.set(mapOf(
-        "DateTime" to "java.time.OffsetDateTime"
-    ))
+    configOptions.set(openApiConfigOptions)
+    typeMappings.set(openApiTypeMappings)
 }
 
 sourceSets {

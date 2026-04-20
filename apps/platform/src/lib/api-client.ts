@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://api.localhost/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://api.localhost";
 
 export const customInstance = async <T>(
   url: string,
@@ -13,8 +13,16 @@ export const customInstance = async <T>(
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    const errorData = await response.json().catch(() => null);
+    throw {
+      data: errorData,
+      status: response.status,
+      headers: response.headers,
+    };
   }
 
-  return response.json();
+  const data =
+    response.status === 204 ? undefined : await response.json();
+
+  return { data, status: response.status, headers: response.headers } as T;
 };

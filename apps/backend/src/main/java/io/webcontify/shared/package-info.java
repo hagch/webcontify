@@ -1,4 +1,5 @@
 @org.springframework.modulith.ApplicationModule(
-    allowedDependencies = {}
+    allowedDependencies = {},
+    type = org.springframework.modulith.ApplicationModule.Type.OPEN
 )
 package io.webcontify.shared;

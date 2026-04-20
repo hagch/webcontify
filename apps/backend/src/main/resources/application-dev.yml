@@ -1,0 +1,30 @@
+spring:
+  flyway:
+    user: webcontify
+    password: webcontify
+    url: jdbc:postgresql://localhost:5432/webcontify
+  datasource:
+    url: jdbc:postgresql://localhost:5432/webcontify
+    username: webcontify
+    password: webcontify
+
+  mail:
+    host: localhost
+    port: 1025
+
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    io.webcontify: DEBUG
+    org.springframework.modulith: DEBUG
+
+webcontify:
+  encryption:
+    key: bQdR9ppwkZBVvkN1B4Z/GTJv8Yg45qL7ZSVYLgFHiZA=
+  s3:
+    endpoint: http://localhost:9000
+    region: us-east-1
+    access-key: minioadmin
+    secret-key: minioadmin
