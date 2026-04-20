@@ -2,6 +2,12 @@ spring:
   application:
     name: webcontify-backend
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://auth.localhost/realms/webcontify-platform}
+
   jpa:
     open-in-view: false
     hibernate:

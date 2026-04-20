@@ -12,7 +12,9 @@ tags:
   - name: PlatformAdmin
     description: Platform Admin Tenant Management
   - name: TenantConfig
-    description: Tenant Configuration Management
+    description: Tenant Configuration Management (Admin)
+  - name: TenantSelfService
+    description: Tenant Self-Service Configuration
   - name: TenantFiles
     description: Tenant File Management
 
@@ -361,6 +363,42 @@ paths:
             application/json:
               schema:
                 $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/tenant/config:
+    get:
+      operationId: getTenantSelfConfig
+      summary: Get own tenant configuration
+      description: Returns the configuration for the authenticated tenant. TenantId is resolved from the JWT.
+      tags:
+        - TenantSelfService
+      responses:
+        '200':
+          description: Tenant configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantConfigResponse'
+
+  /api/v1/tenant/config/branding:
+    put:
+      operationId: updateTenantSelfBranding
+      summary: Update own branding configuration
+      description: Updates branding for the authenticated tenant. TenantId is resolved from the JWT.
+      tags:
+        - TenantSelfService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBrandingConfigRequest'
+      responses:
+        '200':
+          description: Updated tenant configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantConfigResponse'
 
   /api/v1/tenant/files:
     post:

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew *)",
+      "Bash(JAVA_HOME=* ./gradlew *)",
+      "Bash(cd * && JAVA_HOME=* ./gradlew *)",
+      "Bash(cd * && ./gradlew *)"
+    ]
+  },
+  "enabledPlugins": {
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true
+  }
+}

@@ -11,7 +11,7 @@ export default defineConfig({
       mode: "single",
       override: {
         mutator: {
-          path: "./src/lib/api-client.ts",
+          path: "./src/lib/orval-mutator.ts",
           name: "customInstance",
         },
       },

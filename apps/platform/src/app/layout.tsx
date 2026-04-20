@@ -4,15 +4,18 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "sonner";
 import { QueryClientProvider } from "@/providers/query-client-provider";
+import { SessionProvider } from "@/providers/session-provider";
+import { AuthTokenSync } from "@/providers/auth-token-sync";
+import { ThemeProvider } from "@/providers/theme-provider";
 import "./globals.css";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -30,14 +33,29 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-dvh antialiased`}
       >
-        <NextIntlClientProvider messages={messages}>
-          <QueryClientProvider>{children}</QueryClientProvider>
-          <Toaster richColors />
-        </NextIntlClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NextIntlClientProvider messages={messages}>
+            <SessionProvider>
+              <AuthTokenSync />
+              <QueryClientProvider>
+                <a href="#main-content" className="skip-to-content">
+                  Skip to content
+                </a>
+                {children}
+              </QueryClientProvider>
+            </SessionProvider>
+            <Toaster richColors />
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

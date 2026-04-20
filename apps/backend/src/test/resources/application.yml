@@ -4,6 +4,8 @@ spring:
     port: 1025
 
 webcontify:
+  security:
+    enabled: false
   encryption:
     key: bQdR9ppwkZBVvkN1B4Z/GTJv8Yg45qL7ZSVYLgFHiZA=
   s3:

@@ -1,40 +1,40 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Button } from "@webcontify/ui";
-import { useTenantListFacade } from "@/facades/use-tenants-facade";
-import { TenantTable } from "./_components/tenant-table";
-import { CreateTenantDialog } from "./_components/create-tenant-dialog";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AppHeader } from "@/components/layout/app-header";
+import { TenantTable } from "@/features/tenants/components/tenant-table";
+import { CreateTenantDialog } from "@/features/tenants/components/create-tenant-dialog";
+import { useListTenants } from "@/generated/tenant";
 
 export default function TenantsPage() {
-  const t = useTranslations("tenants");
-  const [showCreate, setShowCreate] = useState(false);
-  const { tenants, pageInfo, isLoading, createTenant, isCreating } =
-    useTenantListFacade();
+  const { data, isLoading, isRefetching } = useListTenants();
+  const tenants = data?.data?.items ?? [];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">
-          {t("title")}
-        </h1>
-        <Button onClick={() => setShowCreate(true)}>
-          {t("create")}
-        </Button>
+    <>
+      <AppHeader breadcrumbs={[{ label: "Tenants" }]} />
+      <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Tenants</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage all tenants on the platform.
+            </p>
+          </div>
+          <CreateTenantDialog>
+            <Button>
+              <Plus className="mr-2 size-4" />
+              Create Tenant
+            </Button>
+          </CreateTenantDialog>
+        </div>
+        <TenantTable
+          tenants={tenants}
+          isLoading={isLoading}
+          isRefetching={isRefetching}
+        />
       </div>
-
-      <TenantTable tenants={tenants} isLoading={isLoading} pageInfo={pageInfo} />
-
-      <CreateTenantDialog
-        open={showCreate}
-        onOpenChange={setShowCreate}
-        onSubmit={async (data) => {
-          await createTenant(data);
-          setShowCreate(false);
-        }}
-        isSubmitting={isCreating}
-      />
-    </div>
+    </>
   );
 }

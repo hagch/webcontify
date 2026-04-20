@@ -4,10 +4,12 @@
     "description": "Applikationen einfach erstellen"
   },
   "nav": {
-    "tenants": "Mandanten"
+    "tenants": "Mandanten",
+    "settings": "Einstellungen"
   },
   "header": {
-    "platform": "Plattform-Verwaltung"
+    "platform": "Plattform-Verwaltung",
+    "logout": "Abmelden"
   },
   "tenants": {
     "title": "Mandanten",
@@ -46,6 +48,12 @@
       "ACTIVE": "Aktiv",
       "INACTIVE": "Inaktiv",
       "SUSPENDED": "Gesperrt"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "branding": {
+      "title": "Branding"
     }
   },
   "config": {

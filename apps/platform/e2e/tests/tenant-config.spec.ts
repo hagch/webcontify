@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { deleteTenant } from "../helpers/api";
 import { createTenantViaUI } from "../helpers/ui";
+import { loginAsAdmin } from "../helpers/auth";
 
 let tenantId: string;
 
@@ -12,6 +13,9 @@ test.describe.serial("Tenant Config", () => {
   });
 
   test("create tenant via UI", async ({ page }) => {
+    // Login als Platform Admin — /tenants ist durch Middleware geschuetzt
+    await loginAsAdmin(page);
+
     const slug = `e2e-cfg-${Date.now()}`;
     tenantId = await createTenantViaUI(page, `Config Test ${slug}`, slug);
     expect(tenantId).toMatch(
@@ -21,6 +25,8 @@ test.describe.serial("Tenant Config", () => {
 
   test.describe("Tenant Config Page", () => {
     test.beforeEach(async ({ page }) => {
+      // Login erforderlich da /tenants durch Middleware geschuetzt ist
+      await loginAsAdmin(page);
       await page.goto(`/tenants/${tenantId}/config`);
       await page.waitForLoadState("networkidle");
     });
@@ -159,6 +165,8 @@ test.describe.serial("Tenant Config", () => {
 
   test.describe("Tenant Detail -> Config Navigation", () => {
     test("config link navigates to config page", async ({ page }) => {
+      // Login erforderlich da /tenants durch Middleware geschuetzt ist
+      await loginAsAdmin(page);
       await page.goto(`/tenants/${tenantId}`);
       await page.waitForLoadState("networkidle");
 

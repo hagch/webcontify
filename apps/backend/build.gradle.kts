@@ -64,8 +64,8 @@ dependencies {
     // AWS S3
     implementation("software.amazon.awssdk:s3")
 
-    // Security (SecurityContext only, no auto-config — Keycloak in Phase 2)
-    implementation("org.springframework.security:spring-security-core")
+    // Security — OAuth2 Resource Server with JWT (Keycloak)
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
     // Structured Logging
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")

@@ -4,10 +4,12 @@
     "description": "Build applications with ease"
   },
   "nav": {
-    "tenants": "Tenants"
+    "tenants": "Tenants",
+    "settings": "Settings"
   },
   "header": {
-    "platform": "Platform Administration"
+    "platform": "Platform Administration",
+    "logout": "Sign out"
   },
   "tenants": {
     "title": "Tenants",
@@ -46,6 +48,12 @@
       "ACTIVE": "Active",
       "INACTIVE": "Inactive",
       "SUSPENDED": "Suspended"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "branding": {
+      "title": "Branding"
     }
   },
   "config": {

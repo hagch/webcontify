@@ -1,18 +1,13 @@
-import { useTranslations } from "next-intl";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 
-export default function Home() {
-  const t = useTranslations("home");
+export default async function RootPage() {
+  const session = await auth();
 
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <main className="flex flex-col items-center gap-4">
-        <h1 className="text-4xl font-bold text-primary">
-          {t("title")}
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          {t("description")}
-        </p>
-      </main>
-    </div>
-  );
+  if (!session) {
+    redirect("/signin");
+  }
+
+  // TODO: Check if platform admin -> /tenants, else -> /dashboard
+  redirect("/tenants");
 }

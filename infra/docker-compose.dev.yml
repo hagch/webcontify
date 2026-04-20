@@ -29,7 +29,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
-    command: start-dev
+    command: start-dev --import-realm
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/webcontify
@@ -41,6 +41,8 @@ services:
       KC_HEALTH_ENABLED: "true"
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak/platform-realm.json:/opt/keycloak/data/import/platform-realm.json:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -91,6 +93,8 @@ services:
 
   mailpit:
     image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.mailpit.rule=Host(`mail.localhost`)"

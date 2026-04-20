@@ -2,10 +2,13 @@ package io.webcontify.shared.persistence;
 
 import io.webcontify.shared.model.AuditInfo;
 import io.webcontify.shared.model.SystemUser;
+import io.webcontify.shared.security.TenantAwareAuthentication;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class AuditListener {
 
@@ -37,7 +40,13 @@ public class AuditListener {
     }
 
     private UUID resolveCurrentUser() {
-        // TODO: Resolve from SecurityContext when Keycloak is integrated (Phase 2)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof TenantAwareAuthentication tenantAuth) {
+            Object principal = tenantAuth.getPrincipal();
+            if (principal instanceof UUID userId) {
+                return userId;
+            }
+        }
         return SystemUser.ID;
     }
 }

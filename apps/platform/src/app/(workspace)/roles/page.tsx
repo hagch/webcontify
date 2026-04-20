@@ -1,0 +1,18 @@
+import { AppHeader } from "@/components/layout/app-header";
+
+export default function RolesPage() {
+  return (
+    <>
+      <AppHeader breadcrumbs={[{ label: "Roles" }]} />
+      <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Roles</h1>
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
+          <p className="text-lg font-medium">Roles coming soon</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Role management will be available in a future update.
+          </p>
+        </div>
+      </div>
+    </>
+  );
+}

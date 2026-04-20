@@ -60,10 +60,77 @@
 | T1c.4 | Done | Frontend: Orval regenerieren + Facade/Page mit tenantId |
 | T1c.5 | Done | E2E Tests: Tenant ueber UI erstellen, Config auf erstellten Tenant testen |
 
+## Phase 2a: TenantProvisioningService
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| A.1 | Done | TenantProvisioningService: S3 Bucket bei Tenant-Erstellung + TDD |
+
+## Phase 2b: Auth Integration (Keycloak JWT)
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| B.1 | Done | Keycloak Dev Realm Setup (platform-realm.json, Docker Mount) |
+| B.2 | Done | Spring Security + JWT Resource Server + JwtToTenantAuthenticationConverter |
+| B.3 | Done | TenantResolutionFilter (Subdomain Validation gegen JWT, TenantSlugResolver Interface) |
+| B.4 | Done | AuditListener User-Aufloesung aus SecurityContext |
+| B.5 | Done | Integration Tests anpassen (TestSecurityConfiguration mit X-Test-Tenant-Id Header) |
+| B.6 | Done | Frontend: Keycloak Auth mit NextAuth.js v5 (PKCE, Token Refresh, Route Protection) |
+| B.7 | Offen | Security Review + E2E Tests Auth Flow |
+
+## Phase 2c: Tenant Self-Service Branding
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| C.1 | Done | OpenAPI Spec: Self-Service Config Endpoints (GET config, PUT branding) |
+| C.2 | Done | TenantSelfServiceController + TDD (5 Integration Tests) |
+| C.3 | Done | Frontend: Tenant Settings Branding Page |
+| C.4 | Done | E2E Tests Self-Service Branding + Auth Flow (Playwright) |
+
+## Phase 2d: UI/UX Redesign (alt — ersetzt durch 2e)
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| D.1–D.11 | Done | Alte UI/UX Redesign Tasks (alle abgeschlossen, Code wurde in Phase 2e ersetzt) |
+| D.12 | Entfaellt | E2E Tests — wird in Phase 3 mit echtem Auth-Flow geschrieben |
+
+## Phase 2e: Frontend Redesign (Clean Rebuild)
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| E.1 | Done | Clean Slate: packages/ui/ + alte Frontend-Dateien geloescht |
+| E.2 | Done | shadcn/ui v4 Init (Indigo+Emerald+Stone Theme, globals.css) |
+| E.3 | Done | Root Layout mit Providers (QueryClient, Session, AuthTokenSync, Theme) |
+| E.4 | Done | Core shadcn Komponenten installiert (21 Komponenten) |
+| E.5 | Done | Orval API Client regeneriert (standalone mutator) |
+| E.6 | Done | useAuth Hook mit Platform Admin Detection (TDD, 5 Tests) |
+| E.7 | Done | Sidebar Navigation Config mit rollenbasierter Sichtbarkeit (TDD, 6 Tests) |
+| E.8 | Done | App Shell: AppSidebar, NavUser, AppHeader mit Breadcrumbs |
+| E.9 | Done | (auth) Signin Page, (platform) + (workspace) Layouts |
+| E.10 | Done | Tenant List Page (Table + Skeleton + Empty State) |
+| E.11 | Done | Tenant Detail Page mit Skeleton Loading |
+| E.12 | Done | Create Tenant Dialog (React Hook Form + Zod) |
+| E.13 | Done | Workspace Placeholder Pages (Dashboard, Apps, Users, Roles, Settings) |
+| E.14 | Done | Platform Admin Placeholder Pages (Admins, System Settings) |
+| E.15 | Done | Route Protection erweitert fuer alle neuen Routes (TDD, 7 Tests) |
+| E.16 | Done | asChild → render Prop Migration (React 19 / shadcn v4 / Base UI) |
+| E.17 | Done | Build Verification (Build + Tests + Lint gruen) |
+
+## Phase 3: Identity & Access (User Management)
+
+| Task | Status | Beschreibung |
+|---|---|---|
+| 3a | Offen | Infrastruktur: OpenFGA Dev-Setup, Keycloak Admin Client, OpenFGA SDK, DB-Migrations |
+| 3b | Offen | OpenFGA Basis-Integration (Wrapper-Services, Authorization Model) |
+| 3c | Offen | Keycloak Admin Client (User CRUD, Realm Management) |
+| 3d | Offen | User Management vertikaler Slice (OpenAPI, Backend, Frontend, Tests) |
+| 3e | Offen | User-Einladung (Invite-Token, Email mit Branding, Registrierung) |
+| 3f | Offen | Rollen-Verwaltung (CRUD, Permission-Matrix, OpenFGA Relationships) |
+| 3g | Offen | Platform Admin User Management |
+
 ## Naechste Schritte
 
-- Phase 1c abgeschlossen
-- Naechste Phase: TenantProvisioningService (Bucket bei Tenant-Erstellung), Auth Integration (TenantContext)
+- Phase 3: Identity & Access (OpenFGA, Keycloak Admin, User Management)
 
 ## Lokale Entwicklung
 
