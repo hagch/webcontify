@@ -136,8 +136,18 @@ sourceSets {
     }
 }
 
+tasks.register<GenerateTask>("openApiGenerateIdentity") {
+    generatorName.set("spring")
+    inputSpec.set("$openApiSpecDir/identity-api.yaml")
+    outputDir.set(openApiOutputDir)
+    apiPackage.set("io.webcontify.generated.api")
+    modelPackage.set("io.webcontify.generated.model")
+    configOptions.set(openApiConfigOptions)
+    typeMappings.set(openApiTypeMappings)
+}
+
 tasks.named("compileJava") {
-    dependsOn("openApiGenerate")
+    dependsOn("openApiGenerate", "openApiGenerateIdentity")
 }
 
 tasks.register<Copy>("syncOpenFgaModel") {

@@ -2,8 +2,13 @@ package io.webcontify.identity.service;
 
 import io.webcontify.identity.config.PlatformSmtpProperties;
 import io.webcontify.identity.model.*;
+import io.webcontify.identity.repository.TenantRoleRepository;
+import io.webcontify.identity.repository.TenantUserRepository;
+import io.webcontify.identity.repository.entity.TenantRoleEntity;
+import io.webcontify.identity.repository.entity.TenantUserEntity;
 import io.webcontify.shared.filestorage.FileStorageService;
 import io.webcontify.shared.model.*;
+import io.webcontify.shared.security.TenantAwareAuthentication;
 import io.webcontify.tenant.event.TenantCreatedEvent;
 import io.webcontify.tenant.model.TenantStatus;
 import io.webcontify.tenant.repository.TenantRepository;
@@ -11,10 +16,12 @@ import io.webcontify.tenant.repository.entity.TenantEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.modulith.events.ApplicationModuleListener;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class TenantProvisioningListener {
@@ -26,18 +33,24 @@ public class TenantProvisioningListener {
     private final KeycloakAdminService keycloakAdminService;
     private final OpenFgaService openFgaService;
     private final PlatformSmtpProperties platformSmtpProperties;
+    private final TenantUserRepository tenantUserRepository;
+    private final TenantRoleRepository tenantRoleRepository;
 
     public TenantProvisioningListener(
             TenantRepository tenantRepository,
             FileStorageService fileStorageService,
             KeycloakAdminService keycloakAdminService,
             OpenFgaService openFgaService,
-            PlatformSmtpProperties platformSmtpProperties) {
+            PlatformSmtpProperties platformSmtpProperties,
+            TenantUserRepository tenantUserRepository,
+            TenantRoleRepository tenantRoleRepository) {
         this.tenantRepository = tenantRepository;
         this.fileStorageService = fileStorageService;
         this.keycloakAdminService = keycloakAdminService;
         this.openFgaService = openFgaService;
         this.platformSmtpProperties = platformSmtpProperties;
+        this.tenantUserRepository = tenantUserRepository;
+        this.tenantRoleRepository = tenantRoleRepository;
     }
 
     @ApplicationModuleListener
@@ -86,16 +99,46 @@ public class TenantProvisioningListener {
             var realmName = entity.getKeycloakRealmName();
             var storeId = entity.getOpenfgaStoreId();
 
+            // Keycloak User erstellen
             var userResponse = keycloakAdminService.createUser(
                     new CreateKeycloakUserRequest(realmName, event.adminEmail(), event.adminFirstName(), event.adminLastName()));
+            UUID keycloakUserId = userResponse.keycloakUserId();
 
+            // RLS-Kontext setzen fuer DB-Inserts
+            setProvisioningSecurityContext(event.tenantId());
+            try {
+                // Admin-Rolle erstellen (is_system_role = true)
+                var roleEntity = new TenantRoleEntity();
+                roleEntity.setId(com.fasterxml.uuid.Generators.timeBasedEpochGenerator().generate());
+                roleEntity.setTenantId(event.tenantId());
+                roleEntity.setName("Admin");
+                roleEntity.setSystemRole(true);
+                tenantRoleRepository.save(roleEntity);
+
+                // tenant_user Eintrag erstellen
+                var userEntity = new TenantUserEntity();
+                userEntity.setId(keycloakUserId);
+                userEntity.setTenantId(event.tenantId());
+                userEntity.setEmail(event.adminEmail());
+                userEntity.setFirstName(event.adminFirstName());
+                userEntity.setLastName(event.adminLastName());
+                userEntity.setStatus(UserStatus.INVITED);
+                // invitedBy = null (System-Erstellung)
+                tenantUserRepository.save(userEntity);
+                // User-Rolle Zuordnung laeuft ueber OpenFGA (role#assignee), keine lokale Join-Table
+            } finally {
+                clearProvisioningSecurityContext();
+            }
+
+            // OpenFGA: grant admin
             openFgaService.write(new OpenFgaWriteRequest(storeId, List.of(
                     new RelationshipTuple(
-                            "user:" + userResponse.keycloakUserId(),
+                            "user:" + keycloakUserId,
                             "admin",
                             "tenant:" + event.tenantId()))));
 
-            keycloakAdminService.sendInviteEmail(new SendInviteEmailRequest(realmName, userResponse.keycloakUserId()));
+            // Invite-Email
+            keycloakAdminService.sendInviteEmail(new SendInviteEmailRequest(realmName, keycloakUserId));
         })) {
             persistStatus(entity, steps, initialStatus, false);
             return;
@@ -137,5 +180,16 @@ public class TenantProvisioningListener {
             entity.setStatus(TenantStatus.ACTIVE.name());
         }
         tenantRepository.save(entity);
+    }
+
+    private void setProvisioningSecurityContext(UUID tenantId) {
+        var tenantInfo = new TenantInformation(tenantId, false);
+        var auth = new TenantAwareAuthentication(
+                tenantInfo, SystemUser.ID.toString(), List.of());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
+    private void clearProvisioningSecurityContext() {
+        SecurityContextHolder.clearContext();
     }
 }

@@ -1,0 +1,312 @@
+openapi: 3.1.0
+info:
+  title: Webcontify Identity API
+  version: 1.0.0
+  description: Tenant User Management endpoints
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: TenantUsers
+    description: Tenant User Management
+
+paths:
+  /api/v1/tenant/users:
+    post:
+      operationId: inviteUser
+      summary: Invite a new user to the tenant
+      tags:
+        - TenantUsers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteUserRequest'
+      responses:
+        '201':
+          description: User invited
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+    get:
+      operationId: listUsers
+      summary: List all users in the tenant
+      tags:
+        - TenantUsers
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /api/v1/tenant/users/{userId}:
+    get:
+      operationId: getUser
+      summary: Get user details
+      tags:
+        - TenantUsers
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+    delete:
+      operationId: deleteUser
+      summary: Delete a user
+      tags:
+        - TenantUsers
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/tenant/users/{userId}/status:
+    put:
+      operationId: updateUserStatus
+      summary: Update user status (activate/deactivate)
+      tags:
+        - TenantUsers
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserStatusRequest'
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid status transition
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/tenant/users/{userId}/resend-invite:
+    post:
+      operationId: resendInvite
+      summary: Resend invite email
+      tags:
+        - TenantUsers
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Invite resent
+        '400':
+          description: User is not in INVITED status
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    InviteUserRequest:
+      type: object
+      required:
+        - email
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 255
+
+    UpdateUserStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/UserStatusUpdate'
+
+    UserStatusUpdate:
+      type: string
+      enum:
+        - ACTIVE
+        - DEACTIVATED
+
+    UserStatus:
+      type: string
+      enum:
+        - INVITED
+        - ACTIVE
+        - DEACTIVATED
+
+    UserResponse:
+      type: object
+      required:
+        - id
+        - email
+        - firstName
+        - lastName
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        status:
+          $ref: '#/components/schemas/UserStatus'
+        invitedBy:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserListResponse:
+      type: object
+      required:
+        - items
+        - page
+        - size
+        - totalElements
+        - totalPages
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserResponse'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer

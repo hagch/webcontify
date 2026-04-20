@@ -40,6 +40,12 @@ public class TestSecurityConfiguration {
     public static final String TEST_TENANT_ID_HEADER = "X-Test-Tenant-Id";
 
     /**
+     * Header name used in integration tests to override the authenticated user ID. When present,
+     * the filter uses the given UUID as the principal instead of the default "test-tenant-user".
+     */
+    public static final String TEST_USER_ID_HEADER = "X-Test-User-Id";
+
+    /**
      * No-op JwtDecoder — satisfies the production SecurityConfiguration bean dependency without
      * contacting Keycloak.
      */
@@ -88,8 +94,12 @@ public class TestSecurityConfiguration {
                 if (tenantIdHeader != null && !tenantIdHeader.isBlank()) {
                     TenantInformation tenantUser =
                             new TenantInformation(UUID.fromString(tenantIdHeader), false);
+                    String userIdHeader = request.getHeader(TEST_USER_ID_HEADER);
+                    Object principal = (userIdHeader != null && !userIdHeader.isBlank())
+                            ? userIdHeader
+                            : "test-tenant-user";
                     auth = new TenantAwareAuthentication(
-                            tenantUser, "test-tenant-user", List.of());
+                            tenantUser, principal, List.of());
                 } else {
                     TenantInformation platformAdmin = new TenantInformation(null, true);
                     auth = new TenantAwareAuthentication(

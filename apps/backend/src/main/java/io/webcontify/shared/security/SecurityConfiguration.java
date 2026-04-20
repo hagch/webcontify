@@ -1,5 +1,6 @@
 package io.webcontify.shared.security;
 
+import io.webcontify.identity.security.UserActivationFilter;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,12 +27,15 @@ public class SecurityConfiguration {
 
     private final JwtToTenantAuthenticationConverter jwtToTenantAuthenticationConverter;
     private final TenantSlugResolver tenantSlugResolver;
+    private final UserActivationFilter userActivationFilter;
 
     public SecurityConfiguration(
             JwtToTenantAuthenticationConverter jwtToTenantAuthenticationConverter,
-            TenantSlugResolver tenantSlugResolver) {
+            TenantSlugResolver tenantSlugResolver,
+            UserActivationFilter userActivationFilter) {
         this.jwtToTenantAuthenticationConverter = jwtToTenantAuthenticationConverter;
         this.tenantSlugResolver = tenantSlugResolver;
+        this.userActivationFilter = userActivationFilter;
     }
 
     @Bean
@@ -49,7 +53,8 @@ public class SecurityConfiguration {
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtToTenantAuthenticationConverter))
                 )
-                .addFilterAfter(new TenantResolutionFilter(tenantSlugResolver), BearerTokenAuthenticationFilter.class);
+                .addFilterAfter(new TenantResolutionFilter(tenantSlugResolver), BearerTokenAuthenticationFilter.class)
+                .addFilterAfter(userActivationFilter, TenantResolutionFilter.class);
 
         return http.build();
     }

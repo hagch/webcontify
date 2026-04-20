@@ -110,4 +110,22 @@ public class KeycloakAdminService {
         user.setLastName(request.lastName());
         userResource.update(user);
     }
+
+    public void enableUser(EnableKeycloakUserRequest request) {
+        var userResource = keycloak.realm(request.realmName())
+                .users()
+                .get(request.userId().toString());
+        var user = userResource.toRepresentation();
+        user.setEnabled(true);
+        userResource.update(user);
+    }
+
+    public void disableUser(DisableKeycloakUserRequest request) {
+        var userResource = keycloak.realm(request.realmName())
+                .users()
+                .get(request.userId().toString());
+        var user = userResource.toRepresentation();
+        user.setEnabled(false);
+        userResource.update(user);
+    }
 }

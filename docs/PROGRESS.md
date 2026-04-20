@@ -146,11 +146,21 @@
 | 3a.24 | Done | Frontend: Create Tenant Dialog mit Admin-Feldern (kein Slug, Name-Check) |
 | 3a.25 | Done | Frontend: ProvisioningStatus Komponente mit Polling, Retry, a11y (TDD) |
 
-## Phase 3b–3g: Identity & Access — noch offen
+## Phase 3b — User Management + Invite (2026-03-15)
+
+**Fertig:**
+- Flyway Migration: tenant_user, tenant_role + RLS
+- OpenAPI: identity-api.yaml (6 Endpoints)
+- Backend: UserService, UserController, UserMapper, UserActivationFilter
+- TenantProvisioningListener erweitert (tenant_user + tenant_role bei Provisioning)
+- KeycloakAdminService: enableUser/disableUser
+- Frontend: User List Page, Detail Page, Invite Dialog, Status Badge, Actions Menu
+- Tests: UserServiceTest (Unit), UserControllerIntegrationTest, Frontend Vitest
+
+## Phase 3c–3g: Identity & Access — noch offen
 
 | Task | Status | Beschreibung |
 |---|---|---|
-| 3b | Offen | User Management vertikaler Slice (OpenAPI, Backend, Frontend, Tests) |
 | 3c | Offen | User-Einladung (Invite-Token, Email mit Branding, Registrierung) |
 | 3d | Offen | Rollen-Verwaltung (CRUD, Permission-Matrix, OpenFGA Relationships) |
 | 3e | Offen | Platform Admin User Management |
@@ -159,9 +169,8 @@
 
 ## Naechste Schritte
 
-- Phase 3b: User Management (OpenAPI Spec → UserService → UserController → Frontend User List/Detail)
-- Voraussetzung: Tenant muss ACTIVE sein (Provisioning abgeschlossen)
-- Infrastructure ist bereit: OpenFGA Stores, Keycloak Realms, PermissionService, @RequiresPermission
+- Phase 3d: Rollen-CRUD + Permission-Matrix
+- Voraussetzung: Phase 3b abgeschlossen, OpenFGA Stores + Keycloak Realms bereit
 
 ## Lokale Entwicklung
 

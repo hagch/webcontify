@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.webcontify.identity.model.CreateKeycloakUserResponse;
 import io.webcontify.identity.model.CreateRealmResponse;
 import io.webcontify.identity.model.CreateStoreResponse;
+import io.webcontify.identity.model.UserStatus;
+import io.webcontify.identity.repository.TenantUserRepository;
 import io.webcontify.shared.filestorage.FileStorageService;
 import io.webcontify.shared.model.ProvisioningStatus;
 import io.webcontify.shared.model.ProvisioningStepStatus;
@@ -60,6 +62,9 @@ class TenantProvisioningIntegrationTest {
 
     @Autowired
     TenantRepository tenantRepository;
+
+    @Autowired
+    TenantUserRepository tenantUserRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -121,6 +126,14 @@ class TenantProvisioningIntegrationTest {
         verify(keycloakAdminService).createUser(any());
         verify(keycloakAdminService).sendInviteEmail(any());
         verify(openFgaService).write(any());
+
+        // Step 5: Verify tenant_user entry was created
+        var tenantUsers = tenantUserRepository.findAll();
+        assertThat(tenantUsers).hasSize(1);
+        var tenantUser = tenantUsers.get(0);
+        assertThat(tenantUser.getEmail()).isEqualTo("admin@acme.com");
+        assertThat(tenantUser.getStatus()).isEqualTo(UserStatus.INVITED);
+        assertThat(tenantUser.getInvitedBy()).isNull(); // System-Erstellung
     }
 
     @Test

@@ -28,12 +28,16 @@ Kein User/Role CRUD, kein Invite-Flow UI — nur die Infrastruktur-Services, Asy
 | 15 | Slug automatisch aus Tenant-Name generiert | User kann Slug nicht aendern, Uniqueness ueber Tenant-Name |
 | 16 | Unique Constraint auf Tenant-Name | Verhindert Duplikate, Async-Validierung im Frontend beim Submit |
 | 17 | Subdomain bestimmt Keycloak Realm | `{slug}.localhost` → Realm `tenant-{slug}`, `platform.localhost` → Platform Realm |
-| 18 | Polling fuer Provisioning Status (2s Intervall) | Einfach, Provisioning ist seltener Admin-Vorgang, Notification Service spaeter |
+| 18 | Polling fuer Provisioning Status (3s Intervall) | Einfach, Provisioning ist seltener Admin-Vorgang, 3s reicht aus, Notification Service spaeter |
 | 19 | Identity Modul von Anfang an | Services gehoeren fachlich zusammen, kein spaeteres Verschieben |
 | 20 | Events fuer async Kommunikation, Published Interfaces fuer sync | Spring Modulith konform, spaeter zu Microservices extrahierbar |
 | 21 | Typisierte Request/Response Objekte fuer alle Service-Interfaces | Records/POJOs statt primitive Parameter, erweiterbar ohne Breaking Changes |
 | 22 | Profilbild in S3 (nicht Keycloak) | Feature der Platform, nicht von Keycloak, URL in lokaler DB |
 | 23 | Initialer Tenant Admin bei Erstellung (Name + Email + Vorname + Nachname) | Ein-Schritt-Onboarding fuer Platform Admin |
+| 24 | Platform Admin Cross-Subdomain Session (kein Re-Login) | Platform Admin behält Platform-Session auf Tenant-Subdomains, Backend akzeptiert PLATFORM_ADMIN ohnehin |
+| 25 | Progress-Bar + Statustext im Provisioning UI | A11y: nicht nur Farbe/Icons, Screen-Reader-tauglich, schnelles Gesamtbild |
+| 26 | Formular-Sektionen im Create Tenant Dialog | UX: Trennung von Tenant-Info und Admin-Info reduziert kognitive Last |
+| 27 | Workspace-Not-Found Fehlerseite | UX: Dedizierte Seite statt kryptischem Keycloak-Fehler bei nicht-existenten Subdomains |
 
 ---
 
@@ -341,7 +345,7 @@ identity/
 
 ## Frontend-Aenderungen
 
-### Dynamische NextAuth Konfiguration
+### Dynamische NextAuth Konfiguration + Platform Admin Cross-Subdomain
 
 Die bestehende NextAuth-Konfiguration (`apps/platform/src/auth.ts`) ist aktuell auf den Platform Realm hartcodiert.
 Aenderungen:
@@ -349,28 +353,35 @@ Aenderungen:
 - **Keycloak Provider wird dynamisch konfiguriert:** Issuer-URL basierend auf Hostname ableiten
   - `platform.localhost` → `http://auth.localhost/realms/webcontify-platform`
   - `{slug}.localhost` → `http://auth.localhost/realms/tenant-{slug}`
+- **Platform Admin Cross-Subdomain Session:** Platform Admins behalten ihre Platform-Session auf allen Tenant-Subdomains. Kein erneutes Anmelden erforderlich — der Platform-JWT wird durchgereicht, das Backend akzeptiert PLATFORM_ADMIN auf allen Tenants. Nur regulaere Tenant-User authentifizieren sich gegen den jeweiligen Tenant-Realm.
 - **Breaking Change fuer bestehende Auth:** Die statische `KEYCLOAK_ISSUER` Environment Variable wird durch dynamische Hostname-basierte Aufloesung ersetzt
 - **Callback URLs in Keycloak:** Jeder Tenant-Realm Client braucht die korrekte Redirect URI (`https://{slug}.localhost/*`)
 - **Token Refresh:** Bestehende Refresh-Logik bleibt, Issuer ist aber dynamisch
-- **Middleware:** Muss Hostname parsen um Platform vs Tenant Context zu unterscheiden
+- **Middleware:** Muss Hostname parsen um Platform vs Tenant Context zu unterscheiden. Platform Admin mit gueltiger Session wird auf Tenant-Subdomains nicht zum Tenant-Realm Login weitergeleitet.
+- **Workspace-Not-Found Page:** Dedizierte Fehlerseite fuer nicht-existente Tenant-Subdomains ("Dieser Workspace existiert nicht." + Link zur Platform)
 
 ### Tenant Create Dialog (angepasst)
 
 - Slug-Feld entfernt
-- Neue Felder: Name, Admin Email, Admin Vorname, Admin Nachname
-- Uniqueness-Check auf Tenant-Name beim Submit
-- Nach Erstellung: Redirect zur Tenant-Detail-Seite
+- **Zwei Formular-Sektionen:** "Tenant" (Name) getrennt durch Separator von "Initialer Administrator" (Email, Vorname, Nachname)
+- Email-Feld mit `type="email"` fuer korrekte Mobile-Keyboard
+- Uniqueness-Check auf Tenant-Name beim Submit, Inline-Fehler unter Name-Feld bei Duplikat
+- Nach Erstellung: Toast "Tenant wird erstellt..." + Redirect zur Tenant-Detail-Seite
 
 ### Tenant Detail — Provisioning Status
 
 Wenn Tenant Status `PROVISIONING`:
-- Checklist mit Steps:
-  - S3 Bucket → Check/Spinner/Error Icon
-  - Authentifizierung (Keycloak) → Check/Spinner/Error Icon
-  - Berechtigungssystem (OpenFGA) → Check/Spinner/Error Icon
-  - Initialer Admin → Check/Spinner/Error Icon
-- Polling alle 2 Sekunden
-- Bei `FAILED` Step: Fehlermeldung + Retry-Button
+- **Progress-Bar** (shadcn Progress) + Text "X von 4 Schritten abgeschlossen" ueber der Checklist
+- Checklist mit Steps (jeweils Icon + Label + **Statustext**):
+  - Speicher (S3) → CheckCircle2/Loader2/Circle/XCircle + "Abgeschlossen"/"Wird eingerichtet..."/"Ausstehend"/"Fehlgeschlagen"
+  - Authentifizierung (Keycloak) → gleich
+  - Berechtigungssystem (OpenFGA) → gleich
+  - Initialer Admin → gleich
+- **Accessibility:** `aria-live="polite"` auf Step-Liste, Statustext zusaetzlich zu Icons (nicht nur Farbe)
+- Polling alle **3 Sekunden** (ausreichend fuer seltenen Admin-Vorgang)
+- Bei `FAILED` Step: Fehlermeldung + Retry-Button (Primary/default variant, NICHT destructive-rot). Button mit Loading-State, Fehlermeldung bleibt waehrend Retry sichtbar.
+- **Fallback:** Wenn `provisioningStatus` null → alle Steps als PENDING anzeigen
+- Container mit `min-h-[300px]` um Layout-Sprung beim Wechsel zu Detail-Ansicht zu vermeiden
 - Bei `ACTIVE`: normale Detail-Ansicht
 
 ### Traefik Wildcard (Infrastruktur-Aenderung)

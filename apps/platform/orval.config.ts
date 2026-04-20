@@ -17,4 +17,20 @@ export default defineConfig({
       },
     },
   },
+  identity: {
+    input: {
+      target: "../../openapi/identity-api.yaml",
+    },
+    output: {
+      target: "./src/generated/identity.ts",
+      client: "react-query",
+      mode: "single",
+      override: {
+        mutator: {
+          path: "./src/lib/orval-mutator.ts",
+          name: "customInstance",
+        },
+      },
+    },
+  },
 });

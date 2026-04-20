@@ -2571,20 +2571,25 @@ git commit -m "test: add full provisioning integration test (Keycloak + OpenFGA 
 
 ## Chunk 6: Frontend Changes
 
-### Task 23: Dynamic NextAuth Configuration
+### Task 23: Dynamic NextAuth Configuration + Platform Admin Cross-Subdomain
 
 **Files:**
 - Modify: `apps/platform/src/auth.ts`
 - Modify: `apps/platform/src/middleware.ts`
 - Create: `apps/platform/src/lib/auth-utils.ts`
 - Create: `apps/platform/src/lib/__tests__/auth-utils.test.ts`
+- Create: `apps/platform/src/app/workspace-not-found/page.tsx`
+
+**UI/UX Anforderungen (aus Review):**
+- Platform Admin muss sich beim Wechsel auf Tenant-Subdomains NICHT neu anmelden. Der bestehende Platform-Session-Token wird erkannt und durchgereicht (Backend akzeptiert PLATFORM_ADMIN auf allen Tenants).
+- Nicht-existente Tenant-Subdomains muessen eine dedizierte Fehlerseite zeigen statt eines kryptischen Keycloak-Fehlers.
 
 - [ ] **Step 1: Write failing tests for auth utils**
 
 ```typescript
 // apps/platform/src/lib/__tests__/auth-utils.test.ts
 import { describe, it, expect } from 'vitest'
-import { getKeycloakIssuer, getRealmFromHostname, isPlatformHost } from '../auth-utils'
+import { getKeycloakIssuer, getRealmFromHostname, isPlatformHost, shouldUsePlatformSession } from '../auth-utils'
 
 describe('auth-utils', () => {
   it('should return platform realm for platform.localhost', () => {
@@ -2608,6 +2613,18 @@ describe('auth-utils', () => {
   it('should identify platform host', () => {
     expect(isPlatformHost('platform.localhost')).toBe(true)
     expect(isPlatformHost('acme.localhost')).toBe(false)
+  })
+
+  it('should use platform session for platform admin on tenant subdomain', () => {
+    expect(shouldUsePlatformSession(false, true)).toBe(true)
+  })
+
+  it('should not use platform session for non-admin on tenant subdomain', () => {
+    expect(shouldUsePlatformSession(false, false)).toBe(false)
+  })
+
+  it('should always use platform session on platform host', () => {
+    expect(shouldUsePlatformSession(true, false)).toBe(true)
   })
 })
 ```
@@ -2639,6 +2656,15 @@ export function getKeycloakIssuer(hostname: string): string {
   const realm = getRealmFromHostname(hostname)
   return `${AUTH_BASE_URL}/realms/${realm}`
 }
+
+/**
+ * Platform Admins behalten ihre Platform-Session auf allen Subdomains.
+ * Sie muessen sich nicht gegen den Tenant-Realm neu authentifizieren,
+ * da das Backend PLATFORM_ADMIN auf allen Tenants akzeptiert.
+ */
+export function shouldUsePlatformSession(isPlatformHost: boolean, isPlatformAdmin: boolean): boolean {
+  return isPlatformHost || isPlatformAdmin
+}
 ```
 
 - [ ] **Step 4: Run tests — verify they pass**
@@ -2646,8 +2672,10 @@ export function getKeycloakIssuer(hostname: string): string {
 - [ ] **Step 5: Update auth.ts to use dynamic issuer**
 
 Modify `apps/platform/src/auth.ts`:
-- Import `getKeycloakIssuer` from `@/lib/auth-utils`
+- Import `getKeycloakIssuer`, `isPlatformHost` from `@/lib/auth-utils`
 - Make the Keycloak provider configuration use dynamic issuer based on request hostname
+- **Platform Admin Logik:** Wenn ein User bereits eine gueltige Platform-Session hat und `PLATFORM_ADMIN`-Rolle besitzt, wird auf Tenant-Subdomains die Platform-Session weiterverwendet (kein Redirect zum Tenant-Realm). Der Platform-JWT wird an das Backend durchgereicht, das den PLATFORM_ADMIN ohnehin bypassed.
+- Nur regulaere Tenant-User authentifizieren sich gegen den jeweiligen Tenant-Realm.
 - Note: NextAuth v5 with App Router may require using `headers()` to get hostname in server context. Check NextAuth docs for dynamic provider configuration.
 
 - [ ] **Step 6: Update middleware.ts**
@@ -2655,18 +2683,27 @@ Modify `apps/platform/src/auth.ts`:
 Modify `apps/platform/src/middleware.ts`:
 - Import `isPlatformHost` from `@/lib/auth-utils`
 - Parse hostname to determine platform vs tenant context
+- **Platform Admin Cross-Subdomain:** Wenn der User eine gueltige Session mit `PLATFORM_ADMIN` hat, wird er auf Tenant-Subdomains NICHT zum Tenant-Realm Login weitergeleitet. Die bestehende Platform-Session reicht.
 - Ensure route protection works for both contexts
 
-- [ ] **Step 7: Verify build**
+- [ ] **Step 7: Create Workspace-Not-Found Error Page**
+
+Create `apps/platform/src/app/workspace-not-found/page.tsx`:
+- Zeigt eine dedizierte Fehlerseite wenn eine nicht-existente Tenant-Subdomain aufgerufen wird
+- Inhalt: "Dieser Workspace existiert nicht." mit Link zurueck zur Platform (`platform.localhost`)
+- Clean Design mit zentriertem Layout (kein Sidebar)
+- Middleware erkennt nicht-existente Tenants (z.B. Keycloak Realm existiert nicht oder Backend gibt 404) und leitet auf diese Seite um
+
+- [ ] **Step 8: Verify build**
 
 Run: `npx nx build platform`
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add apps/platform/src/lib/auth-utils.ts apps/platform/src/lib/__tests__/auth-utils.test.ts apps/platform/src/auth.ts apps/platform/src/middleware.ts
-git commit -m "feat: dynamic NextAuth realm resolution based on hostname (TDD)"
+git add apps/platform/src/lib/auth-utils.ts apps/platform/src/lib/__tests__/auth-utils.test.ts apps/platform/src/auth.ts apps/platform/src/middleware.ts apps/platform/src/app/workspace-not-found/
+git commit -m "feat: dynamic NextAuth realm resolution, platform admin cross-subdomain session, workspace-not-found page (TDD)"
 ```
 
 ---
@@ -2677,6 +2714,12 @@ git commit -m "feat: dynamic NextAuth realm resolution based on hostname (TDD)"
 - Modify: `apps/platform/src/features/tenants/schemas/create-tenant.ts` (or similar Zod schema)
 - Modify: `apps/platform/src/features/tenants/components/create-tenant-dialog.tsx`
 
+**UI/UX Anforderungen (aus Review):**
+- Formular visuell in zwei Sektionen aufteilen: "Tenant" (Name) und "Initialer Administrator" (Email, Vorname, Nachname)
+- Email-Feld muss `type="email"` haben (korrekte Mobile-Keyboard)
+- Name-Duplikat-Fehler als Inline-Fehler unter dem Name-Feld mit klarer Handlungsanweisung
+- Nach erfolgreichem Create: Toast "Tenant wird erstellt..." + sofortiger Redirect zur Detail-Seite
+
 - [ ] **Step 1: Update Zod schema**
 
 Replace slug field with admin fields:
@@ -2685,10 +2728,10 @@ Replace slug field with admin fields:
 import { z } from 'zod'
 
 export const createTenantSchema = z.object({
-  name: z.string().min(1).max(255),
-  adminEmail: z.string().email().max(255),
-  adminFirstName: z.string().min(1).max(255),
-  adminLastName: z.string().min(1).max(255),
+  name: z.string().min(1, 'Name ist erforderlich').max(255),
+  adminEmail: z.string().email('Ungueltige E-Mail-Adresse').max(255),
+  adminFirstName: z.string().min(1, 'Vorname ist erforderlich').max(255),
+  adminLastName: z.string().min(1, 'Nachname ist erforderlich').max(255),
 })
 
 export type CreateTenantFormValues = z.infer<typeof createTenantSchema>
@@ -2698,10 +2741,12 @@ export type CreateTenantFormValues = z.infer<typeof createTenantSchema>
 
 In `create-tenant-dialog.tsx`:
 1. Remove slug field
-2. Add fields: Admin Email, Admin Vorname, Admin Nachname
-3. Add name uniqueness check on submit (call `checkTenantNameAvailability` before create)
-4. After successful creation: redirect to tenant detail page
-5. Update `defaultValues` to match new schema
+2. **Sektion 1 — "Tenant":** Name-Feld
+3. **Visueller Trenner:** `<Separator />` + Sektions-Ueberschrift `<p className="text-sm font-medium text-muted-foreground">Initialer Administrator</p>`
+4. **Sektion 2 — "Initialer Administrator":** Admin Email (`type="email"`), Admin Vorname, Admin Nachname
+5. Name uniqueness check on submit: `checkTenantNameAvailability` vor Create aufrufen. Bei Duplikat: `form.setError("name", { message: "Dieser Name ist bereits vergeben. Bitte waehle einen anderen." })`
+6. After successful creation: Toast "Tenant wird erstellt..." + `router.push(`/tenants/${tenant.id}`)` zur Detail-Seite (dort uebernimmt ProvisioningStatus)
+7. Update `defaultValues` to match new schema
 
 - [ ] **Step 3: Regenerate Orval hooks**
 
@@ -2718,7 +2763,7 @@ Expected: BUILD SUCCESSFUL, tests green
 
 ```bash
 git add apps/platform/src/features/tenants/
-git commit -m "feat: update Create Tenant dialog with admin fields, remove slug input"
+git commit -m "feat: update Create Tenant dialog with admin fields, form sections, remove slug input"
 ```
 
 ---
@@ -2730,7 +2775,22 @@ git commit -m "feat: update Create Tenant dialog with admin fields, remove slug 
 - Create: `apps/platform/src/features/tenants/components/__tests__/provisioning-status.test.tsx`
 - Modify: `apps/platform/src/features/tenants/` (tenant detail page)
 
-- [ ] **Step 1: Write failing tests**
+**UI/UX Anforderungen (aus Review):**
+- **Accessibility:** Jeder Step bekommt einen Statustext zusaetzlich zum Icon (nicht nur Farbe/Icon): "Abgeschlossen", "Wird eingerichtet...", "Ausstehend", "Fehlgeschlagen: [Meldung]"
+- **aria-live:** Step-Liste in `aria-live="polite"` Region wrappen fuer Screen-Reader Updates
+- **Progress-Bar:** Ueber der Checklist eine shadcn Progress-Komponente + Text "X von 4 Schritten abgeschlossen"
+- **Retry-Button:** Primary-Farbe (Indigo/default), NICHT destructive-rot. Label: "Erneut versuchen". Bekommt Loading-State waehrend Mutation. Fehlermeldung bleibt sichtbar waehrend Retry.
+- **Race-Condition Fallback:** Wenn `status === 'PROVISIONING'` aber `provisioningStatus` null ist → alle Steps als PENDING anzeigen
+- **Kein Layout-Sprung:** Provisioning-View und Detail-View in Container mit `min-h-[300px]` oder sanftem Fade-Uebergang
+- **Polling:** 3 Sekunden statt 2 (ausreichend fuer seltenen Admin-Vorgang)
+
+- [ ] **Step 1: Install Progress component**
+
+```bash
+npx shadcn@latest add progress
+```
+
+- [ ] **Step 2: Write failing tests**
 
 ```typescript
 // provisioning-status.test.tsx
@@ -2739,7 +2799,7 @@ import { render, screen } from '@testing-library/react'
 import { ProvisioningStatus } from '../provisioning-status'
 
 describe('ProvisioningStatus', () => {
-  it('should show all steps with correct labels', () => {
+  it('should show all steps with correct labels and status text', () => {
     const steps = [
       { step: 'S3_BUCKET', status: 'COMPLETED' },
       { step: 'KEYCLOAK_REALM', status: 'IN_PROGRESS' },
@@ -2752,37 +2812,84 @@ describe('ProvisioningStatus', () => {
     expect(screen.getByText('Authentifizierung')).toBeInTheDocument()
     expect(screen.getByText('Berechtigungssystem')).toBeInTheDocument()
     expect(screen.getByText('Initialer Admin')).toBeInTheDocument()
+
+    // Status-Texte (Accessibility: nicht nur Icons)
+    expect(screen.getByText('Abgeschlossen')).toBeInTheDocument()
+    expect(screen.getByText('Wird eingerichtet...')).toBeInTheDocument()
+    expect(screen.getAllByText('Ausstehend')).toHaveLength(2)
+  })
+
+  it('should show progress bar with completed count', () => {
+    const steps = [
+      { step: 'S3_BUCKET', status: 'COMPLETED' },
+      { step: 'KEYCLOAK_REALM', status: 'COMPLETED' },
+      { step: 'OPENFGA_STORE', status: 'IN_PROGRESS' },
+      { step: 'INITIAL_ADMIN', status: 'PENDING' },
+    ]
+    render(<ProvisioningStatus steps={steps} onRetry={() => {}} />)
+    expect(screen.getByText('2 von 4 Schritten abgeschlossen')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50')
   })
 
   it('should show spinner for IN_PROGRESS step', () => {
     const steps = [{ step: 'S3_BUCKET', status: 'IN_PROGRESS' }]
     render(<ProvisioningStatus steps={steps} onRetry={() => {}} />)
-    // Verify spinner/loading indicator is present
+    expect(screen.getByText('Wird eingerichtet...')).toBeInTheDocument()
   })
 
-  it('should show error and retry button for FAILED step', () => {
+  it('should show error with status text and retry button for FAILED step', () => {
     const steps = [{ step: 'S3_BUCKET', status: 'FAILED', error: 'Connection refused' }]
     render(<ProvisioningStatus steps={steps} onRetry={() => {}} />)
+    expect(screen.getByText('Fehlgeschlagen')).toBeInTheDocument()
     expect(screen.getByText('Connection refused')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /wiederholen/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /erneut versuchen/i })).toBeInTheDocument()
+  })
+
+  it('should have aria-live region for screen reader updates', () => {
+    const steps = [{ step: 'S3_BUCKET', status: 'PENDING' }]
+    const { container } = render(<ProvisioningStatus steps={steps} onRetry={() => {}} />)
+    expect(container.querySelector('[aria-live="polite"]')).toBeInTheDocument()
+  })
+
+  it('should show all steps as PENDING when provisioningStatus is null (fallback)', () => {
+    render(<ProvisioningStatus steps={null} onRetry={() => {}} />)
+    expect(screen.getAllByText('Ausstehend')).toHaveLength(4)
+    expect(screen.getByText('0 von 4 Schritten abgeschlossen')).toBeInTheDocument()
   })
 })
 ```
 
-- [ ] **Step 2: Run tests — verify they fail**
+- [ ] **Step 2b: Run tests — verify they fail**
 
 - [ ] **Step 3: Implement ProvisioningStatus component**
 
-Create a checklist-style component using shadcn/ui components (Card, Badge, etc.):
-- Each step shows: label, status icon (check/spinner/error), optional error message
-- FAILED steps show a Retry button
-- Step labels: S3_BUCKET → "Speicher", KEYCLOAK_REALM → "Authentifizierung", OPENFGA_STORE → "Berechtigungssystem", INITIAL_ADMIN → "Initialer Admin"
+Create a checklist-style component using shadcn/ui components (Card, Progress, etc.):
+
+**Struktur:**
+```
+Card
+  CardHeader: "Tenant wird eingerichtet"
+  CardContent:
+    Progress Bar (shadcn Progress) + "X von 4 Schritten abgeschlossen"
+    <div aria-live="polite">
+      Step-Liste:
+        Jeder Step:
+          - Icon: CheckCircle2 (green/emerald) | Loader2 (animate-spin) | Circle (muted) | XCircle (destructive)
+          - Label: "Speicher" / "Authentifizierung" / "Berechtigungssystem" / "Initialer Admin"
+          - Statustext: "Abgeschlossen" / "Wird eingerichtet..." / "Ausstehend" / "Fehlgeschlagen"
+          - Bei FAILED: Fehlermeldung in text-sm text-destructive + Retry-Button (default variant, NICHT destructive)
+    </div>
+```
+
+**Fallback:** Wenn `steps` prop null ist → Default-Array mit 4x PENDING Steps generieren.
+**Retry-Button:** `variant="default"` (Primary/Indigo), zeigt Loader2 waehrend `isPending`. Fehlermeldung bleibt sichtbar waehrend Retry.
 
 - [ ] **Step 4: Integrate into Tenant Detail page**
 
 Modify the tenant detail page:
 - If tenant status is `PROVISIONING`: show `<ProvisioningStatus>` component
-- Poll tenant detail endpoint every 2 seconds while status is PROVISIONING (use React Query `refetchInterval`)
+- Container mit `min-h-[300px]` um Layout-Sprung beim Wechsel zu vermeiden
+- Poll tenant detail endpoint alle **3 Sekunden** while status is PROVISIONING (use React Query `refetchInterval: status === 'PROVISIONING' ? 3000 : false`)
 - When status changes to ACTIVE: stop polling, show normal detail view
 - Retry button calls `retryTenantProvisioning` mutation
 
@@ -2791,8 +2898,8 @@ Modify the tenant detail page:
 - [ ] **Step 6: Commit**
 
 ```bash
-git add apps/platform/src/features/tenants/
-git commit -m "feat: add ProvisioningStatus component with polling and retry (TDD)"
+git add apps/platform/src/features/tenants/ apps/platform/src/components/ui/progress.tsx
+git commit -m "feat: add ProvisioningStatus component with progress bar, a11y, polling, retry (TDD)"
 ```
 
 ---

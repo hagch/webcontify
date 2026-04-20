@@ -32,6 +32,8 @@ class TenantProvisioningListenerTest {
     @Mock private FileStorageService fileStorageService;
     @Mock private KeycloakAdminService keycloakAdminService;
     @Mock private OpenFgaService openFgaService;
+    @Mock private io.webcontify.identity.repository.TenantUserRepository tenantUserRepository;
+    @Mock private io.webcontify.identity.repository.TenantRoleRepository tenantRoleRepository;
 
     private TenantProvisioningListener listener;
 
@@ -39,7 +41,8 @@ class TenantProvisioningListenerTest {
     void setUp() {
         var smtpProps = new PlatformSmtpProperties("localhost", 1025, "", "", false);
         listener = new TenantProvisioningListener(
-                tenantRepository, fileStorageService, keycloakAdminService, openFgaService, smtpProps);
+                tenantRepository, fileStorageService, keycloakAdminService, openFgaService, smtpProps,
+                tenantUserRepository, tenantRoleRepository);
     }
 
     @Test
