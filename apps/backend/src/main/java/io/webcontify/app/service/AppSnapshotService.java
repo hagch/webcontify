@@ -16,12 +16,16 @@ public class AppSnapshotService {
 
     private final FileStorageService fileStorageService;
     private final AppDependencyService dependencyService;
+    private final ContentSnapshotProvider contentSnapshotProvider;
     private final ObjectMapper objectMapper;
 
     public AppSnapshotService(
-            FileStorageService fileStorageService, AppDependencyService dependencyService) {
+            FileStorageService fileStorageService,
+            AppDependencyService dependencyService,
+            ContentSnapshotProvider contentSnapshotProvider) {
         this.fileStorageService = fileStorageService;
         this.dependencyService = dependencyService;
+        this.contentSnapshotProvider = contentSnapshotProvider;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -32,12 +36,14 @@ public class AppSnapshotService {
                 .map(d -> new AppSnapshot.AppSnapshotDependency(d.getDependsOnAppSlug(), ""))
                 .toList();
 
+        var contentDefinitions = contentSnapshotProvider.getSnapshotDefinitions(app.getId());
+
         return new AppSnapshot(
                 app.getId().toString(),
                 version,
                 new AppSnapshot.AppSnapshotMetadata(app.getName(), app.getSlug(), app.getDescription()),
                 snapshotDeps,
-                List.of());
+                contentDefinitions);
     }
 
     public String uploadSnapshot(String bucketName, AppSnapshot snapshot) {

@@ -50,6 +50,9 @@ class AppDependencyServiceTest {
     @Mock
     private ChangeRecordService changeRecordService;
 
+    @Mock
+    private io.webcontify.identity.service.PermissionService permissionService;
+
     private AppDependencyService dependencyService;
 
     @BeforeEach
@@ -58,7 +61,8 @@ class AppDependencyServiceTest {
         var auth = new TenantAwareAuthentication(info, TEST_USER_ID, List.of(new SimpleGrantedAuthority("ROLE_USER")));
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        dependencyService = new AppDependencyService(dependencyRepository, appRepository, appService, changeRecordService);
+        dependencyService = new AppDependencyService(
+                dependencyRepository, appRepository, appService, changeRecordService, permissionService);
     }
 
     @AfterEach
@@ -248,6 +252,8 @@ class AppDependencyServiceTest {
 
         when(dependencyRepository.findByAppId(appAId)).thenReturn(List.of(aToBEntity));
         when(dependencyRepository.findByAppId(appBId)).thenReturn(Collections.emptyList());
+        when(permissionService.check(any(io.webcontify.identity.model.CheckPermissionRequest.class)))
+                .thenReturn(true);
 
         DependencyGraphResponse graph = dependencyService.getDependencyGraph(appAId);
 
@@ -255,9 +261,9 @@ class AppDependencyServiceTest {
         assertThat(graph.getEdges()).hasSize(1);
 
         assertThat(graph.getNodes())
-                .anyMatch(n -> n.getId().equals(appAId) && n.getIsCurrent());
+                .anyMatch(n -> n.getId().equals(appAId) && Boolean.TRUE.equals(n.getIsCurrent()));
         assertThat(graph.getNodes())
-                .anyMatch(n -> n.getId().equals(appBId) && !n.getIsCurrent());
+                .anyMatch(n -> n.getId().equals(appBId) && !Boolean.TRUE.equals(n.getIsCurrent()));
 
         assertThat(graph.getEdges().get(0).getSource()).isEqualTo(appAId);
         assertThat(graph.getEdges().get(0).getTarget()).isEqualTo(appBId);

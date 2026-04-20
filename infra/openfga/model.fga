@@ -44,11 +44,20 @@ type app_management
     define tenant: [tenant]
     define admin: [user, role#assignee] or admin from tenant
     define editor: [user, role#assignee] or admin
-    define viewer: [user, role#assignee] or editor
+    define creator: [user, role#assignee] or admin
+    define viewer: [user, role#assignee] or editor or creator
 
 type app
   relations
     define management: [app_management]
+    define restricted: [user, role#assignee]
     define viewer: [user, role#assignee] or viewer from management
     define editor: [user, role#assignee] or editor from management
     define admin: [user, role#assignee] or admin from management
+
+type content_definition
+  relations
+    define parent: [app]
+    define viewer: [user, role#assignee] or (viewer from parent but not restricted from parent)
+    define editor: [user, role#assignee] or (editor from parent but not restricted from parent)
+    define deleter: [user, role#assignee] or (editor from parent but not restricted from parent)

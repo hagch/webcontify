@@ -1,4 +1,5 @@
 import { signIn } from "@/auth";
+import { Button } from "@/components/ui/button";
 import { AutoSubmit } from "./auto-submit";
 
 export default async function SignInPage({
@@ -17,7 +18,7 @@ export default async function SignInPage({
       }}
     >
       <noscript>
-        <button type="submit">Sign in with Keycloak</button>
+        <Button type="submit">Sign in with Keycloak</Button>
       </noscript>
       <AutoSubmit />
     </form>

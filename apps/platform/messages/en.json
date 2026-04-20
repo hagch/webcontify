@@ -189,6 +189,13 @@
         "noApps": "No per-app permissions configured",
         "perAppSaveSuccess": "Per-app permissions saved",
         "perAppSaveError": "Failed to save per-app permissions"
+      },
+      "contentDefinitions": {
+        "title": "Content Definitions",
+        "definitionColumn": "Definition",
+        "noDefinitions": "No content definitions in this app",
+        "cascadeToggleLabel": "Include all definitions automatically",
+        "cascadeToggleHelp": "Turn off to grant access to specific definitions only"
       }
     },
     "toasts": {
@@ -546,6 +553,7 @@
         "confirm": "Confirm", "cancel": "Cancel"
       },
       "overview": "Overview",
+      "content": "Content",
       "statusChangeSuccess": "App status updated successfully",
       "statusChangeError": "Failed to update app status",
       "deleteSuccess": "App deleted successfully",
@@ -604,6 +612,8 @@
         "successToast": "Revision reverted successfully",
         "errorToast": "Failed to revert revision"
       },
+      "typeApp": "App",
+      "typeContentDefinition": "Content Definition",
       "diffLabels": {
         "added": "Added",
         "removed": "Removed",
@@ -612,9 +622,12 @@
     },
     "dependencies": {
       "title": "Dependencies",
-      "noDependencies": "No dependencies yet. Click the + node to add one.",
+      "noDependencies": "No dependencies yet",
+      "readOnlyInfo": "Dependencies are managed via the Content tab",
       "direct": "Direct",
       "transitive": "Transitive",
+      "restrictedApp": "Restricted access",
+      "restrictedAppTooltip": "You don't have access to this app",
       "addNode": {
         "label": "Add Dependency"
       },
@@ -669,6 +682,135 @@
         "canImport": "Ready to import",
         "cannotImport": "Cannot import — resolve issues first"
       }
+    }
+  },
+  "content": {
+    "title": "Content Definitions",
+    "addDefinition": "Add Definition",
+    "noDefinitions": "No content definitions yet",
+    "addFirst": "Create your first definition",
+    "desktopRecommended": "Desktop recommended for graph editing",
+    "delete": {
+      "title": "Delete definition",
+      "body": "\"{name}\" will be deleted. Definitions referencing it keep their edges but show a restricted placeholder.",
+      "confirmButton": "Delete",
+      "cancelButton": "Cancel",
+      "success": "Definition deleted",
+      "error": "Failed to delete definition"
+    },
+    "definition": {
+      "name": "Name",
+      "description": "Description",
+      "displayFormat": "Display Format",
+      "displayFormatHint": "Use '{'fieldKey'}' placeholders, e.g. '{'title'}' — '{'author'}'",
+      "delete": "Delete Definition",
+      "deleteConfirm": "This will delete the definition and remove all reference fields pointing to it.",
+      "deleteWithRefs": "{count} reference fields will be removed",
+      "nameExists": "A definition with this name already exists",
+      "editSuccess": "Definition updated successfully",
+      "createSuccess": "Definition created successfully",
+      "deleteSuccess": "Definition deleted successfully",
+      "save": "Save"
+    },
+    "field": {
+      "title": "Fields",
+      "addField": "Add Field",
+      "noFields": "No fields defined yet",
+      "fieldKey": "Field Key",
+      "fieldType": "Field Type",
+      "required": "Required",
+      "unique": "Unique",
+      "sortable": "Sortable",
+      "filterable": "Filterable",
+      "config": "Configuration",
+      "delete": "Delete Field",
+      "deleteConfirm": "Are you sure you want to delete this field?",
+      "typeImmutable": "Field type cannot be changed after creation",
+      "keyExists": "A field with this key already exists",
+      "editSuccess": "Field updated successfully",
+      "createSuccess": "Field added successfully",
+      "deleteSuccess": "Field deleted successfully",
+      "save": "Save",
+      "cancel": "Cancel",
+      "selectTarget": "Select target definition",
+      "noTargets": "No other definitions available"
+    },
+    "fieldType": {
+      "TEXT": "Text",
+      "INTEGER": "Integer",
+      "DECIMAL": "Decimal",
+      "BOOLEAN": "Boolean",
+      "DATE": "Date",
+      "ENUM": "Enum",
+      "REFERENCE": "Reference",
+      "MIRROR": "Mirror"
+    },
+    "config": {
+      "minLength": "Min Length",
+      "maxLength": "Max Length",
+      "pattern": "Pattern (Regex)",
+      "defaultValue": "Default Value",
+      "min": "Minimum",
+      "max": "Maximum",
+      "precision": "Precision",
+      "scale": "Scale",
+      "minDate": "Min Date",
+      "maxDate": "Max Date",
+      "dateFormat": "Date Format",
+      "allowedValues": "Allowed Values",
+      "targetDefinition": "Target Definition",
+      "relationType": "Relation Type",
+      "onDelete": "On Delete"
+    },
+    "relationType": {
+      "ONE_TO_ONE": "One-to-One",
+      "MANY_TO_ONE": "Many-to-One",
+      "MANY_TO_MANY": "Many-to-Many"
+    },
+    "onDelete": {
+      "CASCADE": "Cascade",
+      "SET_NULL": "Set Null",
+      "RESTRICT": "Restrict"
+    },
+    "graph": {
+      "layoutReset": "Reset Layout",
+      "ghostNodeBadge": "From: {appName}",
+      "removeGhost": "Remove from canvas",
+      "removeGhostConfirm": "Removing this will also delete the dependency on {appName}. Continue?",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "fitView": "Fit View",
+      "minimap": "Toggle Minimap",
+      "moreFields": "+{count} more",
+      "noFields": "No fields",
+      "addField": "Add Field",
+      "fromApp": "From {appName}",
+      "restrictedDefinition": "Restricted access",
+      "restrictedTooltip": "You don't have access to this definition"
+    },
+    "spotlight": {
+      "placeholder": "Search definitions...",
+      "createNew": "Create new definition",
+      "noResults": "No definitions found"
+    },
+    "connect": {
+      "title": "Create Reference",
+      "sourceField": "Source Field Key",
+      "mirrorField": "Mirror Field Key",
+      "relationType": "Relation Type",
+      "onDelete": "On Delete Strategy",
+      "create": "Create Reference",
+      "cancel": "Cancel"
+    },
+    "undo": {
+      "title": "Undo",
+      "success": "Change undone",
+      "nothingToUndo": "Nothing to undo"
+    },
+    "redo": {
+      "title": "Redo",
+      "success": "Change redone",
+      "nothingToRedo": "Nothing to redo"
     }
   },
   "settings": {

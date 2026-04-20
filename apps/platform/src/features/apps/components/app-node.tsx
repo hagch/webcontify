@@ -4,6 +4,7 @@ import { memo } from "react";
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { DependencyGraphNode, AppStatus } from "@/generated/app";
 
@@ -29,7 +30,14 @@ export type AppNodeData = DependencyGraphNode & {
 };
 
 function AppNodeComponent({ data }: NodeProps<Node<AppNodeData>>) {
-  const firstLetter = data.name.charAt(0).toUpperCase();
+  // AppNode only renders accessible dependency nodes. Ghost/inaccessible
+  // nodes get routed to a separate node type (Task 13); however, the
+  // generated schema now marks these metadata fields as optional so we
+  // defend with fallbacks here.
+  const name = data.name ?? "";
+  const slug = data.slug ?? "";
+  const status = data.status;
+  const firstLetter = name.charAt(0).toUpperCase();
 
   return (
     <div
@@ -47,21 +55,21 @@ function AppNodeComponent({ data }: NodeProps<Node<AppNodeData>>) {
         isConnectable={!data.isCurrent}
       />
       {!data.isCurrent && !data.isTransitive && data.onDelete && (
-        <button
+        <Button
+          variant="default"
+          size="icon-xs"
           className={cn(
-            "absolute -right-2 -top-2 flex size-5 items-center justify-center",
-            "rounded-full bg-destructive text-destructive-foreground",
-            "opacity-0 shadow-sm transition-opacity group-hover:opacity-100",
-            "cursor-pointer hover:scale-110"
+            "absolute -right-2 -top-2 rounded-full bg-destructive text-destructive-foreground shadow-sm",
+            "opacity-0 transition-all group-hover:opacity-100 hover:scale-110 hover:bg-destructive/90"
           )}
           onClick={(e) => {
             e.stopPropagation();
-            data.onDelete!(data.id, data.name);
+            data.onDelete!(data.id, name);
           }}
           data-testid={`delete-dependency-${data.id}`}
         >
           <X className="size-3" />
-        </button>
+        </Button>
       )}
       <div className="flex items-center gap-2.5 mb-2">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary/70">
@@ -70,12 +78,14 @@ function AppNodeComponent({ data }: NodeProps<Node<AppNodeData>>) {
           </span>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{data.name}</p>
-          <p className="truncate text-xs text-muted-foreground">{data.slug}</p>
+          <p className="truncate text-sm font-semibold">{name}</p>
+          <p className="truncate text-xs text-muted-foreground">{slug}</p>
         </div>
-        <Badge variant={statusBadgeVariant(data.status)} className="text-[10px] shrink-0">
-          {data.status}
-        </Badge>
+        {status && (
+          <Badge variant={statusBadgeVariant(status)} className="text-[10px] shrink-0">
+            {status}
+          </Badge>
+        )}
       </div>
       <div className="border-t pt-2">
         <span className="text-xs text-muted-foreground">

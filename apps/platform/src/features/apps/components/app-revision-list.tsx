@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, Undo2, FileText } from "lucide-react";
+import { ChevronDown, Undo2, FileText, AppWindow, Database } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -53,6 +53,17 @@ function RevisionRow({
           >
             #{revisionNumber}
           </Badge>
+          {revision.source === "content_definition" ? (
+            <Badge variant="outline" className="gap-1 text-xs">
+              <Database className="size-3" />
+              {t("revisions.typeContentDefinition")}
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="gap-1 text-xs">
+              <AppWindow className="size-3" />
+              {t("revisions.typeApp")}
+            </Badge>
+          )}
           {revision.summary && (
             <span className="text-sm text-foreground">{revision.summary}</span>
           )}

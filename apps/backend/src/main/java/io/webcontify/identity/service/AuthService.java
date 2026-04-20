@@ -3,6 +3,7 @@ package io.webcontify.identity.service;
 import io.webcontify.identity.model.EffectivePermissions;
 import io.webcontify.identity.model.OpenFgaBatchCheckRequest;
 import io.webcontify.identity.model.OpenFgaCheckRequest;
+import io.webcontify.identity.model.OpenFgaListObjectsRequest;
 import io.webcontify.identity.model.UpdateKeycloakUserRequest;
 import io.webcontify.identity.model.UserPreferences;
 import io.webcontify.shared.exception.BadRequestException;
@@ -49,7 +50,8 @@ public class AuthService {
             "user_management", List.of("inviter", "editor", "deleter", "reader"),
             "role_management", List.of("creator", "editor", "deleter", "reader"),
             "tenant_config", List.of("editor", "reader"),
-            "app_management", List.of("viewer", "editor", "admin")
+            "app_management", List.of("viewer", "editor", "admin"),
+            "content_definition", List.of("viewer", "editor", "deleter")
     );
 
     private final KeycloakAdminService keycloakAdminService;
@@ -275,6 +277,22 @@ public class AuthService {
 
         boolean isTenantAdmin = Boolean.TRUE.equals(
                 batchResponse.results().get("admin:tenant"));
+
+        // A user may have no tenant-wide app_management permission but still have
+        // per-app viewer/editor/admin (e.g. a role scoped to a single app). In that
+        // case they must still see the Apps nav entry and the filtered list page.
+        // OpenFGA's `viewer` on `app` cascades from editor/admin, so listing viewer
+        // objects covers all three cases.
+        var appMgmt = permissions.getOrDefault("app_management", List.of());
+        if (!appMgmt.contains("viewer")) {
+            var accessibleApps = openFgaService.listObjects(new OpenFgaListObjectsRequest(
+                    infrastructure.openfgaStoreId(), userId, "viewer", "app"));
+            if (!accessibleApps.isEmpty()) {
+                var updated = new ArrayList<>(appMgmt);
+                updated.add("viewer");
+                permissions.put("app_management", updated);
+            }
+        }
 
         return new EffectivePermissions(permissions, isTenantAdmin);
     }

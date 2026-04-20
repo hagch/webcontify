@@ -189,6 +189,13 @@
         "noApps": "Keine app-spezifischen Berechtigungen konfiguriert",
         "perAppSaveSuccess": "App-spezifische Berechtigungen gespeichert",
         "perAppSaveError": "Fehler beim Speichern der App-spezifischen Berechtigungen"
+      },
+      "contentDefinitions": {
+        "title": "Content-Definitionen",
+        "definitionColumn": "Definition",
+        "noDefinitions": "Keine Content-Definitionen in dieser App",
+        "cascadeToggleLabel": "Alle Definitionen automatisch einbeziehen",
+        "cascadeToggleHelp": "Deaktivieren, um nur bestimmte Definitionen freizugeben"
       }
     },
     "toasts": {
@@ -546,6 +553,7 @@
         "confirm": "Bestaetigen", "cancel": "Abbrechen"
       },
       "overview": "Uebersicht",
+      "content": "Inhalt",
       "statusChangeSuccess": "App-Status erfolgreich aktualisiert",
       "statusChangeError": "App-Status konnte nicht aktualisiert werden",
       "deleteSuccess": "App erfolgreich geloescht",
@@ -603,6 +611,8 @@
         "cancel": "Abbrechen",
         "successToast": "Revision erfolgreich rueckgaengig gemacht"
       },
+      "typeApp": "App",
+      "typeContentDefinition": "Content-Definition",
       "diffLabels": {
         "added": "Hinzugefuegt",
         "removed": "Entfernt",
@@ -611,9 +621,12 @@
     },
     "dependencies": {
       "title": "Abhaengigkeiten",
-      "noDependencies": "Noch keine Abhaengigkeiten. Klicke auf den + Knoten um eine hinzuzufuegen.",
+      "noDependencies": "Noch keine Abhaengigkeiten",
+      "readOnlyInfo": "Abhaengigkeiten werden ueber den Content-Tab verwaltet",
       "direct": "Direkt",
       "transitive": "Transitiv",
+      "restrictedApp": "Eingeschraenkter Zugriff",
+      "restrictedAppTooltip": "Du hast keinen Zugriff auf diese App",
       "addNode": {
         "label": "Abhaengigkeit hinzufuegen"
       },
@@ -668,6 +681,135 @@
         "canImport": "Bereit zum Import",
         "cannotImport": "Import nicht moeglich — Probleme zuerst beheben"
       }
+    }
+  },
+  "content": {
+    "title": "Content-Definitionen",
+    "addDefinition": "Definition hinzufuegen",
+    "noDefinitions": "Noch keine Content-Definitionen vorhanden",
+    "addFirst": "Erstelle deine erste Definition",
+    "desktopRecommended": "Desktop empfohlen fuer Graph-Bearbeitung",
+    "delete": {
+      "title": "Definition loeschen",
+      "body": "\"{name}\" wird geloescht. Definitionen, die darauf referenzieren, behalten ihre Kanten, zeigen aber einen eingeschraenkten Platzhalter.",
+      "confirmButton": "Loeschen",
+      "cancelButton": "Abbrechen",
+      "success": "Definition geloescht",
+      "error": "Loeschen der Definition fehlgeschlagen"
+    },
+    "definition": {
+      "name": "Name",
+      "description": "Beschreibung",
+      "displayFormat": "Anzeigeformat",
+      "displayFormatHint": "Verwende '{'fieldKey'}' Platzhalter, z.B. '{'title'}' — '{'author'}'",
+      "delete": "Definition loeschen",
+      "deleteConfirm": "Die Definition wird geloescht und alle Referenzfelder, die darauf zeigen, werden entfernt.",
+      "deleteWithRefs": "{count} Referenzfelder werden entfernt",
+      "nameExists": "Eine Definition mit diesem Namen existiert bereits",
+      "editSuccess": "Definition erfolgreich aktualisiert",
+      "createSuccess": "Definition erfolgreich erstellt",
+      "deleteSuccess": "Definition erfolgreich geloescht",
+      "save": "Speichern"
+    },
+    "field": {
+      "title": "Felder",
+      "addField": "Feld hinzufuegen",
+      "noFields": "Noch keine Felder definiert",
+      "fieldKey": "Feldschluessel",
+      "fieldType": "Feldtyp",
+      "required": "Pflichtfeld",
+      "unique": "Eindeutig",
+      "sortable": "Sortierbar",
+      "filterable": "Filterbar",
+      "config": "Konfiguration",
+      "delete": "Feld loeschen",
+      "deleteConfirm": "Bist du sicher, dass du dieses Feld loeschen moechtest?",
+      "typeImmutable": "Feldtyp kann nach der Erstellung nicht geaendert werden",
+      "keyExists": "Ein Feld mit diesem Schluessel existiert bereits",
+      "editSuccess": "Feld erfolgreich aktualisiert",
+      "createSuccess": "Feld erfolgreich hinzugefuegt",
+      "deleteSuccess": "Feld erfolgreich geloescht",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "selectTarget": "Ziel-Definition auswaehlen",
+      "noTargets": "Keine anderen Definitionen verfuegbar"
+    },
+    "fieldType": {
+      "TEXT": "Text",
+      "INTEGER": "Ganzzahl",
+      "DECIMAL": "Dezimalzahl",
+      "BOOLEAN": "Wahrheitswert",
+      "DATE": "Datum",
+      "ENUM": "Aufzaehlung",
+      "REFERENCE": "Referenz",
+      "MIRROR": "Spiegel"
+    },
+    "config": {
+      "minLength": "Mindestlaenge",
+      "maxLength": "Maximallaenge",
+      "pattern": "Muster (Regex)",
+      "defaultValue": "Standardwert",
+      "min": "Minimum",
+      "max": "Maximum",
+      "precision": "Praezision",
+      "scale": "Nachkommastellen",
+      "minDate": "Fruehestes Datum",
+      "maxDate": "Spaetestes Datum",
+      "dateFormat": "Datumsformat",
+      "allowedValues": "Erlaubte Werte",
+      "targetDefinition": "Ziel-Definition",
+      "relationType": "Beziehungstyp",
+      "onDelete": "Beim Loeschen"
+    },
+    "relationType": {
+      "ONE_TO_ONE": "Eins-zu-Eins",
+      "MANY_TO_ONE": "Viele-zu-Eins",
+      "MANY_TO_MANY": "Viele-zu-Viele"
+    },
+    "onDelete": {
+      "CASCADE": "Kaskadieren",
+      "SET_NULL": "Null setzen",
+      "RESTRICT": "Einschraenken"
+    },
+    "graph": {
+      "layoutReset": "Layout zuruecksetzen",
+      "ghostNodeBadge": "Von: {appName}",
+      "removeGhost": "Von der Leinwand entfernen",
+      "removeGhostConfirm": "Das Entfernen loescht auch die Abhaengigkeit zu {appName}. Fortfahren?",
+      "zoomIn": "Hineinzoomen",
+      "zoomOut": "Herauszoomen",
+      "fitView": "Ansicht anpassen",
+      "minimap": "Minimap umschalten",
+      "moreFields": "+{count} weitere",
+      "noFields": "Keine Felder",
+      "addField": "Feld hinzufuegen",
+      "fromApp": "Von {appName}",
+      "restrictedDefinition": "Eingeschraenkter Zugriff",
+      "restrictedTooltip": "Du hast keinen Zugriff auf diese Definition"
+    },
+    "spotlight": {
+      "placeholder": "Definitionen suchen...",
+      "createNew": "Neue Definition erstellen",
+      "noResults": "Keine Definitionen gefunden"
+    },
+    "connect": {
+      "title": "Referenz erstellen",
+      "sourceField": "Quell-Feldschluessel",
+      "mirrorField": "Spiegel-Feldschluessel",
+      "relationType": "Beziehungstyp",
+      "onDelete": "Loesch-Strategie",
+      "create": "Referenz erstellen",
+      "cancel": "Abbrechen"
+    },
+    "undo": {
+      "title": "Rueckgaengig",
+      "success": "Aenderung rueckgaengig gemacht",
+      "nothingToUndo": "Nichts zum Rueckgaengigmachen"
+    },
+    "redo": {
+      "title": "Wiederherstellen",
+      "success": "Aenderung wiederhergestellt",
+      "nothingToRedo": "Nichts zum Wiederherstellen"
     }
   },
   "settings": {

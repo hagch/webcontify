@@ -11,6 +11,8 @@ import io.webcontify.app.repository.AppDependencyRepository;
 import io.webcontify.app.repository.AppRepository;
 import io.webcontify.app.repository.AppVersionRepository;
 import io.webcontify.app.repository.entity.AppEntity;
+import io.webcontify.identity.model.CheckPermissionRequest;
+import io.webcontify.identity.model.ListPermittedObjectsRequest;
 import io.webcontify.identity.model.RelationshipTuple;
 import io.webcontify.identity.service.PermissionService;
 import io.webcontify.shared.changelog.service.ChangeRecordService;
@@ -21,6 +23,7 @@ import io.webcontify.shared.util.SlugGenerator;
 import io.webcontify.shared.util.UuidGenerator;
 import java.time.OffsetDateTime;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -93,12 +96,35 @@ public class AppService {
 
     @Transactional(readOnly = true)
     public Page<App> list(Pageable pageable, AppStatus status) {
+        var tenantInfo = TenantContext.getTenantInformation();
         Page<AppEntity> entities;
-        if (status != null) {
-            entities = appRepository.findByStatusAndAuditInfoDeletedAtIsNull(status.name(), pageable);
+
+        // Platform admins and users with tenant-wide app_management.viewer see every
+        // app; otherwise fall back to per-app OpenFGA access (covers users whose role
+        // grants viewer/editor/admin on specific apps only).
+        boolean unrestricted = tenantInfo.platformAdmin()
+                || permissionService.check(new CheckPermissionRequest(
+                        TenantContext.getCurrentUserId(),
+                        "viewer",
+                        "app_management",
+                        tenantInfo.tenantId()));
+
+        if (unrestricted) {
+            entities = (status != null)
+                    ? appRepository.findByStatusAndAuditInfoDeletedAtIsNull(status.name(), pageable)
+                    : appRepository.findByAuditInfoDeletedAtIsNull(pageable);
         } else {
-            entities = appRepository.findByAuditInfoDeletedAtIsNull(pageable);
+            List<UUID> accessibleIds = permissionService.listObjects(new ListPermittedObjectsRequest(
+                    TenantContext.getCurrentUserId(), "viewer", "app"));
+            if (accessibleIds.isEmpty()) {
+                return Page.empty(pageable);
+            }
+            entities = (status != null)
+                    ? appRepository.findByIdInAndStatusAndAuditInfoDeletedAtIsNull(
+                            accessibleIds, status.name(), pageable)
+                    : appRepository.findByIdInAndAuditInfoDeletedAtIsNull(accessibleIds, pageable);
         }
+
         return entities.map(e -> {
             App app = appMapper.toDomain(e);
             enrichCurrentVersion(app);
@@ -123,6 +149,15 @@ public class AppService {
         JsonNode afterNode = serializeAppState(entity);
         createRevisionIfChanged(id, beforeNode, afterNode);
         return appMapper.toDomain(entity);
+    }
+
+    public void markAsDraft(UUID appId) {
+        AppEntity entity = appRepository.findByIdAndAuditInfoDeletedAtIsNull(appId)
+                .orElseThrow(() -> new NotFoundException("app.not_found"));
+        if ("ACTIVE".equals(entity.getStatus())) {
+            entity.setHasDraft(true);
+            appRepository.save(entity);
+        }
     }
 
     public App updateStatus(UUID id, AppStatus status) {

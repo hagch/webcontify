@@ -1070,27 +1070,34 @@ components:
 
     DependencyGraphNode:
       type: object
+      description: |
+        Security contract: when accessible=false the backend MUST NOT populate
+        name, slug, status, definitionCount, or isCurrent — frontend renders
+        a ghost placeholder. Mapper unit test enforces the invariant.
       required:
         - id
-        - name
-        - slug
-        - status
-        - definitionCount
-        - isCurrent
+        - accessible
       properties:
         id:
           type: string
           format: uuid
+        accessible:
+          type: boolean
+          description: Whether the current user has viewer access to this app.
         name:
           type: string
+          description: Only populated when accessible=true.
         slug:
           type: string
+          description: Only populated when accessible=true.
         status:
           $ref: '#/components/schemas/AppStatus'
         definitionCount:
           type: integer
+          description: Only populated when accessible=true.
         isCurrent:
           type: boolean
+          description: Only populated when accessible=true.
 
     DependencyGraphEdge:
       type: object

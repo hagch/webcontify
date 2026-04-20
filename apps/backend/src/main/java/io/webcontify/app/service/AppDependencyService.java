@@ -8,6 +8,8 @@ import io.webcontify.app.repository.AppRepository;
 import io.webcontify.app.repository.entity.AppDependencyEntity;
 import io.webcontify.app.repository.entity.AppEntity;
 import io.webcontify.generated.model.*;
+import io.webcontify.identity.model.CheckPermissionRequest;
+import io.webcontify.identity.service.PermissionService;
 import io.webcontify.shared.changelog.service.ChangeRecordService;
 import io.webcontify.shared.exception.BadRequestException;
 import io.webcontify.shared.exception.ConflictException;
@@ -25,16 +27,19 @@ public class AppDependencyService {
     private final AppRepository appRepository;
     private final AppService appService;
     private final ChangeRecordService changeRecordService;
+    private final PermissionService permissionService;
 
     public AppDependencyService(
             AppDependencyRepository dependencyRepository,
             AppRepository appRepository,
             AppService appService,
-            ChangeRecordService changeRecordService) {
+            ChangeRecordService changeRecordService,
+            PermissionService permissionService) {
         this.dependencyRepository = dependencyRepository;
         this.appRepository = appRepository;
         this.appService = appService;
         this.changeRecordService = changeRecordService;
+        this.permissionService = permissionService;
     }
 
     public AppDependency addDependency(UUID appId, UUID dependsOnAppId) {
@@ -181,16 +186,34 @@ public class AppDependencyService {
             }
         }
 
+        // Per-app accessibility: platform admin and the root app (already
+        // verified by the caller) are trusted; every other node must pass a
+        // viewer:app check. Inaccessible nodes emit only id + accessible=false
+        // — name/slug/status/definitionCount/isCurrent stay null so the wire
+        // format never leaks metadata about apps the user cannot see.
+        var tenantInfo = TenantContext.getTenantInformation();
+        UUID currentUserId = TenantContext.getCurrentUserId();
+        boolean bypassChecks = tenantInfo.platformAdmin();
+
         List<DependencyGraphNode> nodes = new ArrayList<>();
         for (Map.Entry<UUID, App> entry : appMap.entrySet()) {
             App app = entry.getValue();
+            boolean isRoot = app.getId().equals(appId);
+            boolean accessible = bypassChecks
+                    || isRoot
+                    || permissionService.check(new CheckPermissionRequest(
+                            currentUserId, "viewer", "app", app.getId()));
+
             DependencyGraphNode node = new DependencyGraphNode();
             node.setId(app.getId());
-            node.setName(app.getName());
-            node.setSlug(app.getSlug());
-            node.setStatus(io.webcontify.generated.model.AppStatus.fromValue(app.getStatus().name()));
-            node.setDefinitionCount(0);
-            node.setIsCurrent(app.getId().equals(appId));
+            node.setAccessible(accessible);
+            if (accessible) {
+                node.setName(app.getName());
+                node.setSlug(app.getSlug());
+                node.setStatus(io.webcontify.generated.model.AppStatus.fromValue(app.getStatus().name()));
+                node.setDefinitionCount(0);
+                node.setIsCurrent(isRoot);
+            }
             nodes.add(node);
         }
 

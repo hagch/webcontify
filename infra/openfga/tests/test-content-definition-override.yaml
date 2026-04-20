@@ -1,0 +1,56 @@
+name: content definition override semantics
+model_file: ../model.fga
+tuples:
+  # tenant + app_management setup for cascade user
+  - user: app_management:t1
+    relation: tenant
+    object: tenant:t1
+  - user: user:u_cascade
+    relation: viewer
+    object: app_management:t1
+  - user: app_management:t1
+    relation: management
+    object: app:a1
+  - user: app:a1
+    relation: parent
+    object: content_definition:d1
+  - user: app:a1
+    relation: parent
+    object: content_definition:d2
+  # override role: has viewer:app:a1, restricted:a1, viewer:d1 specifically
+  - user: role:r_override#assignee
+    relation: viewer
+    object: app:a1
+  - user: role:r_override#assignee
+    relation: restricted
+    object: app:a1
+  - user: role:r_override#assignee
+    relation: viewer
+    object: content_definition:d1
+  # assign u_override to the role
+  - user: user:u_override
+    relation: assignee
+    object: role:r_override
+
+tests:
+  - name: cascade user sees both definitions
+    check:
+      - user: user:u_cascade
+        object: content_definition:d1
+        assertions:
+          viewer: true
+      - user: user:u_cascade
+        object: content_definition:d2
+        assertions:
+          viewer: true
+
+  - name: override user sees only granted definition
+    check:
+      - user: user:u_override
+        object: content_definition:d1
+        assertions:
+          viewer: true
+      - user: user:u_override
+        object: content_definition:d2
+        assertions:
+          viewer: false

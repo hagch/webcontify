@@ -42,7 +42,8 @@ public class AppController implements AppApi {
     }
 
     @Override
-    @RequiresPermission(action = "viewer", resource = "app_management")
+    // Intentionally no @RequiresPermission: the service filters results based on
+    // tenant-wide viewer OR per-app viewer access via OpenFGA listObjects.
     public ResponseEntity<AppListResponse> listApps(
             Integer page, Integer size, @Nullable io.webcontify.generated.model.AppStatus status) {
         AppStatus domainStatus = status != null ? AppStatus.valueOf(status.getValue()) : null;

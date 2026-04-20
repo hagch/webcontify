@@ -37,6 +37,7 @@ import { PublishAppDialog } from "@/features/apps/components/publish-app-dialog"
 import { AppVersionList } from "@/features/apps/components/app-version-list";
 import { AppRevisionList } from "@/features/apps/components/app-revision-list";
 import { AppDependencyGraph } from "@/features/apps/components/app-dependency-graph";
+import { ContentDefinitionGraph } from "@/features/content/components/content-definition-graph";
 import { AppProblemsPanel } from "@/features/apps/components/app-problems-panel";
 import { useListAppProblems } from "@/generated/app";
 import type { AppResponseEffectiveActionsItem } from "@/generated/app";
@@ -246,6 +247,7 @@ export default function AppDetailPage({
           <Tabs defaultValue="overview">
             <TabsList>
               <TabsTrigger value="overview">{t("detail.overview")}</TabsTrigger>
+              <TabsTrigger value="content">{t("detail.content")}</TabsTrigger>
               <TabsTrigger value="dependencies">{t("dependencies.title")}</TabsTrigger>
               <TabsTrigger value="versions">{t("versions.title")}</TabsTrigger>
               <TabsTrigger value="revisions">{t("revisions.title")}</TabsTrigger>
@@ -397,9 +399,15 @@ export default function AppDetailPage({
               </div>
             </TabsContent>
 
+            <TabsContent value="content" className="flex-1">
+              <div className="h-[calc(100vh-9rem)]">
+                <ContentDefinitionGraph appSlug={app.slug} appId={app.id} canEdit={canEdit} />
+              </div>
+            </TabsContent>
+
             <TabsContent value="dependencies" className="flex-1">
               <div className="h-[calc(100vh-9rem)]">
-                <AppDependencyGraph appId={app.id} canEdit={canEdit} />
+                <AppDependencyGraph appId={app.id} />
               </div>
             </TabsContent>
 

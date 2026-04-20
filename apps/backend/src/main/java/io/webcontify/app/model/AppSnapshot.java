@@ -13,7 +13,21 @@ public record AppSnapshot(
     public record AppSnapshotDependency(String appSlug, String version) {}
 
     public record AppSnapshotDefinition(
-            String name, String slug, List<AppSnapshotField> fields) {}
+            String id,
+            String name,
+            String slug,
+            String description,
+            String displayFormat,
+            List<AppSnapshotField> fields) {}
 
-    public record AppSnapshotField(String name, String type, boolean required, String target) {}
+    public record AppSnapshotField(
+            String id,
+            String fieldKey,
+            String fieldType,
+            boolean required,
+            boolean uniqueValue,
+            boolean sortable,
+            boolean filterable,
+            String config,
+            int position) {}
 }

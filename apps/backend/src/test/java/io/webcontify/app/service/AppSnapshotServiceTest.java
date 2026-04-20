@@ -32,11 +32,14 @@ class AppSnapshotServiceTest {
     @Mock
     private AppDependencyService dependencyService;
 
+    @Mock
+    private ContentSnapshotProvider contentSnapshotProvider;
+
     private AppSnapshotService appSnapshotService;
 
     @BeforeEach
     void setUp() {
-        appSnapshotService = new AppSnapshotService(fileStorageService, dependencyService);
+        appSnapshotService = new AppSnapshotService(fileStorageService, dependencyService, contentSnapshotProvider);
     }
 
     @Test
@@ -50,6 +53,7 @@ class AppSnapshotServiceTest {
         app.setStatus(AppStatus.ACTIVE);
 
         when(dependencyService.listDependencies(appId)).thenReturn(List.of());
+        when(contentSnapshotProvider.getSnapshotDefinitions(appId)).thenReturn(List.of());
 
         AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "1.0.0");
 
@@ -69,6 +73,7 @@ class AppSnapshotServiceTest {
         app.setSlug("test-app");
 
         when(dependencyService.listDependencies(appId)).thenReturn(List.of());
+        when(contentSnapshotProvider.getSnapshotDefinitions(appId)).thenReturn(List.of());
 
         AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "0.1.0");
 
@@ -95,11 +100,55 @@ class AppSnapshotServiceTest {
         transitiveDep.setDirect(false);
 
         when(dependencyService.listDependencies(appId)).thenReturn(List.of(directDep, transitiveDep));
+        when(contentSnapshotProvider.getSnapshotDefinitions(appId)).thenReturn(List.of());
 
         AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "1.0.0");
 
         assertThat(snapshot.dependencies()).hasSize(1);
         assertThat(snapshot.dependencies().get(0).appSlug()).isEqualTo("dep-app");
+    }
+
+    @Test
+    void shouldBuildSnapshotWithContentDefinitions() {
+        UUID appId = UUID.randomUUID();
+        App app = new App();
+        app.setId(appId);
+        app.setName("Test App");
+        app.setSlug("test-app");
+
+        UUID defId = UUID.randomUUID();
+        UUID fieldId = UUID.randomUUID();
+        var snapshotField = new AppSnapshot.AppSnapshotField(
+                fieldId.toString(), "title", "TEXT", true, false, true, true,
+                "{\"maxLength\":255}", 0);
+        var snapshotDef = new AppSnapshot.AppSnapshotDefinition(
+                defId.toString(), "Article", "article", "Blog articles",
+                "{{title}}", List.of(snapshotField));
+
+        when(dependencyService.listDependencies(appId)).thenReturn(List.of());
+        when(contentSnapshotProvider.getSnapshotDefinitions(appId)).thenReturn(List.of(snapshotDef));
+
+        AppSnapshot snapshot = appSnapshotService.buildSnapshot(app, "1.0.0");
+
+        assertThat(snapshot.contentDefinitions()).hasSize(1);
+        var def = snapshot.contentDefinitions().get(0);
+        assertThat(def.id()).isEqualTo(defId.toString());
+        assertThat(def.name()).isEqualTo("Article");
+        assertThat(def.slug()).isEqualTo("article");
+        assertThat(def.description()).isEqualTo("Blog articles");
+        assertThat(def.displayFormat()).isEqualTo("{{title}}");
+        assertThat(def.fields()).hasSize(1);
+
+        var field = def.fields().get(0);
+        assertThat(field.id()).isEqualTo(fieldId.toString());
+        assertThat(field.fieldKey()).isEqualTo("title");
+        assertThat(field.fieldType()).isEqualTo("TEXT");
+        assertThat(field.required()).isTrue();
+        assertThat(field.uniqueValue()).isFalse();
+        assertThat(field.sortable()).isTrue();
+        assertThat(field.filterable()).isTrue();
+        assertThat(field.config()).isEqualTo("{\"maxLength\":255}");
+        assertThat(field.position()).isZero();
     }
 
     @Test
@@ -148,5 +197,56 @@ class AppSnapshotServiceTest {
         assertThat(result.appId()).isEqualTo(appId.toString());
         assertThat(result.version()).isEqualTo("1.0.0");
         assertThat(result.metadata().name()).isEqualTo("Test App");
+    }
+
+    @Test
+    void shouldDownloadSnapshotWithContentDefinitionsFromS3() {
+        UUID appId = UUID.randomUUID();
+        String json = """
+                {
+                    "appId": "%s",
+                    "version": "1.0.0",
+                    "metadata": {"name": "Test App", "slug": "test-app", "description": "desc"},
+                    "dependencies": [],
+                    "contentDefinitions": [
+                        {
+                            "id": "def-1",
+                            "name": "Article",
+                            "slug": "article",
+                            "description": "Blog articles",
+                            "displayFormat": "{{title}}",
+                            "fields": [
+                                {
+                                    "id": "field-1",
+                                    "fieldKey": "title",
+                                    "fieldType": "TEXT",
+                                    "required": true,
+                                    "uniqueValue": false,
+                                    "sortable": true,
+                                    "filterable": true,
+                                    "config": "{\\"maxLength\\":255}",
+                                    "position": 0
+                                }
+                            ]
+                        }
+                    ]
+                }
+                """.formatted(appId);
+
+        when(fileStorageService.getObject("tenant-test", "files/snapshots/app-v1.0.0.json"))
+                .thenReturn(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+
+        AppSnapshot result = appSnapshotService.downloadSnapshot("tenant-test", "files/snapshots/app-v1.0.0.json");
+
+        assertThat(result.contentDefinitions()).hasSize(1);
+        var def = result.contentDefinitions().get(0);
+        assertThat(def.id()).isEqualTo("def-1");
+        assertThat(def.name()).isEqualTo("Article");
+        assertThat(def.description()).isEqualTo("Blog articles");
+        assertThat(def.displayFormat()).isEqualTo("{{title}}");
+        assertThat(def.fields()).hasSize(1);
+        assertThat(def.fields().get(0).fieldKey()).isEqualTo("title");
+        assertThat(def.fields().get(0).fieldType()).isEqualTo("TEXT");
+        assertThat(def.fields().get(0).required()).isTrue();
     }
 }

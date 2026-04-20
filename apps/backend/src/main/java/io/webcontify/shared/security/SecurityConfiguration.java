@@ -59,6 +59,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/auth/**").authenticated()
                         .requestMatchers("/api/v1/tenant/**").authenticated()
                         .requestMatchers("/api/v1/apps/**").authenticated()
+                        .requestMatchers("/api/v1/content/**").authenticated()
                         .anyRequest().denyAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

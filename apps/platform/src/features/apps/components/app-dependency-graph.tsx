@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback, useState, useEffect } from "react";
+import { useMemo, useCallback, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import {
@@ -13,41 +13,24 @@ import {
   useEdgesState,
   type Node,
   type Edge,
-  type Connection,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Network } from "lucide-react";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { Network, Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useGetAppDependencyGraph,
-  useAddAppDependency,
-  getListAppDependenciesQueryKey,
-  getGetAppDependencyGraphQueryKey,
-  getListAppProblemsQueryKey,
-  getListAppRevisionsQueryKey,
-  getGetAppQueryKey,
-  type ProblemDetail,
 } from "@/generated/app";
 import { AppNode, type AppNodeData } from "./app-node";
-import {
-  AddDependencyNode,
-  type AddDependencyNodeData,
-} from "./add-dependency-node";
+import { RestrictedAppNode } from "./restricted-app-node";
 import {
   DependencyEdge,
   type DependencyEdgeData,
 } from "./dependency-edge";
-import { AddDependencyPopoverContent } from "./add-dependency-popover";
-import { RemoveDependencyDialog } from "./remove-dependency-dialog";
 import { computeElkLayout } from "../hooks/use-elk-layout";
-
-const ADD_NODE_ID = "__add_dependency__";
 
 const nodeTypes = {
   appNode: AppNode,
-  addNode: AddDependencyNode,
+  restrictedAppNode: RestrictedAppNode,
 };
 
 const edgeTypes = {
@@ -56,23 +39,15 @@ const edgeTypes = {
 
 interface AppDependencyGraphProps {
   appId: string;
-  canEdit?: boolean;
 }
 
-export function AppDependencyGraph({ appId, canEdit = false }: AppDependencyGraphProps) {
+export function AppDependencyGraph({ appId }: AppDependencyGraphProps) {
   const t = useTranslations("apps");
   const { resolvedTheme } = useTheme();
-  const queryClient = useQueryClient();
   const { data, isLoading } = useGetAppDependencyGraph(appId);
-  const addDependency = useAddAppDependency();
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-  const [popoverOpen, setPopoverOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{
-    depAppId: string;
-    depAppName: string;
-  } | null>(null);
 
   const graphData = data?.data;
   const graphNodes =
@@ -96,35 +71,29 @@ export function AppDependencyGraph({ appId, canEdit = false }: AppDependencyGrap
   const { flowNodes, flowEdges } = useMemo(() => {
     if (graphNodes.length === 0) return { flowNodes: [], flowEdges: [] };
 
-    const currentNode = graphNodes.find((n) => n.isCurrent);
-
-    const appNodes: Node<AppNodeData>[] = graphNodes.map((node) => ({
-      id: node.id,
-      type: "appNode",
-      position: { x: 0, y: 0 },
-      data: {
-        ...node,
-        isTransitive: !node.isCurrent && !directNodeIds.has(node.id),
-        onDelete: canEdit && !node.isCurrent && directNodeIds.has(node.id)
-          ? (appId: string, appName: string) => {
-              setDeleteTarget({ depAppId: appId, depAppName: appName });
-            }
-          : undefined,
-      },
-    }));
-
-    const allNodes: Node[] = [...appNodes];
-
-    // Add the plus-node only for editors
-    if (canEdit) {
-      const addNode: Node<AddDependencyNodeData> = {
-        id: ADD_NODE_ID,
-        type: "addNode",
+    // Route accessible nodes to AppNode; inaccessible nodes (no name/slug/
+    // status metadata by server contract) become ghost placeholders.
+    const appNodes: Node[] = graphNodes.map((node) => {
+      if (!node.accessible) {
+        return {
+          id: node.id,
+          type: "restrictedAppNode",
+          position: { x: 0, y: 0 },
+          data: { id: node.id },
+          draggable: false,
+          selectable: false,
+        };
+      }
+      return {
+        id: node.id,
+        type: "appNode",
         position: { x: 0, y: 0 },
-        data: { onAdd: () => setPopoverOpen(true) },
+        data: {
+          ...node,
+          isTransitive: !node.isCurrent && !directNodeIds.has(node.id),
+        } as AppNodeData,
       };
-      allNodes.push(addNode);
-    }
+    });
 
     // Build edges
     const depEdges: Edge<DependencyEdgeData>[] = graphEdges.map(
@@ -143,23 +112,8 @@ export function AppDependencyGraph({ appId, canEdit = false }: AppDependencyGrap
       })
     );
 
-    // Edge from current app to plus-node (dashed, visual only)
-    if (canEdit && currentNode) {
-      depEdges.push({
-        id: "edge-add-node",
-        source: currentNode.id,
-        target: ADD_NODE_ID,
-        type: "dependency",
-        data: { direct: false },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: "var(--muted-foreground)",
-        },
-      });
-    }
-
-    return { flowNodes: allNodes, flowEdges: depEdges };
-  }, [graphNodes, graphEdges, directNodeIds, canEdit]);
+    return { flowNodes: appNodes, flowEdges: depEdges };
+  }, [graphNodes, graphEdges, directNodeIds]);
 
   // Run ELK layout when data changes
   useEffect(() => {
@@ -170,67 +124,6 @@ export function AppDependencyGraph({ appId, canEdit = false }: AppDependencyGrap
       setEdges(flowEdges);
     });
   }, [flowNodes, flowEdges, setNodes, setEdges]);
-
-  const invalidateQueries = useCallback(() => {
-    queryClient.invalidateQueries({
-      queryKey: getListAppDependenciesQueryKey(appId),
-    });
-    queryClient.invalidateQueries({
-      queryKey: getGetAppDependencyGraphQueryKey(appId),
-    });
-    queryClient.invalidateQueries({
-      queryKey: getListAppProblemsQueryKey(appId),
-    });
-    queryClient.invalidateQueries({
-      queryKey: getListAppRevisionsQueryKey(appId),
-    });
-    queryClient.invalidateQueries({
-      queryKey: getGetAppQueryKey(appId),
-    });
-  }, [queryClient, appId]);
-
-  // Drag-to-connect: validate connection
-  const isValidConnection = useCallback(
-    (connection: Edge | Connection) => {
-      if (connection.source === connection.target) return false;
-      if (
-        connection.source === ADD_NODE_ID ||
-        connection.target === ADD_NODE_ID
-      )
-        return false;
-      const exists = edges.some(
-        (e) =>
-          e.source === connection.source && e.target === connection.target
-      );
-      return !exists;
-    },
-    [edges]
-  );
-
-  // Drag-to-connect: create dependency
-  const onConnect = useCallback(
-    (connection: Connection) => {
-      if (!connection.source || !connection.target) return;
-      addDependency.mutate(
-        { appId, data: { dependsOnAppId: connection.target } },
-        {
-          onSuccess: () => {
-            toast.success(t("dependencies.addPopover.successToast"));
-            invalidateQueries();
-          },
-          onError: (error: unknown) => {
-            const err = error as ProblemDetail;
-            if (err.status === 409) {
-              toast.error(t("dependencies.addPopover.cyclicError"));
-            } else {
-              toast.error(err.detail ?? err.title);
-            }
-          },
-        }
-      );
-    },
-    [appId, addDependency, t, invalidateQueries]
-  );
 
   if (isLoading) {
     return (
@@ -263,14 +156,12 @@ export function AppDependencyGraph({ appId, canEdit = false }: AppDependencyGrap
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={canEdit ? onConnect : undefined}
-        isValidConnection={canEdit ? isValidConnection : undefined}
         colorMode={resolvedTheme === "dark" ? "dark" : "light"}
         fitView
         fitViewOptions={{ padding: 0.2, maxZoom: 1.5, duration: 300 }}
         proOptions={{ hideAttribution: true }}
         nodesDraggable={false}
-        nodesConnectable={canEdit}
+        nodesConnectable={false}
         zoomOnScroll={false}
         panOnScroll
       >
@@ -278,35 +169,13 @@ export function AppDependencyGraph({ appId, canEdit = false }: AppDependencyGrap
         <Controls showInteractive={false} />
       </ReactFlow>
 
-      {/* Popover for add dependency */}
-      {popoverOpen && (
-        <div className="absolute inset-0 z-10" onClick={() => setPopoverOpen(false)}>
-          <div
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="rounded-xl border bg-background p-4 shadow-md">
-              <AddDependencyPopoverContent
-                appId={appId}
-                onSuccess={() => setPopoverOpen(false)}
-              />
-            </div>
-          </div>
+      {/* Read-only info banner */}
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10">
+        <div className="flex items-center gap-2 rounded-lg border bg-background/90 px-3 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+          <Info className="size-3 shrink-0" />
+          <span>{t("dependencies.readOnlyInfo")}</span>
         </div>
-      )}
-
-      {/* Remove dependency dialog */}
-      {deleteTarget && (
-        <RemoveDependencyDialog
-          appId={appId}
-          depAppId={deleteTarget.depAppId}
-          depAppName={deleteTarget.depAppName}
-          open
-          onOpenChange={(open) => {
-            if (!open) setDeleteTarget(null);
-          }}
-        />
-      )}
+      </div>
     </div>
   );
 }

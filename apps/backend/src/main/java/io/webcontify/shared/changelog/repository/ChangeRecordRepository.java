@@ -22,4 +22,7 @@ public interface ChangeRecordRepository extends JpaRepository<ChangeRecordEntity
                     + "WHERE c.entityType = :entityType AND c.entityId = :entityId "
                     + "AND c.draftVersion IS NOT NULL")
     void closeDraftRecords(@Param("entityType") String entityType, @Param("entityId") UUID entityId);
+
+    List<ChangeRecordEntity> findByEntityTypeAndEntityIdInAndDraftVersionIsNotNullOrderByCreatedAtDesc(
+            String entityType, List<UUID> entityIds);
 }

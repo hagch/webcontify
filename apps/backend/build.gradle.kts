@@ -179,8 +179,18 @@ tasks.register<GenerateTask>("openApiGenerateApp") {
     typeMappings.set(openApiTypeMappings)
 }
 
+tasks.register<GenerateTask>("openApiGenerateContent") {
+    generatorName.set("spring")
+    inputSpec.set("$openApiSpecDir/content-api.yaml")
+    outputDir.set(openApiOutputDir)
+    apiPackage.set("io.webcontify.generated.api")
+    modelPackage.set("io.webcontify.generated.model")
+    configOptions.set(openApiConfigOptions)
+    typeMappings.set(openApiTypeMappings)
+}
+
 tasks.named("compileJava") {
-    dependsOn("openApiGenerate", "openApiGenerateIdentity", "openApiGeneratePlatformAdmin", "openApiGenerateAuth", "openApiGenerateApp")
+    dependsOn("openApiGenerate", "openApiGenerateIdentity", "openApiGeneratePlatformAdmin", "openApiGenerateAuth", "openApiGenerateApp", "openApiGenerateContent")
 }
 
 tasks.register<Copy>("syncOpenFgaModel") {

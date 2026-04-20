@@ -81,4 +81,20 @@ export default defineConfig({
       },
     },
   },
+  content: {
+    input: {
+      target: "../../openapi/content-api.yaml",
+    },
+    output: {
+      target: "./src/generated/content.ts",
+      client: "react-query",
+      mode: "single",
+      override: {
+        mutator: {
+          path: "./src/lib/orval-mutator.ts",
+          name: "customInstance",
+        },
+      },
+    },
+  },
 });

@@ -1,0 +1,861 @@
+openapi: 3.1.0
+info:
+  title: Webcontify Content API
+  version: 1.0.0
+  description: Tenant-scoped endpoints for content definition management
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: ContentDefinition
+    description: Content Definition Management
+  - name: ContentField
+    description: Content Field Management
+
+paths:
+  /api/v1/content/{appSlug}/definitions:
+    post:
+      operationId: createContentDefinition
+      summary: Create a new content definition
+      tags:
+        - ContentDefinition
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContentDefinitionRequest'
+      responses:
+        '201':
+          description: Content definition created
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentDefinitionResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '409':
+          description: Name already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    get:
+      operationId: listContentDefinitions
+      summary: List all content definitions for an app
+      tags:
+        - ContentDefinition
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+      responses:
+        '200':
+          description: Content definition list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentDefinitionListResponse'
+
+  /api/v1/content/{appSlug}/definitions/{definitionId}:
+    get:
+      operationId: getContentDefinition
+      summary: Get a content definition by ID
+      tags:
+        - ContentDefinition
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefinitionIdPath'
+      responses:
+        '200':
+          description: Content definition details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentDefinitionResponse'
+        '404':
+          description: Content definition not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    put:
+      operationId: updateContentDefinition
+      summary: Update a content definition
+      tags:
+        - ContentDefinition
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefinitionIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateContentDefinitionRequest'
+      responses:
+        '200':
+          description: Content definition updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentDefinitionResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '404':
+          description: Content definition not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Name already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    delete:
+      operationId: deleteContentDefinition
+      summary: Soft delete a content definition
+      tags:
+        - ContentDefinition
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefinitionIdPath'
+      responses:
+        '204':
+          description: Content definition deleted
+        '404':
+          description: Content definition not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/content/{appSlug}/definitions/name-available:
+    get:
+      operationId: checkContentDefinitionNameAvailability
+      summary: Check if a content definition name is available
+      tags:
+        - ContentDefinition
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: excludeId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Exclude this definition from the check (for updates)
+      responses:
+        '200':
+          description: Name availability result
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/NameAvailabilityResponse'
+
+  /api/v1/content/{appSlug}/definitions/positions:
+    put:
+      operationId: batchUpdatePositions
+      summary: Batch update definition positions on graph canvas
+      tags:
+        - ContentDefinition
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePositionsRequest'
+      responses:
+        '204':
+          description: Positions updated
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+
+  /api/v1/content/{appSlug}/definitions/undo:
+    post:
+      operationId: undoContentChange
+      summary: Undo the last content definition change
+      tags:
+        - ContentDefinition
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+      responses:
+        '200':
+          description: Change undone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UndoRedoResponse'
+        '404':
+          description: Nothing to undo
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/content/{appSlug}/definitions/redo:
+    post:
+      operationId: redoContentChange
+      summary: Redo the last undone content definition change
+      tags:
+        - ContentDefinition
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+      responses:
+        '200':
+          description: Change redone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UndoRedoResponse'
+        '404':
+          description: Nothing to redo
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/content/{appSlug}/definitions/{definitionId}/fields:
+    post:
+      operationId: addField
+      summary: Add a field to a content definition
+      tags:
+        - ContentField
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefinitionIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFieldRequest'
+      responses:
+        '201':
+          description: Field added
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldDefinitionResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '409':
+          description: Field key already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/content/{appSlug}/definitions/{definitionId}/fields/{fieldId}:
+    put:
+      operationId: updateField
+      summary: Update a field on a content definition
+      tags:
+        - ContentField
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefinitionIdPath'
+        - $ref: '#/components/parameters/FieldIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFieldRequest'
+      responses:
+        '200':
+          description: Field updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldDefinitionResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+        '404':
+          description: Field not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Field key already exists
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+    delete:
+      operationId: deleteField
+      summary: Delete a field from a content definition
+      tags:
+        - ContentField
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefinitionIdPath'
+        - $ref: '#/components/parameters/FieldIdPath'
+      responses:
+        '204':
+          description: Field deleted
+        '404':
+          description: Field not found
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ProblemDetail'
+
+  /api/v1/content/{appSlug}/definitions/{definitionId}/fields/reorder:
+    put:
+      operationId: reorderFields
+      summary: Reorder fields on a content definition
+      tags:
+        - ContentField
+      parameters:
+        - $ref: '#/components/parameters/AppSlugPath'
+        - $ref: '#/components/parameters/DefinitionIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderFieldsRequest'
+      responses:
+        '200':
+          description: Fields reordered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentDefinitionResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './common-schemas.yaml#/components/schemas/ValidationProblemDetail'
+
+components:
+  parameters:
+    AppSlugPath:
+      name: appSlug
+      in: path
+      required: true
+      schema:
+        type: string
+
+    DefinitionIdPath:
+      name: definitionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    FieldIdPath:
+      name: fieldId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    FieldType:
+      type: string
+      enum:
+        - TEXT
+        - INTEGER
+        - DECIMAL
+        - BOOLEAN
+        - DATE
+        - ENUM
+        - REFERENCE
+        - MIRROR
+
+    RelationType:
+      type: string
+      enum:
+        - ONE_TO_ONE
+        - MANY_TO_ONE
+        - MANY_TO_MANY
+
+    OnDeleteStrategy:
+      type: string
+      enum:
+        - CASCADE
+        - SET_NULL
+        - RESTRICT
+
+    CreateContentDefinitionRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+
+    UpdateContentDefinitionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+        displayFormat:
+          type: string
+          maxLength: 500
+        positionX:
+          type: number
+          format: double
+        positionY:
+          type: number
+          format: double
+
+    ContentDefinitionResponse:
+      type: object
+      required:
+        - id
+        - appId
+        - name
+        - slug
+        - fields
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        appId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        displayFormat:
+          type: string
+        positionX:
+          type: number
+          format: double
+        positionY:
+          type: number
+          format: double
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldDefinitionResponse'
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
+        effectiveActions:
+          type: array
+          items:
+            type: string
+            enum:
+              - viewer
+              - editor
+              - admin
+              - creator
+              - deleter
+          description: Actions the current user is allowed to perform on this definition
+
+    ContentDefinitionListResponse:
+      type: object
+      required:
+        - items
+        - referencedDefinitions
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentDefinitionResponse'
+        referencedDefinitions:
+          type: array
+          description: |
+            Metadata for REFERENCE targets referenced by items but not present
+            in items (cross-definition or cross-app). Security contract:
+            when accessible=false the backend MUST NOT populate name, appId,
+            or appName. The mapper unit test enforces this invariant.
+          items:
+            $ref: '#/components/schemas/ReferencedDefinition'
+
+    ReferencedDefinition:
+      type: object
+      required:
+        - id
+        - accessible
+      properties:
+        id:
+          type: string
+          format: uuid
+        accessible:
+          type: boolean
+          description: |
+            Whether the current user has viewer access to this referenced
+            definition. When false, name/appId/appName are omitted and the
+            frontend renders a ghost placeholder.
+        name:
+          type: string
+          description: Only populated when accessible=true.
+        appId:
+          type: string
+          format: uuid
+          description: Only populated when accessible=true.
+        appName:
+          type: string
+          description: Only populated when accessible=true.
+
+    CreateFieldRequest:
+      type: object
+      required:
+        - fieldKey
+        - fieldType
+      properties:
+        fieldKey:
+          type: string
+          minLength: 1
+          maxLength: 255
+        fieldType:
+          $ref: '#/components/schemas/FieldType'
+        required:
+          type: boolean
+          default: false
+        unique:
+          type: boolean
+          default: false
+        sortable:
+          type: boolean
+          default: false
+        filterable:
+          type: boolean
+          default: false
+        config:
+          $ref: '#/components/schemas/FieldConfig'
+
+    UpdateFieldRequest:
+      type: object
+      properties:
+        fieldKey:
+          type: string
+          minLength: 1
+          maxLength: 255
+        required:
+          type: boolean
+        unique:
+          type: boolean
+        sortable:
+          type: boolean
+        filterable:
+          type: boolean
+        config:
+          $ref: '#/components/schemas/FieldConfig'
+
+    FieldDefinitionResponse:
+      type: object
+      required:
+        - id
+        - fieldKey
+        - fieldType
+        - required
+        - unique
+        - sortable
+        - filterable
+        - position
+      properties:
+        id:
+          type: string
+          format: uuid
+        fieldKey:
+          type: string
+        fieldType:
+          $ref: '#/components/schemas/FieldType'
+        required:
+          type: boolean
+        unique:
+          type: boolean
+        sortable:
+          type: boolean
+        filterable:
+          type: boolean
+        config:
+          $ref: '#/components/schemas/FieldConfig'
+        position:
+          type: integer
+
+    FieldConfig:
+      oneOf:
+        - $ref: '#/components/schemas/TextFieldConfig'
+        - $ref: '#/components/schemas/IntegerFieldConfig'
+        - $ref: '#/components/schemas/DecimalFieldConfig'
+        - $ref: '#/components/schemas/BooleanFieldConfig'
+        - $ref: '#/components/schemas/DateFieldConfig'
+        - $ref: '#/components/schemas/EnumFieldConfig'
+        - $ref: '#/components/schemas/ReferenceFieldConfig'
+        - $ref: '#/components/schemas/MirrorFieldConfig'
+      discriminator:
+        propertyName: fieldType
+        mapping:
+          TEXT: '#/components/schemas/TextFieldConfig'
+          INTEGER: '#/components/schemas/IntegerFieldConfig'
+          DECIMAL: '#/components/schemas/DecimalFieldConfig'
+          BOOLEAN: '#/components/schemas/BooleanFieldConfig'
+          DATE: '#/components/schemas/DateFieldConfig'
+          ENUM: '#/components/schemas/EnumFieldConfig'
+          REFERENCE: '#/components/schemas/ReferenceFieldConfig'
+          MIRROR: '#/components/schemas/MirrorFieldConfig'
+
+    TextFieldConfig:
+      type: object
+      required:
+        - fieldType
+      properties:
+        fieldType:
+          type: string
+          description: Must be TEXT
+        minLength:
+          type: integer
+        maxLength:
+          type: integer
+        pattern:
+          type: string
+        defaultValue:
+          type: string
+
+    IntegerFieldConfig:
+      type: object
+      required:
+        - fieldType
+      properties:
+        fieldType:
+          type: string
+          description: Must be INTEGER
+        min:
+          type: integer
+          format: int64
+        max:
+          type: integer
+          format: int64
+        defaultValue:
+          type: integer
+          format: int64
+
+    DecimalFieldConfig:
+      type: object
+      required:
+        - fieldType
+      properties:
+        fieldType:
+          type: string
+          description: Must be DECIMAL
+        min:
+          type: number
+        max:
+          type: number
+        precision:
+          type: integer
+        scale:
+          type: integer
+        defaultValue:
+          type: number
+
+    BooleanFieldConfig:
+      type: object
+      required:
+        - fieldType
+      properties:
+        fieldType:
+          type: string
+          description: Must be BOOLEAN
+        defaultValue:
+          type: boolean
+
+    DateFieldConfig:
+      type: object
+      required:
+        - fieldType
+      properties:
+        fieldType:
+          type: string
+          description: Must be DATE
+        minDate:
+          type: string
+          format: date
+        maxDate:
+          type: string
+          format: date
+        dateFormat:
+          type: string
+        defaultValue:
+          type: string
+          format: date
+
+    EnumFieldConfig:
+      type: object
+      required:
+        - fieldType
+        - allowedValues
+      properties:
+        fieldType:
+          type: string
+          description: Must be ENUM
+        allowedValues:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        defaultValue:
+          type: string
+
+    ReferenceFieldConfig:
+      type: object
+      required:
+        - fieldType
+        - targetDefinitionId
+        - relationType
+        - onDelete
+      properties:
+        fieldType:
+          type: string
+          description: Must be REFERENCE
+        targetDefinitionId:
+          type: string
+          format: uuid
+        relationType:
+          $ref: '#/components/schemas/RelationType'
+        onDelete:
+          $ref: '#/components/schemas/OnDeleteStrategy'
+
+    MirrorFieldConfig:
+      type: object
+      required:
+        - fieldType
+        - sourceDefinitionId
+        - sourceFieldId
+        - ownerAppId
+      properties:
+        fieldType:
+          type: string
+          description: Must be MIRROR
+        sourceDefinitionId:
+          type: string
+          format: uuid
+        sourceFieldId:
+          type: string
+          format: uuid
+        ownerAppId:
+          type: string
+          format: uuid
+
+    ReorderFieldsRequest:
+      type: object
+      required:
+        - fieldIds
+      properties:
+        fieldIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdatePositionsRequest:
+      type: object
+      required:
+        - positions
+      properties:
+        positions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionUpdate'
+
+    PositionUpdate:
+      type: object
+      required:
+        - definitionId
+        - positionX
+        - positionY
+      properties:
+        definitionId:
+          type: string
+          format: uuid
+        positionX:
+          type: number
+          format: double
+        positionY:
+          type: number
+          format: double
+
+    UndoRedoResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+        entityType:
+          type: string
+        entityId:
+          type: string
+          format: uuid
+        changeType:
+          type: string
+        canUndo:
+          type: boolean
+        canRedo:
+          type: boolean

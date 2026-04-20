@@ -65,6 +65,27 @@ public class ChangeRecordService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<ChangeRecord> getDraftRecordsForEntities(String entityType, List<UUID> entityIds) {
+        if (entityIds.isEmpty()) {
+            return List.of();
+        }
+        return changeRecordRepository
+                .findByEntityTypeAndEntityIdInAndDraftVersionIsNotNullOrderByCreatedAtDesc(
+                        entityType, entityIds)
+                .stream()
+                .map(this::toModel)
+                .toList();
+    }
+
+    public ChangeRecord updateChangeType(UUID id, String newChangeType) {
+        ChangeRecordEntity entity = changeRecordRepository
+                .findById(id)
+                .orElseThrow(() -> new NotFoundException("change_record.not_found"));
+        entity.setChangeType(newChangeType);
+        return toModel(changeRecordRepository.save(entity));
+    }
+
     public void closeDraftRecords(String entityType, UUID entityId) {
         changeRecordRepository.closeDraftRecords(entityType, entityId);
     }

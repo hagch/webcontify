@@ -842,6 +842,8 @@ components:
         - appId
         - appName
         - actions
+        - isRestricted
+        - definitionPermissions
       properties:
         appId:
           type: string
@@ -858,6 +860,39 @@ components:
               - viewer
               - editor
               - admin
+        isRestricted:
+          type: boolean
+          description: |
+            When true, this role's content-definition access on this app is
+            restricted to the explicit definitionPermissions list; the cascade
+            from the app-level role is disabled. When false (cascade mode),
+            definitionPermissions is empty and access is implied by the
+            app-level actions.
+        definitionPermissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleDefinitionPermissionEntry'
+
+    RoleDefinitionPermissionEntry:
+      type: object
+      required:
+        - definitionId
+        - definitionName
+        - actions
+      properties:
+        definitionId:
+          type: string
+          format: uuid
+        definitionName:
+          type: string
+        actions:
+          type: array
+          items:
+            type: string
+            enum:
+              - viewer
+              - editor
+              - deleter
 
     RoleAppPermissionsResponse:
       type: object
@@ -881,6 +916,8 @@ components:
             required:
               - appId
               - actions
+              - restricted
+              - definitionPermissions
             properties:
               appId:
                 type: string
@@ -893,6 +930,36 @@ components:
                     - viewer
                     - editor
                     - admin
+              restricted:
+                type: boolean
+                description: |
+                  Mirror of AppPermissionEntry.isRestricted for writes. When
+                  true, the restricted marker tuple is set for this role on
+                  this app and definitionPermissions is authoritative. When
+                  false, the marker and any per-definition tuples for this
+                  role on this app are cleared.
+              definitionPermissions:
+                type: array
+                description: |
+                  Authoritative when restricted=true. Ignored when
+                  restricted=false.
+                items:
+                  type: object
+                  required:
+                    - definitionId
+                    - actions
+                  properties:
+                    definitionId:
+                      type: string
+                      format: uuid
+                    actions:
+                      type: array
+                      items:
+                        type: string
+                        enum:
+                          - viewer
+                          - editor
+                          - deleter
 
     RoleListResponse:
       type: object
