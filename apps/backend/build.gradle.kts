@@ -54,6 +54,12 @@ dependencies {
     // UUID v7
     implementation("com.fasterxml.uuid:java-uuid-generator:$uuidGeneratorVersion")
 
+    // Security (SecurityContext only, no auto-config — Keycloak in Phase 2)
+    implementation("org.springframework.security:spring-security-core")
+
+    // Structured Logging
+    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
+
     // OpenAPI generated code dependencies
     implementation("jakarta.validation:jakarta.validation-api")
     implementation("jakarta.annotation:jakarta.annotation-api")
